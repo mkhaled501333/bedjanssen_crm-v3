@@ -1,0 +1,50 @@
+### Test Current Agent Reports API
+
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJlbmdsZW5kZXIiLCJjb21wYW55X2lkIjoyLCJuYW1lIjoiZW5nbGVuZGVyIiwiaWF0IjoxNzUzNjAxMjg4LCJleHAiOjE3NTM2MzAwODh9.4B4V-9ARIS3vUjiJ-rVsBbf8BMjLIfp2LSviwVElkio
+@baseUrl = http://localhost:8081
+
+### Valid Request
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=1&startDate=2024-01-01&endDate=2025-08-31
+Authorization: Bearer {{authToken}}
+
+### Missing userId parameter
+GET {{baseUrl}}/api/reports/current-agent/calls?startDate=2024-01-01&endDate=2025-08-31
+Authorization: Bearer {{authToken}}
+
+### Missing startDate parameter
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=1&endDate=2025-08-31
+Authorization: Bearer {{authToken}}
+
+### Missing endDate parameter
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=1&startDate=2024-01-01
+Authorization: Bearer {{authToken}}
+
+### Invalid userId format
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=abc&startDate=2024-01-01&endDate=2025-08-31
+Authorization: Bearer {{authToken}}
+
+### Invalid date format
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=1&startDate=01-01-2024&endDate=31-01-2024
+Authorization: Bearer {{authToken}}
+
+### Non-existent user
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=99999&startDate=2024-01-01&endDate=2025-08-31
+Authorization: Bearer {{authToken}}
+
+### Different date ranges
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=1&startDate=2024-02-01&endDate=2024-02-29
+Authorization: Bearer {{authToken}}
+
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=1&startDate=2024-03-01&endDate=2024-03-31
+Authorization: Bearer {{authToken}}
+
+### Single day
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=1&startDate=2024-01-15&endDate=2024-01-15
+Authorization: Bearer {{authToken}}
+
+### Test with invalid token
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=1&startDate=2024-01-01&endDate=2025-08-31
+Authorization: Bearer INVALID_TOKEN
+
+### Test without token
+GET {{baseUrl}}/api/reports/current-agent/calls?userId=1&startDate=2024-01-01&endDate=2025-08-31 

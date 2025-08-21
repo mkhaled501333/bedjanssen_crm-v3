@@ -1,0 +1,326 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Modal, Form, Input, Select, DatePicker, Button, Row, Col, Radio, ConfigProvider, notification } from 'antd';
+import moment from 'moment';
+import { getCallCategories } from '../../../api';
+import { getTicketCategories, getRequestReasons, getProducts, getCompanies } from '../../../../masterdata/api';
+import styles from './AddNewTicketModal.module.css';
+
+const { Option } = Select;
+const { TextArea } = Input;
+
+interface AddNewTicketModalProps {
+  onClose: () => void;
+  onSave: (ticketData: Record<string, unknown>) => void;
+  customerName: string;
+  customerId: number;
+}
+
+interface MasterDataItem {
+  id: number;
+  name: string;
+}
+
+interface ProductDataItem {
+  id: number;
+  product_name: string;
+  company_id?: number;
+}
+
+interface CompanyDataItem {
+    id: number;
+    name: string;
+}
+
+const mockTicketCategories = [
+  { id: 1, name: 'استفسار عن منتج' },
+  { id: 2, name: 'شكوى من منتج' },
+  { id: 3, name: 'اقتراح' },
+];
+const mockRequestReasons = [
+    { id: 1, name: 'منتج تالف' },
+    { id: 2, name: 'منتج منتهي الصلاحية' },
+    { id: 3, name: 'تأثير عكسي' },
+];
+const mockCallCategories = [
+    { id: 1, name: 'استفسار' },
+    { id: 2, name: 'شكوى' },
+    { id: 3, name: 'متابعة' },
+];
+
+
+export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicketModalProps) {
+  const [form] = Form.useForm();
+  const [api, contextHolder] = notification.useNotification();
+  const [callCategories, setCallCategories] = useState<MasterDataItem[]>([]);
+  const [ticketCategories, setTicketCategories] = useState<MasterDataItem[]>([]);
+  const [requestReasons, setRequestReasons] = useState<MasterDataItem[]>([]);
+  const [products, setProducts] = useState<ProductDataItem[]>([]);
+  const [companies, setCompanies] = useState<CompanyDataItem[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
+  
+  const [loading, setLoading] = useState({
+    callCategories: false,
+    ticketCategories: false,
+    requestReasons: false,
+    products: false,
+    companies: false,
+  });
+
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      setLoading(prev => ({ ...prev, callCategories: true, ticketCategories: true, requestReasons: true, products: true, companies: true }));
+      try {
+        const [calls, tickets, reasons, prods, comps] = await Promise.all([
+          getCallCategories(),
+          getTicketCategories(),
+          getRequestReasons(),
+          getProducts(),
+          getCompanies(),
+        ]);
+        setCallCategories(calls);
+        setTicketCategories(tickets);
+        setRequestReasons(reasons);
+        setProducts(prods);
+        setCompanies(comps);
+
+      } catch (error) {
+        console.error("Failed to fetch master data, using mock data.", error);
+        api.warning({
+          message: 'Failed to fetch master data',
+          description: 'Using mock data for dropdowns. Please ensure backend endpoints are correctly configured.',
+          duration: 15
+        });
+        setCallCategories(mockCallCategories);
+        setTicketCategories(mockTicketCategories);
+        setRequestReasons(mockRequestReasons);
+      } finally {
+        setLoading(prev => ({ ...prev, callCategories: false, ticketCategories: false, requestReasons: false, products: false, companies: false }));
+      }
+    };
+    fetchMasterData();
+  }, [api]);
+
+  const handleSave = () => {
+    form.validateFields().then(values => {
+      const ticketData = {
+        ticketCatId: values.ticketCatId,
+        description: values.description,
+        priority: values.priority,
+        call: {
+          callType: values.callType,
+          callCatId: values.callCatId,
+          description: values.callDescription,
+          callNotes: values.callNotes,
+          callDuration: values.callDuration,
+        },
+        item: {
+          productId: values.productId,
+          quantity: values.quantity,
+          productSize: values.productSize,
+          purchaseDate: values.purchaseDate.format('YYYY-MM-DD'),
+          purchaseLocation: values.purchaseLocation,
+          requestReasonId: values.requestReasonId,
+          requestReasonDetail: values.requestReasonDetail,
+        }
+      };
+      onSave(ticketData);
+      form.resetFields();
+    }).catch(info => {
+      console.log('Validate Failed:', info);
+    });
+  };
+
+  return (
+    <ConfigProvider direction="rtl">
+      {contextHolder}
+      <Modal
+        title={`إضافة تذكرة جديدة لـ ${customerName}`}
+        open={true}
+        onCancel={onClose}
+        width={960}
+        footer={[
+          <Button key="back" onClick={onClose}>
+            إلغاء
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleSave}>
+            حفظ
+          </Button>,
+        ]}
+        styles={{
+          body: { backgroundColor: '#f0f2f5', padding: '16px' },
+          header: { 
+            backgroundColor: '#fff', 
+            borderBottom: '1px solid #e8e8e8',
+            padding: '16px 24px',
+            margin: 0
+          },
+          content: {
+            padding: 0
+          },
+          footer: { 
+            backgroundColor: '#fff', 
+            borderTop: '1px solid #e8e8e8', 
+            padding: '12px 24px', 
+            margin: 0
+          }
+        }}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          name="addNewTicketForm"
+          className={styles.compactForm}
+          initialValues={{
+            priority: 'low',
+            quantity: 1,
+            purchaseDate: moment(),
+            callType: 'incoming',
+          }}
+        >
+          <Row gutter={24}>
+            {/* Right Column (as it's RTL) */}
+            <Col span={12}>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item name="priority" label={<span className={styles.formLabel}>الأولوية</span>} rules={[{ required: true }]}>
+                    <Select size="small" placeholder="اختر الأولوية">
+                      <Option value="low">منخفضة</Option>
+                      <Option value="medium">متوسطة</Option>
+                      <Option value="high">عالية</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="ticketCatId" label={<span className={styles.formLabel}>فئة التذكرة</span>} rules={[{ required: true }]}>
+                    <Select
+                      size="small"
+                      showSearch
+                      placeholder="اختر فئة"
+                      loading={loading.ticketCategories}
+                      filterOption={(input, option) =>
+                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={ticketCategories.map(cat => ({ value: cat.id, label: cat.name }))}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item name="description" label={<span className={styles.formLabel}>وصف التذكرة</span>}>
+                <TextArea size="small" rows={3} placeholder="أدخل وصفًا تفصيليًا للتذكرة" />
+              </Form.Item>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item name="companyId" label={<span className={styles.formLabel}>الشركة المصنعة</span>} rules={[{ required: true }]}>
+                    <Select
+                      size="small"
+                      showSearch
+                      placeholder="اختر الشركة"
+                      loading={loading.companies}
+                      onChange={(value) => {
+                        setSelectedCompany(value);
+                        form.setFieldsValue({ productId: null }); // Reset product when company changes
+                      }}
+                      options={companies.map(c => ({ value: c.id, label: c.name }))}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="productId" label={<span className={styles.formLabel}>اسم المنتج</span>} rules={[{ required: true }]}>
+                    <Select
+                      size="small"
+                      showSearch
+                      placeholder="اختر المنتج"
+                      loading={loading.products}
+                      disabled={!selectedCompany}
+                      filterOption={(input, option) =>
+                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={products
+                        .filter(p => p.company_id === selectedCompany)
+                        .map(p => ({ value: p.id, label: p.product_name }))
+                      }
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item name="productSize" label={<span className={styles.formLabel}>حجم المنتج</span>}>
+                    <Input size="small" placeholder="مثال: 250مل" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="quantity" label={<span className={styles.formLabel}>الكمية</span>}>
+                    <Input size="small" type="number" />
+                  </Form.Item>
+                </Col>
+              </Row>
+              
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item name="purchaseDate" label={<span className={styles.formLabel}>تاريخ الشراء</span>}>
+                    <DatePicker style={{ width: '100%' }} size="small" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                    <Form.Item name="purchaseLocation" label="مكان الشراء">
+                        <Input size="small" placeholder="أدخل مكان الشراء" />
+                    </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item name="requestReasonId" label={<span className={styles.formLabel}>سبب الطلب</span>} rules={[{ required: true }]}>
+                <Select
+                  size="small"
+                  showSearch
+                  placeholder="اختر سبب الطلب"
+                  loading={loading.requestReasons}
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={requestReasons.map(reason => ({ value: reason.id, label: reason.name }))}
+                />
+              </Form.Item>
+
+              <Form.Item name="requestReasonDetail" label={<span className={styles.formLabel}>تفاصيل سبب الطلب</span>} rules={[{ required: true, message: 'يرجى إدخال تفاصيل سبب الطلب' }]}>
+                <TextArea size="small" rows={3} placeholder="أدخل تفاصيل إضافية" />
+              </Form.Item>
+            </Col>
+
+            {/* Left Column (as it's RTL) */}
+            <Col span={12}>
+              <Form.Item label={<span className={styles.formLabel}>نوع المكالمة</span>} name="callType" rules={[{ required: true }]}>
+                <Radio.Group optionType="button" buttonStyle="solid" size="small">
+                  <Radio.Button value="incoming">وارد</Radio.Button>
+                  <Radio.Button value="outgoing">صادر</Radio.Button>
+                </Radio.Group>
+              </Form.Item>
+
+              <Form.Item name="callCatId" label={<span className={styles.formLabel}>فئة المكالمة</span>} rules={[{ required: true }]}>
+                <Select
+                  size="small"
+                  showSearch
+                  placeholder="اختر فئة المكالمة"
+                  loading={loading.callCategories}
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={callCategories.map(cat => ({ value: cat.id, label: cat.name }))}
+                />
+              </Form.Item>
+
+              <Form.Item name="callDescription" label={<span className={styles.formLabel}>وصف المكالمة</span>}>
+                <TextArea size="small" rows={4} placeholder="أدخل وصفًا تفصيليًا للمكالمة" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+    </ConfigProvider>
+  );
+}

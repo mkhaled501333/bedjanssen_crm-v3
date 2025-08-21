@@ -1,0 +1,2213 @@
+/* CustomerData component styles */
+
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 23%;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+    color: white;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 0;
+}
+
+.customerInfo {
+    text-align: left;
+    padding: 0;
+    margin: 0;
+}
+
+.customerName {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #ffffff;
+    text-align: center;
+    direction: rtl;
+}
+
+.customerIndicators {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.indicatorItem {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.indicatorLabel {
+    opacity: 0.8;
+    margin-right: 5px;
+}
+
+.phoneList {
+    margin-bottom: 8px;
+}
+
+.phoneItem {
+    display: flex;
+    align-items: center;
+  justify-content: space-between;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    margin-bottom: 3px;
+    border-radius: 20px;
+    font-size: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    direction: rtl;
+}
+
+.phoneContent {
+    display: flex;
+  align-items: center;
+    gap: 8px;
+}
+
+.phoneIcon {
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.phoneNumber {
+    font-weight: 500;
+}
+
+.phoneLabel {
+    font-size: 10px;
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+
+.addressSection {
+  flex: 1;
+    margin-top: 0;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    direction: rtl;
+}
+
+.addressHeader {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.addressIcon {
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.addressTitle {
+    font-size: 13px;
+  font-weight: 600;
+    opacity: 0.9;
+}
+
+.addressText {
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: 0.85;
+    direction: rtl;
+    text-align: right;
+}
+
+.customerDetailsSection {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+    color: white;
+    padding: 8px;
+    margin: 5px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
+    position: relative;
+    flex-shrink: 0;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+}
+
+.customerDetails {
+    flex: 1;
+}
+
+.customerId {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+.customerStats {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.statItem {
+    flex: 1;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 6px 4px;
+  border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.statLabel {
+    display: block;
+    font-size: 10px;
+    opacity: 0.8;
+    margin-bottom: 2px;
+}
+
+.statValue {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.customerCallsSection {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: white;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    height: 100%;
+}
+
+.callsHeader {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+    color: white;
+  padding: 12px 20px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.callsHeaderButtons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.callsHeader h3 {
+    margin: 0;
+  font-size: 14px;
+    color: white;
+    font-weight: 600;
+}
+
+.callCounter {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+    display: inline-block;
+    margin: 0 4px;
+}
+
+
+
+.callsList,
+.callEntriesScrollable {
+    flex: 1;
+    overflow-y: auto;
+    background: white;
+    padding: 12px;
+    border-radius: 0 0 8px 8px;
+    border: 1px solid #e9ecef;
+    border-top: none;
+}
+
+.callsList::-webkit-scrollbar,
+.callEntriesScrollable::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.callsList::-webkit-scrollbar-track,
+.callEntriesScrollable::-webkit-scrollbar-track {
+    background: #e3eafc;
+    border-radius: 8px;
+}
+
+.callsList::-webkit-scrollbar-thumb,
+.callEntriesScrollable::-webkit-scrollbar-thumb {
+    background: #64a8f7;
+    border-radius: 8px;
+    min-height: 24px;
+}
+
+.callsList::-webkit-scrollbar-thumb:hover,
+.callEntriesScrollable::-webkit-scrollbar-thumb:hover {
+    background: #1976d2;
+}
+
+.callItem {
+    margin-bottom: 12px;
+    border: 1px solid #dee2e6;
+    border-left: 5px solid #007bff;
+    border-radius: 8px;
+    background: #f8f9fa;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), inset 0 1px 1px rgba(255,255,255,0.5);
+    transition: all 0.2s ease-in-out;
+    overflow: hidden;
+}
+
+.callItem:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    border-left-color: #0056b3;
+}
+
+.callItem:last-child {
+    margin-bottom: 0;
+}
+
+.scrollSpacer {
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.callInfo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.callType {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.callType.incoming {
+  background: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+}
+
+.callType.outgoing {
+  background: #fffbe6;
+    color: #faad14;
+    border: 1px solid #ffe58f;
+}
+
+.callDate {
+    font-size: 10px;
+    color: #6c757d;
+}
+
+.callDetails {
+    margin-bottom: 6px;
+}
+
+.callSubject {
+    font-size: 13px;
+    color: #495057;
+    font-weight: 500;
+    margin-bottom: 3px;
+}
+
+.callDuration {
+    font-size: 11px;
+    color: #6c757d;
+    padding: 2px 4px;
+}
+
+.callStatus {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-align: center;
+    width: fit-content;
+}
+
+.callStatus.resolved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.callStatus.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.callHeader {
+  display: flex;
+    justify-content: space-between;
+  align-items: center;
+    margin-bottom: 4px;
+}
+
+.callMainInfo {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    align-items: center;
+    font-size: 11px;
+    color: #555;
+    gap: 8px;
+}
+
+.callCategoryWrapper {
+  padding: 0;
+}
+
+.callFooter {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 12px;
+}
+
+.callTime {
+    font-weight: 500;
+    color: #666;
+    font-size: 0.85em;
+}
+
+.callNumber {
+    background: #f8f9fa;
+    color: #666;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8em;
+}
+
+.callAgent, .callCompany {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+}
+
+.callCategory {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: #e9ecef;
+    color: #495057;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.callNotes {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+.ticketStaticHeader {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 40px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Ticket Category Badge - Like Image */
+.ticketCategoryBadge {
+    display: inline-flex;
+    align-items: center;
+    background: #f3f8fe;
+    border: 2px solid #64a8f7;
+    color: #1976d2;
+    border-radius: 12px;
+    padding: 4px 16px 4px 8px;
+    font-size: 16px;
+    font-weight: 600;
+    gap: 8px;
+    margin: 10px 0 0 0;
+}
+.ticketCategoryBadge .badgeIcon {
+    font-size: 18px;
+    color: #1976d2;
+    margin-left: 4px;
+}
+.ticketCategoryBadge .badgeText {
+    color: #1976d2;
+    font-size: 16px;
+    font-weight: 600;
+}
+.ticketCategoryBadge .badgeEditBtn {
+    background: none;
+  border: none;
+    color: #1976d2;
+    font-size: 16px;
+  cursor: pointer;
+    margin-right: 4px;
+    padding: 2px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.ticketCategoryBadge .badgeEditBtn:hover {
+    background: #e3f0fd;
+}
+
+.ticketCategoryBadge .badgeEditBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ticketCategoryBadge .badgeEditBtn:disabled:hover {
+    background: transparent;
+}
+
+.ticketDetailsStatic {
+    background: #f8f9fa;
+    padding: 20px;
+    border-left: 1px solid #e9ecef;
+    border-right: 1px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.ticketActionsStatic {
+    padding: 12px;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+.sidebarSection {
+    margin-bottom: 20px;
+}
+
+.sectionTitle {
+    font-size: 16px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.navItem {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+  display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navItem:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navItem.active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Main Content */
+.mainContent {
+    flex: 1;
+    position: relative;
+    background: #eef2f5;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+    margin-bottom: 30px;
+}
+
+.pageTitle {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.newTicketBtn {
+    background: #4299e1;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+  font-weight: 500;
+    transition: background 0.3s;
+}
+
+.newTicketBtn:hover {
+    background: #3182ce;
+}
+
+.ticketsFilter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 5px;
+    padding: 4px 0;
+    flex-shrink: 0;
+}
+
+.filterTab {
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filterTab:hover {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.filterTab.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+}
+
+.ticketCountBadge {
+    margin-left: 8px;
+    background-color: #e2e8f0;
+    color: #4a5568;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.tabClose {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  font-size: 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.tabClose:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.filterTab:not(.active) .tabClose {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.filterTab:not(.active) .tabClose:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Ticket Detail View Styles */
+.ticketDetailView {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.ticketDetailContainer {
+    display: flex;
+    height: 100%;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.ticketDetailMain {
+    flex: 1;
+    width: 15%;
+    padding: 0;
+}
+
+.ticketHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.ticketNumber {
+    font-size: 32px;
+    font-weight: bold;
+    color: #2d3748;
+    margin: 0;
+}
+
+.ticketActions {
+    display: flex;
+    gap: 10px;
+}
+
+.actionBtn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.actionBtn.primary {
+    background: #4299e1;
+    color: white;
+}
+
+.actionBtn.secondary {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.ticketDetailsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+    gap: 5px;
+}
+
+.detailItem label {
+    font-size: 12px;
+    color: #718096;
+    font-weight: 400;
+}
+
+.detailItem span {
+    font-size: 13px;
+    color: #2d3748;
+    font-weight: 400;
+}
+
+.ticketActionButtons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.activityLogsBtn {
+    background: #4299e1;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.activityLogsBtn:hover {
+    background: #3182ce;
+}
+
+.closeTicketBtn {
+    background: #48bb78;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+  border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: background 0.3s;
+}
+
+.closeTicketBtn:hover {
+    background: #38a169;
+}
+
+.callLogSection {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 500px;
+}
+
+.callLogHeader {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 40px;
+  display: flex;
+  align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+}
+
+.callLogHeader h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #2d3748;
+    flex: 1;
+}
+
+.callCount {
+    background: #4299e1;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.callActions {
+    display: flex;
+    gap: 8px;
+}
+
+.callActionBtn {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.callActionBtn:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.callEntry {
+    padding: 20px;
+}
+
+.callInfo {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.callTypeBadge {
+  display: inline-block;
+}
+
+.callType {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.callDate {
+  font-size: 14px;
+    color: #718096;
+}
+
+.callDetails {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.callInquiry {
+    background: #e6fffa;
+    color: #38a169;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.callAgent, .callDuration {
+    color: #718096;
+}
+
+.callDescription {
+    font-size: 14px;
+    color: #4a5568;
+}
+
+.descriptionText {
+    margin-top: 5px;
+    padding: 10px;
+    background: #f7fafc;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.ticketDetailSidebar {
+    flex: 1;
+    width: 75%;
+    background: #f7fafc;
+    border-left: 1px solid #e2e8f0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.sidebarStaticHeader {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 40px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.headerVisualContainer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+}
+
+.headerIconSection {
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.mainIcon {
+    font-size: 18px;
+    margin-right: 4px;
+}
+
+.statusIndicator {
+    color: #4CAF50;
+    font-size: 8px;
+    position: absolute;
+    top: -1px;
+    right: 0;
+}
+
+.headerInfoSection {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.ticketNumber {
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.ticketType {
+    font-size: 10px;
+    opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.countIndicator {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.countNumber {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
+}
+
+.headerActions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.headerBtn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.headerBtn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.sidebarContent {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    background: #f5f7fa;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-height: 0;
+    height: 100%;
+}
+
+.sidebarContent::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.sidebarContent::-webkit-scrollbar-track {
+    background: #e3eafc;
+    border-radius: 8px;
+}
+
+.sidebarContent::-webkit-scrollbar-thumb {
+    background: #64a8f7;
+    border-radius: 8px;
+    min-height: 24px;
+}
+
+.sidebarContent::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.contentArea {
+    flex: 1;
+    position: relative;
+    background: #eef2f5;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.productInfo {
+    background: white;
+  border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding-bottom: 20px;
+}
+
+.productInfoContainer {
+    display: block;
+    width: 100%;
+    color: #2d3748;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06), 0 4px 8px rgba(0,0,0,0.1);
+    border: 1px solid #dee2e6;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.productHeader {
+    background: transparent;
+    color: #222;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    border-bottom: 1px solid #e9ecef;
+    transition: background 0.2s ease;
+}
+
+.productHeader:hover {
+    background: #f7fafd;
+}
+
+.productHeaderExpanded {
+    background: transparent;
+}
+
+.productHeaderLeft {
+    display: flex;
+    align-items: center;
+  gap: 12px;
+}
+
+.productTitle {
+    font-weight: 700;
+    font-size: 15px;
+    color: #222;
+    letter-spacing: 0.2px;
+}
+
+.productCount {
+    background: #e3eafc;
+    color: #357abd;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.addProductBtn {
+    background: #f3f4f6;
+    border: none;
+    color: #357abd;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+  align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+    transition: background 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.addProductBtn:hover {
+    background: #e3eafc;
+}
+
+.collapseBtn {
+    background: #f3f4f6;
+    border: none;
+    color: #357abd;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    margin-left: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.collapseBtn.collapsed {
+    transform: rotate(-90deg);
+    background: #e3eafc;
+}
+
+.productContent {
+    display: block;
+    width: 100%;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    max-height: 1000px; /* Add a max-height for the transition */
+}
+
+.productContent.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.productItemRedesigned {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    margin: 0;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.productItemRedesigned:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: #cbd5e0;
+}
+
+.productBasicDetails {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.companyInfo, .productDetails, .quantityInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.companyLabel, .productLabel, .qtyLabel {
+    color: #6b7280;
+    font-size: 13px;
+  font-weight: 600;
+    min-width: 85px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.companyName {
+    color: #1f2937;
+    font-size: 15px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.productNameEn {
+    color: #4a90e2;
+    font-size: 15px;
+    font-weight: 700;
+    direction: rtl;
+    text-shadow: 0 1px 2px rgba(74, 144, 226, 0.1);
+}
+
+.productCode {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    color: #6b7280;
+    padding: 4px 10px;
+    border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+    margin-left: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.qtyValue {
+    color: #1f2937;
+    font-size: 15px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.qtyDropdown {
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: #6b7280;
+    margin-left: 10px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.qtyDropdown:hover {
+    border-color: #4a90e2;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    transform: translateY(-1px);
+}
+
+.productExpandedDetails {
+    padding: 20px;
+    background: #fff;
+    border-radius: 0;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin: 0;
+    overflow: visible;
+}
+
+.detailRow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    background: #fff;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.detailRowWithButtons {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #fff;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    min-height: 40px;
+}
+
+.detailRowWithButtons .buttonContainer {
+    margin-left: auto;
+}
+
+.buttonContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+
+.detailColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+.detailLabel {
+    color: #888;
+    font-size: 12px;
+    font-weight: 400;
+    margin-bottom: 0;
+    text-align: right;
+    direction: rtl;
+}
+.detailValue {
+    color: #222;
+    font-size: 16px;
+    font-weight: 400;
+    text-align: left;
+}
+.requestSection {
+    margin: 18px 0 0 0;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+.requestReason, .requestDetails {
+    color: #222;
+    font-size: 15px;
+    margin: 0 0 8px 0;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    direction: rtl;
+    font-weight: 700;
+}
+.actionSection {
+    margin-top: 18px;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+.dateInspection {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    direction: rtl;
+    justify-content: flex-end;
+}
+.inspectionLabel {
+    color: #222;
+    font-size: 14px;
+    margin-left: auto;
+    direction: rtl;
+    font-weight: 700;
+}
+.inspectionCheckbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #4299e1;
+}
+.inspectionResult {
+    margin-bottom: 14px;
+}
+.resultLabel {
+    color: #888;
+    font-size: 13px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    direction: rtl;
+}
+.resultTextarea {
+    width: 100%;
+    min-height: 48px;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    resize: vertical;
+    background: #fafbfc;
+    color: #222;
+    margin-bottom: 0;
+}
+.resultTextarea:disabled,
+.resultInputWrapper textarea:disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+.saveButton {
+    padding: 14px 36px;
+    font-size: 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    background: #38a169;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(56, 161, 105, 0.15);
+}
+
+.saveButtonGreen {
+    background: linear-gradient(90deg, #38a169 0%, #43e97b 100%);
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    box-shadow: 0 4px 16px rgba(56, 161, 105, 0.18);
+}
+
+.saveButtonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 10px 0;
+}
+
+.actionTypeSection {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.actionTypeSection h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.actionTypeSelector {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 8px;
+  border: 1px solid #cbd5e0;
+  overflow: hidden;
+}
+
+.actionTypeButton {
+  flex-grow: 1;
+  padding: 10px;
+  background-color: #fff;
+  color: #4a5568;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  border-left: 1px solid #cbd5e0;
+}
+
+.actionTypeButton:first-child {
+  border-left: none;
+}
+
+.actionTypeButton:hover {
+  background-color: #f7fafc;
+}
+
+.actionTypeSelected {
+  background-color: #f0f9ff;
+  color: #2b6cb0;
+  font-weight: 600;
+  border: 2px solid #4299e1 !important;
+  box-shadow: 0 0 5px rgba(66, 153, 225, 0.5);
+  position: relative;
+  z-index: 1;
+}
+
+.checkIcon {
+  margin-right: 8px;
+  color: #3182ce;
+  font-weight: bold;
+}
+
+.actionForm {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.formField label {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.formColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.actionForm input,
+.actionForm textarea,
+.actionForm select {
+  padding: 8px;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkboxGroup label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.ticketsList {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 20px;
+}
+
+.ticketItem {
+    background: #ffffff;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.ticketItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    border-color: #cbd5e0;
+}
+
+.ticketItem:last-child {
+    border-bottom: none;
+}
+
+.ticketTopRow, .ticketBottomRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.ticketBottomRow {
+    gap: 20px;
+}
+
+.ticketCompanyId {
+    font-size: 14px;
+    color: #718096;
+    padding: 8px 0;
+    width: 100%;
+    text-align: left;
+}
+
+.creatorInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #4a5568;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.creatorDetails {
+    display: flex;
+    flex-direction: column;
+}
+
+.raisedBy {
+    font-size: 11px;
+    color: #a0aec0;
+}
+
+.creatorName {
+    font-size: 14px;
+    font-weight: 500;
+    color: #2d3748;
+}
+
+.addNewTicketButton {
+  margin-left: auto;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.addNewTicketButton:hover {
+  background-color: #0056b3;
+}
+
+.ticketDetailsGroup {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+}
+
+.ticketDateWrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #718096;
+}
+
+.editIcon {
+    cursor: pointer;
+    font-size: 16px;
+    color: #a0aec0;
+}
+
+.ticketMainInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ticketStatusAndId {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ticketCategory {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.ticketSecondaryInfo {
+    display: flex;
+    gap: 24px;
+}
+
+.infoItem {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.infoLabel {
+    font-size: 11px;
+    color: #718096;
+    margin-bottom: 2px;
+}
+
+.infoValue {
+    font-size: 14px;
+    font-weight: 500;
+    color: #2d3748;
+}
+
+.ticketStatus {
+    padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statusOpen {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.statusSolved {
+    background: #c6f6d5;
+    color: #38a169;
+}
+
+.ticketId {
+    font-weight: bold;
+    color: #2d3748;
+    min-width: 60px;
+}
+
+.ticketInfo {
+    flex: 1;
+}
+
+.ticketTitle {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+
+.ticketMeta {
+    font-size: 14px;
+    color: #718096;
+}
+
+.ticketAssignee {
+  text-align: center;
+    min-width: 100px;
+}
+
+.assigneeName {
+    font-weight: 500;
+    color: #2d3748;
+}
+
+.ticketDate {
+    font-size: 14px;
+    color: #718096;
+    min-width: 120px;
+    text-align: right;
+}
+
+.priorityIndicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.priorityHigh {
+    color: #e53e3e;
+}
+
+.priorityMedium {
+    color: #dd6b20;
+}
+
+.priorityLow {
+    color: #38a169;
+}
+
+#detailCreatedBy,
+#detailCreatedDate,
+#detailCategory,
+#detailCompanyId {
+    color: #0d1333;
+    font-weight: 700;
+}
+
+.sidebarTitleStrong {
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: #222 !important;
+}
+
+.requestSection .detailLabel {
+    text-align: right !important;
+    direction: rtl !important;
+    align-self: flex-end !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+.dateText {
+    color: #222 !important;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 4px;
+}
+.datePickerIconBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: #4299e1;
+    margin-right: 8px;
+    padding: 0;
+    vertical-align: middle;
+}
+.hiddenDateInput {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.productHeaderContent {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.productHeaderIndex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: #e3f0fd;
+    border-radius: 50%;
+    font-weight: bold;
+    color: #3498db;
+    font-size: 18px;
+    border: 2px solid #64a8f7;
+    flex-shrink: 0;
+}
+
+.productHeaderGrid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.productInfoColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.productHeaderLabel {
+    font-size: 11px;
+    color: #888;
+}
+
+.productHeaderText {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 14px;
+}
+
+.closedTicketNotice {
+    background: #fff3cd;
+    color: #856404;
+    padding: 8px 16px;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.changeCategoryBtn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.changeCategoryBtn:hover:not(:disabled) {
+    background: #5a6268;
+}
+
+.changeCategoryBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.actionTypeButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #e9ecef;
+}
+
+.inspectionCheckbox:disabled,
+.dateInput:disabled,
+.resultTextarea:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.addCallButton {
+    background: linear-gradient(90deg, #4f8cff 0%, #38b6ff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 8px 22px;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(79, 140, 255, 0.15);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    outline: none;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.addCallButton:hover:not(:disabled) {
+    background: linear-gradient(90deg, #357ae8 0%, #1fa2ff 100%);
+    box-shadow: 0 4px 16px rgba(79, 140, 255, 0.25);
+    transform: translateY(-2px) scale(1.04);
+}
+
+.addCallButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #e9ecef;
+}
+
+.viewAllCallsButton {
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.viewAllCallsButton:hover:not(:disabled) {
+    background: linear-gradient(90deg, #218838 0%, #1ea085 100%);
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.25);
+    transform: translateY(-1px);
+}
+
+.viewAllCallsButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #e9ecef;
+}
+
+.saveButton:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+.actionTypeHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.saveButtonSmall {
+    padding: 10px 28px;
+    font-size: 18px;
+    border-radius: 8px;
+}
+
+/* Edit and Delete buttons */
+.editButton {
+  background: transparent;
+  color: #666;
+  border: none;
+  padding: 2px;
+  border-radius: 2px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  min-height: 18px;
+}
+
+.editButton:hover:not(:disabled) {
+  color: #333;
+}
+
+.editButton:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.deleteButton {
+  background: transparent;
+  color: #666;
+  border: none;
+  padding: 2px;
+  border-radius: 2px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  min-height: 18px;
+}
+
+.deleteButton:hover:not(:disabled) {
+  color: #333;
+}
+
+.deleteButton:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.activitiesButton {
+  background: transparent;
+  color: #666;
+  border: none;
+  padding: 2px;
+  border-radius: 2px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  min-height: 18px;
+  margin-top: 4px;
+}
+
+.activitiesButton:hover:not(:disabled) {
+  color: #333;
+}
+
+.activitiesButton:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Modal styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  padding: 20px 24px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modalHeader h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.modalContent {
+  padding: 20px 24px;
+}
+
+.modalContent p {
+  margin: 0 0 16px 0;
+  color: #666;
+}
+
+.itemDetails {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 16px 0;
+}
+
+.itemDetails p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.modalActions {
+  padding: 0 24px 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #e0e0e0;
+  border-color: #ccc;
+}
+
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.deleteConfirmButton {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.deleteConfirmButton:hover:not(:disabled) {
+  background: #c62828;
+}
+
+.deleteConfirmButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

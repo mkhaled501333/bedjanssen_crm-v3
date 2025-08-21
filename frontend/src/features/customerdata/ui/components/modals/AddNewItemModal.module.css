@@ -1,0 +1,27 @@
+.compactForm :global(.ant-form-item) {
+    margin-bottom: 12px;
+}
+  
+.formLabel {
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.compactForm :global(.ant-radio-button-wrapper) {
+    padding: 0 12px;
+    height: 30px;
+    line-height: 28px;
+}
+
+.compactForm :global(.ant-modal-body) {
+    background-color: #f7f8fa;
+}
+
+.compactForm :global(.ant-form-item-label > label) {
+    font-size: 13px;
+    color: #555;
+}
+
+.compactForm :global(.ant-form-item-label) {
+    padding-bottom: 4px;
+} 

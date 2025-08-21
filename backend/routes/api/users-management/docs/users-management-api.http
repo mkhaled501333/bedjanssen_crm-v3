@@ -1,0 +1,363 @@
+### User Management API Test File
+### This file contains HTTP requests to test all user management endpoints
+### Use with REST Client extension in VS Code or similar HTTP client
+
+### Variables
+@baseUrl = http://localhost:8080
+@apiUrl = {{baseUrl}}/api/users-management
+@authToken = your-jwt-token-here
+@userId = 1
+@testUserId = 2
+
+### ===========================================
+### 1. GET ALL USERS
+### ===========================================
+
+### Get all users (default pagination)
+GET {{apiUrl}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Get users with pagination
+GET {{apiUrl}}?limit=5&offset=0
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Search users
+GET {{apiUrl}}?search=john
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Get users with custom pagination
+GET {{apiUrl}}?limit=20&offset=10
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 2. CREATE USER
+### ===========================================
+
+### Create a new user (minimal required fields)
+POST {{apiUrl}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "John Doe",
+  "username": "john.doe",
+  "password": "secure_password123",
+  "companyId": 1
+}
+
+### Create a new user (with all fields)
+POST {{apiUrl}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Jane Smith",
+  "username": "jane.smith",
+  "password": "secure_password456",
+  "companyId": 1,
+  "createdBy": 1,
+  "isActive": true,
+  "permissions": [1, 2, 3, 10, 20]
+}
+
+### Create user with permissions
+POST {{apiUrl}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Admin User",
+  "username": "admin.user",
+  "password": "admin_password789",
+  "companyId": 1,
+  "createdBy": 1,
+  "isActive": true,
+  "permissions": [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 20, 21, 22, 23, 30, 31, 40, 41, 50, 60]
+}
+
+### ===========================================
+### 3. GET USER BY ID
+### ===========================================
+
+### Get specific user by ID
+GET {{apiUrl}}/{{userId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Get another user by ID
+GET {{apiUrl}}/{{testUserId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Get non-existent user (should return 404)
+GET {{apiUrl}}/999
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 4. UPDATE USER
+### ===========================================
+
+### Update user (partial update)
+PUT {{apiUrl}}/{{testUserId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "John Smith Updated",
+  "isActive": true
+}
+
+### Update user (full update)
+PUT {{apiUrl}}/{{testUserId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "John Smith Full Update",
+  "username": "john.smith.updated",
+  "password": "new_secure_password",
+  "companyId": 1,
+  "isActive": true,
+  "permissions": [1, 2, 3, 4, 10, 11, 20]
+}
+
+### Update user status (deactivate)
+PUT {{apiUrl}}/{{testUserId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "isActive": false
+}
+
+### Update user status (reactivate)
+PUT {{apiUrl}}/{{testUserId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "isActive": true
+}
+
+### ===========================================
+### 5. USER PERMISSIONS MANAGEMENT
+### ===========================================
+
+### Get user permissions
+GET {{apiUrl}}/{{testUserId}}/permissions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Update user permissions (replace all)
+PUT {{apiUrl}}/{{testUserId}}/permissions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "permissions": [1, 2, 3, 10, 11, 20, 21],
+  "updatedBy": 1
+}
+
+### Add permissions to user (keeps existing)
+POST {{apiUrl}}/{{testUserId}}/permissions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "permissions": [4, 5, 12, 13],
+  "updatedBy": 1
+}
+
+### Set admin permissions
+PUT {{apiUrl}}/{{testUserId}}/permissions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "permissions": [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 20, 21, 22, 23, 30, 31, 40, 41, 50, 60],
+  "updatedBy": 1
+}
+
+### Set basic user permissions
+PUT {{apiUrl}}/{{testUserId}}/permissions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "permissions": [1, 10, 20, 30],
+  "updatedBy": 1
+}
+
+### Remove all permissions
+PUT {{apiUrl}}/{{testUserId}}/permissions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "permissions": [],
+  "updatedBy": 1
+}
+
+### ===========================================
+### 6. DELETE USER - DISABLED FOR SECURITY
+### ===========================================
+
+### Delete user functionality has been disabled
+### The following requests will return 403 Forbidden
+
+### Delete user (DISABLED - will return 403)
+# DELETE {{apiUrl}}/{{testUserId}}
+# Content-Type: application/json
+# Authorization: Bearer {{authToken}}
+
+### Delete non-existent user (DISABLED - will return 403)
+# DELETE {{apiUrl}}/999
+# Content-Type: application/json
+# Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 7. ERROR TESTING
+### ===========================================
+
+### Test validation errors - Create user without required fields
+POST {{apiUrl}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Incomplete User"
+}
+
+### Test duplicate username
+POST {{apiUrl}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Duplicate User",
+  "username": "john.doe",
+  "password": "password123",
+  "companyId": 1
+}
+
+### Test invalid permission IDs
+PUT {{apiUrl}}/{{testUserId}}/permissions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "permissions": [999, 1000],
+  "updatedBy": 1
+}
+
+### Test invalid user ID format
+GET {{apiUrl}}/invalid-id
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 8. CORS TESTING
+### ===========================================
+
+### Test CORS preflight
+OPTIONS {{apiUrl}}
+Content-Type: application/json
+Origin: http://localhost:3000
+
+### Test CORS preflight for specific user
+OPTIONS {{apiUrl}}/{{userId}}
+Content-Type: application/json
+Origin: http://localhost:3000
+
+### Test CORS preflight for permissions
+OPTIONS {{apiUrl}}/{{userId}}/permissions
+Content-Type: application/json
+Origin: http://localhost:3000
+
+### ===========================================
+### 9. BULK OPERATIONS TESTING
+### ===========================================
+
+### Create multiple users for testing
+POST {{apiUrl}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Test User 1",
+  "username": "test.user1",
+  "password": "password123",
+  "companyId": 1,
+  "permissions": [1, 10]
+}
+
+###
+POST {{apiUrl}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Test User 2",
+  "username": "test.user2",
+  "password": "password123",
+  "companyId": 1,
+  "permissions": [1, 10, 20]
+}
+
+###
+POST {{apiUrl}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Test User 3",
+  "username": "test.user3",
+  "password": "password123",
+  "companyId": 1,
+  "permissions": [1, 10, 20, 30]
+}
+
+### ===========================================
+### 10. PERFORMANCE TESTING
+### ===========================================
+
+### Test large pagination
+GET {{apiUrl}}?limit=100&offset=0
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Test search with common terms
+GET {{apiUrl}}?search=test
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Test search with partial matches
+GET {{apiUrl}}?search=user
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### NOTES:
+### ===========================================
+### 
+### 1. Replace {{authToken}} with a valid JWT token
+### 2. Replace {{userId}} and {{testUserId}} with actual user IDs
+### 3. Adjust {{baseUrl}} if your server runs on a different port
+### 4. Uncomment DELETE requests when you want to test deletion
+### 5. Some tests depend on previous tests (e.g., updating a user created earlier)
+### 6. Check the response status codes and bodies to verify correct behavior
+### 7. Monitor the activity logs to see if operations are being logged correctly
+### 
+### Permission IDs Reference:
+### 1=View Users, 2=Create Users, 3=Edit Users, 4=Delete Users, 5=Manage Permissions
+### 10=View Tickets, 11=Create Tickets, 12=Edit Tickets, 13=Delete Tickets, 14=Close Tickets
+### 20=View Customers, 21=Create Customers, 22=Edit Customers, 23=Delete Customers
+### 30=View Reports, 31=Export Reports
+### 40=View Master Data, 41=Edit Master Data
+### 50=View Activity Logs
+### 60=System Administration
