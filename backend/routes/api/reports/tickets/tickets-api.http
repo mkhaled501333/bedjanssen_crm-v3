@@ -1,7 +1,7 @@
 ### Tickets Report API Testing
 ### Base URL: http://localhost:8081
 
-@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoiMSIsImNvbXBhbnlfaWQiOjEsIm5hbWUiOiJtIiwiaWF0IjoxNzU1ODc2MjE5LCJleHAiOjE3NTU5MDUwMTl9.kfLH56S7nfv1h7ze-fBdM1h2y5sZYnIdkipzL7E8sLM
+@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjEsIm5hbWUiOiJtIiwiaWF0IjoxNzU1OTc1NDM3LCJleHAiOjE3NTYwMDQyMzd9.Fjn4NNRTC8HKNz92cx25-tAe3UJRbvBNsBdcJ3r9SfI
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}

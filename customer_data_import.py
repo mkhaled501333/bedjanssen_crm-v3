@@ -497,9 +497,9 @@ class EnhancedJanssenCRMDataImporter:
             # Define import order (respecting foreign key constraints)
             import_tasks = [
                 ('governorates', 'governorate.xlsx', self.import_governorates),
-                ('cities', 'cities.xlsx', self.import_cities),
+                ('cities', 'city_id.xlsx', self.import_cities),
                 ('customers', 'customers.xlsx', self.import_customers),
-                ('customer_phones', 'customerphoes.xlsx', self.import_customer_phones)
+                ('customer_phones', 'C_Mobile_id.xlsx', self.import_customer_phones)
             ]
             
             success_count = 0

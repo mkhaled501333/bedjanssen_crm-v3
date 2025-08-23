@@ -119,23 +119,12 @@ class EnhancedCallDataImporter:
             self.logger.error(f"Error checking if table {table_name} exists: {e}")
             return False
     
-    def create_call_reasons_table(self) -> bool:
-        """Create the call_reasons table if it doesn't exist."""
+    def check_call_categories_table(self) -> bool:
+        """Check if call_categories table exists (we don't create it, just check)."""
         try:
-            query = """
-            CREATE TABLE IF NOT EXISTS call_reasons (
-                id INT PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )
-            """
-            self.cursor.execute(query)
-            self.connection.commit()
-            self.logger.info("Created call_reasons table")
-            return True
+            return self.check_table_exists('call_categories')
         except Exception as e:
-            self.logger.error(f"Error creating call_reasons table: {e}")
+            self.logger.error(f"Error checking call_categories table: {e}")
             return False
     
     def create_call_types_table(self) -> bool:
@@ -248,50 +237,63 @@ class EnhancedCallDataImporter:
         return len(errors) == 0, errors
     
     def import_call_reasons(self, excel_file: str) -> bool:
-        """Import call reasons data from Excel file."""
+        """Import call reasons data from Excel file into call_categories table."""
         try:
-            self.logger.info(f"Importing call reasons from {excel_file}")
+            self.logger.info(f"Importing call reasons from {excel_file} into call_categories table")
             df = pd.read_excel(excel_file)
-            
+
             # Validate data
             is_valid, errors = self.validate_data(df, 'call_reasons')
             if not is_valid:
                 for error in errors:
                     self.logger.error(f"Validation error: {error}")
                 return False
-            
+
             # Map Excel columns to database columns
             # Excel has: ['callReason', 'id']
-            # Database expects: ['id', 'name']
+            # Database expects: ['id', 'name'] + additional columns
             df_mapped = df.rename(columns={'callReason': 'name'})
-            
+
             # Check for null values in name column
             if df_mapped['name'].isnull().any():
                 self.logger.error("Found null values in call reason names. Please check the Excel file.")
                 return False
-            
+
+            # Add missing columns with default values for call_categories table
+            df_mapped['created_by'] = DEFAULT_VALUES['created_by']
+            df_mapped['company_id'] = DEFAULT_VALUES['company_id']
+            df_mapped['created_at'] = datetime.now()
+            df_mapped['updated_at'] = datetime.now()
+
             # Process in batches
             total_records = len(df_mapped)
             self.stats['total_records'] += total_records
-            
+
             for i in range(0, total_records, IMPORT_SETTINGS['batch_size']):
                 batch = df_mapped.iloc[i:i + IMPORT_SETTINGS['batch_size']]
-                
+
                 for _, row in batch.iterrows():
                     query = """
-                    INSERT INTO call_reasons (id, name) 
-                    VALUES (%s, %s) 
-                    ON DUPLICATE KEY UPDATE name = VALUES(name)
+                    INSERT INTO call_categories (id, name, created_by, company_id, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        name = VALUES(name),
+                        created_by = VALUES(created_by),
+                        company_id = VALUES(company_id),
+                        updated_at = VALUES(updated_at)
                     """
-                    self.cursor.execute(query, (row['id'], row['name']))
-                
+                    self.cursor.execute(query, (
+                        row['id'], row['name'], row['created_by'],
+                        row['company_id'], row['created_at'], row['updated_at']
+                    ))
+
                 self.connection.commit()
                 self.logger.info(f"Processed batch {i//IMPORT_SETTINGS['batch_size'] + 1}/{(total_records-1)//IMPORT_SETTINGS['batch_size'] + 1}")
-            
+
             self.stats['successful_imports'] += 1
-            self.logger.info(f"Successfully imported {total_records} call reasons")
+            self.logger.info(f"Successfully imported {total_records} call reasons into call_categories")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Error importing call reasons: {e}")
             self.stats['failed_imports'] += 1
@@ -523,11 +525,10 @@ class EnhancedCallDataImporter:
             if not self.connect():
                 return False
             
-            # Check and create missing tables
-            if not self.check_table_exists('call_reasons'):
-                if not self.create_call_reasons_table():
-                    self.logger.error("Failed to create call_reasons table")
-                    return False
+            # Check if required tables exist
+            if not self.check_call_categories_table():
+                self.logger.error("call_categories table does not exist in database")
+                return False
             
             if not self.check_table_exists('call_types'):
                 if not self.create_call_types_table():
@@ -542,7 +543,7 @@ class EnhancedCallDataImporter:
             # Define import order (respecting foreign key constraints)
             # Note: company.xlsx is no longer present, so we skip companies import
             import_tasks = [
-                ('call_reasons', 'callReason.xlsx', self.import_call_reasons),
+                ('call_categories', 'callReason.xlsx', self.import_call_reasons),
                 ('call_types', 'calltype.xlsx', self.import_call_types),
                 ('users', 'user.xlsx', self.import_users),
                 ('calls', 'calls.xlsx', self.import_calls)
@@ -561,9 +562,9 @@ class EnhancedCallDataImporter:
                 self.logger.info(f"Starting import for {table_name}...")
                 if import_func(file_path):
                     success_count += 1
-                    self.logger.info(f"✓ Successfully imported {table_name}")
+                    self.logger.info(f"SUCCESS: Successfully imported {table_name}")
                 else:
-                    self.logger.error(f"✗ Failed to import {table_name}")
+                    self.logger.error(f"FAILED: Failed to import {table_name}")
             
             self.stats['end_time'] = datetime.now()
             self._print_summary(success_count, total_tasks)

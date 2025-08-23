@@ -140,7 +140,7 @@ Future<int> _getTotalTicketsCount(String whereClause, List<dynamic> parameters) 
   }
 }
 
-/// Get tickets data with pagination
+/// Get tickets data with pagination - optimized version
 Future<List<Map<String, dynamic>>> _getTicketsData({
   required String whereClause,
   required List<dynamic> parameters,
@@ -150,7 +150,7 @@ Future<List<Map<String, dynamic>>> _getTicketsData({
   try {
     final results = await DatabaseService.query(
       '''
-      SELECT 
+      SELECT
         t.id,
         t.company_id,
         t.customer_id,
@@ -169,16 +169,8 @@ Future<List<Map<String, dynamic>>> _getTicketsData({
         ct.name AS city_name,
         tc.name AS category_name,
         u.name AS created_by_name,
-        (
-          SELECT COUNT(*) 
-          FROM ticketcall tcall 
-          WHERE tcall.ticket_id = t.id
-        ) AS calls_count,
-        (
-          SELECT COUNT(*) 
-          FROM ticket_items ti 
-          WHERE ti.ticket_id = t.id
-        ) AS items_count
+        COALESCE(tcall_counts.calls_count, 0) AS calls_count,
+        COALESCE(ti_counts.items_count, 0) AS items_count
       FROM tickets t
       LEFT JOIN customers c ON t.customer_id = c.id
       LEFT JOIN companies comp ON t.company_id = comp.id
@@ -186,13 +178,23 @@ Future<List<Map<String, dynamic>>> _getTicketsData({
       LEFT JOIN cities ct ON c.city_id = ct.id
       LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
       LEFT JOIN users u ON t.created_by = u.id
+      LEFT JOIN (
+        SELECT ticket_id, COUNT(*) as calls_count
+        FROM ticketcall
+        GROUP BY ticket_id
+      ) tcall_counts ON tcall_counts.ticket_id = t.id
+      LEFT JOIN (
+        SELECT ticket_id, COUNT(*) as items_count
+        FROM ticket_items
+        GROUP BY ticket_id
+      ) ti_counts ON ti_counts.ticket_id = t.id
       WHERE $whereClause
       ORDER BY t.created_at DESC
       LIMIT ? OFFSET ?
       ''',
       parameters: [...parameters, limit, offset],
     );
-    
+
     return results.map((row) => DataTransformer.transformTicketRow(row)).toList();
   } catch (e) {
     print('Error getting tickets data: $e');
@@ -200,53 +202,48 @@ Future<List<Map<String, dynamic>>> _getTicketsData({
   }
 }
 
-/// Get summary statistics for tickets
+/// Get summary statistics for tickets using single optimized query
 Future<Map<String, dynamic>> _getTicketsSummary(int companyId, String whereClause, List<dynamic> parameters) async {
   try {
-    // Get status counts
-    final statusResult = await DatabaseService.query(
+    // Combined query using UNION ALL for better performance
+    final result = await DatabaseService.query(
       '''
-      SELECT 
-        t.status,
-        COUNT(*) as count
+      SELECT 'status' as type, t.status as value, COUNT(*) as count
       FROM tickets t
       LEFT JOIN customers c ON t.customer_id = c.id
       LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
       WHERE $whereClause
       GROUP BY t.status
-      ''',
-      parameters: parameters,
-    );
-    
-    // Get priority counts
-    final priorityResult = await DatabaseService.query(
-      '''
-      SELECT 
-        t.priority,
-        COUNT(*) as count
+
+      UNION ALL
+
+      SELECT 'priority' as type, t.priority as value, COUNT(*) as count
       FROM tickets t
       LEFT JOIN customers c ON t.customer_id = c.id
       LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
       WHERE $whereClause
       GROUP BY t.priority
       ''',
-      parameters: parameters,
+      parameters: [...parameters, ...parameters], // Parameters need to be duplicated for UNION
     );
-    
-    // Convert status counts
+
     final statusCounts = <String, int>{};
-    for (final row in statusResult) {
-      final status = DataTransformer.convertStatusToString(row['status'] as int);
-      statusCounts[status] = row['count'] as int;
-    }
-    
-    // Convert priority counts
     final priorityCounts = <String, int>{};
-    for (final row in priorityResult) {
-      final priority = DataTransformer.convertPriorityToString(row['priority'] as int);
-      priorityCounts[priority] = row['count'] as int;
+
+    for (final row in result) {
+      final type = row['type'] as String;
+      final value = row['value'] as int;
+      final count = row['count'] as int;
+
+      if (type == 'status') {
+        final status = DataTransformer.convertStatusToString(value);
+        statusCounts[status] = count;
+      } else if (type == 'priority') {
+        final priority = DataTransformer.convertPriorityToString(value);
+        priorityCounts[priority] = count;
+      }
     }
-    
+
     return {
       'statusCounts': statusCounts,
       'priorityCounts': priorityCounts,
@@ -260,27 +257,38 @@ Future<Map<String, dynamic>> _getTicketsSummary(int companyId, String whereClaus
   }
 }
 
-/// Add detailed ticket items information to each ticket
+/// Add detailed ticket items information to each ticket using batch query
 Future<List<Map<String, dynamic>>> _addTicketItemsDetails(List<Map<String, dynamic>> tickets) async {
   try {
+    if (tickets.isEmpty) return tickets;
+
+    // Extract ticket IDs for batch query
+    final ticketIds = tickets
+        .map((ticket) => ticket['id'] as int?)
+        .where((id) => id != null)
+        .cast<int>() // Cast to non-nullable int
+        .toList();
+
+    if (ticketIds.isEmpty) return tickets;
+
+    // Get all items for all tickets in a single batch query
+    final itemsMap = await _getTicketItemsDetailsBatch(ticketIds);
+
+    // Associate items with their tickets
     final ticketsWithItems = <Map<String, dynamic>>[];
-    
     for (final ticket in tickets) {
       final ticketId = ticket['id'] as int?;
-      if (ticketId == null) {
-        ticketsWithItems.add(ticket);
-        continue;
-      }
-      
-      // Get detailed items for this ticket
-      final items = await _getTicketItemsDetails(ticketId);
-      
-      // Add items to ticket data
       final ticketWithItems = Map<String, dynamic>.from(ticket);
-      ticketWithItems['items'] = items;
+
+      if (ticketId != null && itemsMap.containsKey(ticketId)) {
+        ticketWithItems['items'] = itemsMap[ticketId]!;
+      } else {
+        ticketWithItems['items'] = <Map<String, dynamic>>[];
+      }
+
       ticketsWithItems.add(ticketWithItems);
     }
-    
+
     return ticketsWithItems;
   } catch (e) {
     print('Error adding ticket items details: $e');
@@ -288,13 +296,19 @@ Future<List<Map<String, dynamic>>> _addTicketItemsDetails(List<Map<String, dynam
   }
 }
 
-/// Get detailed ticket items for a specific ticket
-Future<List<Map<String, dynamic>>> _getTicketItemsDetails(int ticketId) async {
+/// Get detailed ticket items for multiple tickets in a single batch query
+Future<Map<int, List<Map<String, dynamic>>>> _getTicketItemsDetailsBatch(List<int> ticketIds) async {
   try {
+    if (ticketIds.isEmpty) return {};
+
+    // Create placeholders for IN clause
+    final placeholders = List.filled(ticketIds.length, '?').join(', ');
+
     final results = await DatabaseService.query(
       '''
-      SELECT 
+      SELECT
         ti.id,
+        ti.ticket_id,
         ti.product_id,
         pi.product_name,
         ti.product_size,
@@ -313,15 +327,27 @@ Future<List<Map<String, dynamic>>> _getTicketItemsDetails(int ticketId) async {
       FROM ticket_items ti
       LEFT JOIN product_info pi ON ti.product_id = pi.id
       LEFT JOIN request_reasons rr ON ti.request_reason_id = rr.id
-      WHERE ti.ticket_id = ?
-      ORDER BY ti.created_at ASC
+      WHERE ti.ticket_id IN ($placeholders)
+      ORDER BY ti.ticket_id ASC, ti.created_at ASC
       ''',
-      parameters: [ticketId],
+      parameters: ticketIds,
     );
-    
-    return results.map((row) => DataTransformer.transformTicketItemRow(row)).toList();
+
+    // Group items by ticket_id
+    final itemsMap = <int, List<Map<String, dynamic>>>{};
+    for (final row in results) {
+      final ticketId = row['ticket_id'] as int;
+      final transformedRow = DataTransformer.transformTicketItemRow(row);
+
+      if (!itemsMap.containsKey(ticketId)) {
+        itemsMap[ticketId] = [];
+      }
+      itemsMap[ticketId]!.add(transformedRow);
+    }
+
+    return itemsMap;
   } catch (e) {
-    print('Error getting ticket items details: $e');
-    return [];
+    print('Error getting ticket items details batch: $e');
+    return {};
   }
 }
