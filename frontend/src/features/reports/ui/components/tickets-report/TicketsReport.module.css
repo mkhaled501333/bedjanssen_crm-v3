@@ -1,0 +1,137 @@
+/* Tickets Report Container */
+.ticketsReportContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+}
+
+/* Header Section */
+.header {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  padding: 30px 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin: 0 0 10px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+/* Content Section */
+.content {
+  flex: 1;
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Placeholder Section */
+.placeholderSection {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 600px;
+  width: 100%;
+  border: 1px solid #e1e8ed;
+}
+
+.placeholderIcon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.placeholderTitle {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin: 0 0 20px 0;
+  font-weight: 500;
+}
+
+.placeholderText {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+  margin: 0 0 25px 0;
+  line-height: 1.6;
+}
+
+/* Feature List */
+.featureList {
+  text-align: left;
+  margin: 0 0 30px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featureList li {
+  padding: 8px 0;
+  color: #5a6c7d;
+  font-size: 1rem;
+  position: relative;
+  padding-left: 25px;
+}
+
+.featureList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Coming Soon Badge */
+.comingSoon {
+  display: inline-block;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 500;
+  font-size: 1rem;
+  box-shadow: 0 2px 10px rgba(243, 156, 18, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+  
+  .placeholderSection {
+    padding: 30px 20px;
+    margin: 0 10px;
+  }
+  
+  .content {
+    padding: 20px 10px;
+  }
+}

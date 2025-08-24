@@ -67,5 +67,6 @@ export const DEFAULT_APPS: AppType[] = [
   { id: 'tasks', name: 'Tasks', icon: '✓', gradient: 'linear-gradient(135deg, #2ecc71, #27ae60)' },
   { id: 'masterdata', name: 'Master Data', icon: '🗃️', gradient: 'linear-gradient(135deg, #8e44ad, #6c3483)', requiredPermission: 2 },
   { id: 'usermanagement', name: 'User Management', icon: '👥', gradient: 'linear-gradient(135deg, #e74c3c, #c0392b)', requiredPermission: 1 },
+  { id: 'reports', name: 'Reports', icon: '📊', gradient: 'linear-gradient(135deg, #16a085, #138d75)' },
   { id: 'bookmarks', name: 'Bookmarks', icon: '🔖', gradient: 'linear-gradient(135deg, #f39c12, #e67e22)' }
 ];
