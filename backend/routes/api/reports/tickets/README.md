@@ -39,14 +39,19 @@ Authorization: Bearer <your-jwt-token>
 
 - `status` (string, optional): Filter by ticket status
   - Valid values: `open`, `in_progress`, `closed`
-- `priority` (string, optional): Filter by ticket priority
-  - Valid values: `low`, `medium`, `high`
 - `categoryId` (integer, optional): Filter by ticket category ID
 - `customerId` (integer, optional): Filter by customer ID
+- `governorate` (string, optional): Filter by governorate name (e.g., "الشرقيه", "القاهره")
+- `city` (string, optional): Filter by city name (e.g., "بلبيس", "مدينه نصر")
 - `startDate` (string, optional): Start date for date range filter (YYYY-MM-DD format)
 - `endDate` (string, optional): End date for date range filter (YYYY-MM-DD format)
   - Note: Both `startDate` and `endDate` must be provided together
 - `searchTerm` (string, optional): Search term to filter tickets by description, customer name, or category name (max 255 characters)
+- `productName` (string, optional): Filter by product name (max 255 characters)
+- `companyName` (string, optional): Filter by company name (max 255 characters)
+- `requestReasonName` (string, optional): Filter by request reason name (max 255 characters)
+- `inspected` (boolean, optional): Filter by inspection status
+  - Valid values: `true`, `false`
 
 ## Example Requests
 
@@ -62,7 +67,7 @@ GET /api/reports/tickets?companyId=1&page=2&limit=20
 
 ### With Filters
 ```
-GET /api/reports/tickets?companyId=1&status=open&priority=high&categoryId=5
+GET /api/reports/tickets?companyId=1&status=open&categoryId=5
 ```
 
 ### With Date Range
@@ -75,10 +80,67 @@ GET /api/reports/tickets?companyId=1&startDate=2024-01-01&endDate=2024-01-31
 GET /api/reports/tickets?companyId=1&searchTerm=product%20issue
 ```
 
+### With Governorate Filter
+```
+GET /api/reports/tickets?companyId=1&governorate=الشرقيه
+```
+
+### With City Filter
+```
+GET /api/reports/tickets?companyId=1&city=بلبيس
+```
+
+### With Product Name Filter
+```
+GET /api/reports/tickets?companyId=1&productName=Product%20A
+```
+
+### With Company Name Filter
+```
+GET /api/reports/tickets?companyId=1&companyName=Company%20XYZ
+```
+
+### With Request Reason Filter
+```
+GET /api/reports/tickets?companyId=1&requestReasonName=Defective
+```
+
+### With Inspection Status Filter
+```
+GET /api/reports/tickets?companyId=1&inspected=true
+```
+
+### With Geographic Filters
+```
+GET /api/reports/tickets?companyId=1&governorate=الشرقيه&city=بلبيس
+```
+
 ### Combined Filters
 ```
-GET /api/reports/tickets?companyId=1&status=open&priority=high&startDate=2024-01-01&endDate=2024-01-31&searchTerm=urgent&page=1&limit=25
+GET /api/reports/tickets?companyId=1&status=open&governorate=الشرقيه&startDate=2024-01-01&endDate=2024-01-31&searchTerm=urgent&productName=Product%20A&inspected=true&page=1&limit=25
 ```
+
+## Available Filters
+
+The API provides an `available_filters` object in the response that contains all possible filter values for the current dataset. This is useful for building dynamic filter dropdowns in the frontend.
+
+### Available Filters Response
+
+The `available_filters` object contains:
+
+- **governorates**: List of all governorate names that have tickets
+- **cities**: List of all city names that have tickets  
+- **categories**: List of all ticket category names that have tickets
+- **statuses**: List of all ticket status values
+- **productNames**: List of all product names that have tickets
+- **companyNames**: List of all company names that have tickets
+- **requestReasonNames**: List of all request reason names that have tickets
+
+### Usage
+
+1. **Frontend Filter Dropdowns**: Use these values to populate filter selection dropdowns
+2. **Dynamic Filtering**: Ensure users only see relevant filter options
+3. **Data Validation**: Validate filter parameters against available options
 
 ## Export Functionality
 
@@ -100,12 +162,17 @@ GET /api/reports/tickets/export?companyId=1&format=csv
 
 #### Excel Export with Filters
 ```
-GET /api/reports/tickets/export?companyId=1&format=excel&status=open&priority=high
+GET /api/reports/tickets/export?companyId=1&format=excel&status=open&productName=Product%20A
 ```
 
 #### PDF Export with Date Range
 ```
 GET /api/reports/tickets/export?companyId=1&format=pdf&startDate=2024-01-01&endDate=2024-01-31
+```
+
+#### Export with Inspection Status
+```
+GET /api/reports/tickets/export?companyId=1&format=csv&inspected=true
 ```
 
 ### Export Response
@@ -138,7 +205,6 @@ All exports include `Content-Disposition: attachment` header with appropriate fi
         "categoryName": "Technical Support",
         "description": "Product not working properly",
         "status": "open",
-        "priority": "high",
         "createdBy": 789,
         "createdByName": "Agent Smith",
         "createdAt": "2024-01-15T10:30:00.000Z",
@@ -182,22 +248,31 @@ All exports include `Content-Disposition: attachment` header with appropriate fi
         "open": 25,
         "in_progress": 15,
         "closed": 7
-      },
-      "priorityCounts": {
-        "low": 10,
-        "medium": 20,
-        "high": 17
       }
     },
     "filters": {
       "companyId": 1,
       "status": "open",
-      "priority": "high",
       "categoryId": null,
       "customerId": null,
       "startDate": "2024-01-01",
       "endDate": "2024-01-31",
-      "searchTerm": "urgent"
+      "searchTerm": "urgent",
+      "governorate": "الشرقيه",
+      "city": "بلبيس",
+      "productName": null,
+      "companyName": null,
+      "requestReasonName": null,
+      "inspected": null
+    },
+    "available_filters": {
+      "governorates": ["الشرقيه", "القاهره"],
+      "cities": ["بلبيس", "مدينه نصر"],
+      "categories": ["Technical Support", "Product Issue", "Billing"],
+      "statuses": ["open", "in_progress", "closed"],
+      "productNames": ["Product A", "Product B", "Product C"],
+      "companyNames": ["Company XYZ", "Company ABC"],
+      "requestReasonNames": ["Defective", "Maintenance", "Upgrade"]
     }
   },
   "message": "Tickets report retrieved successfully"
@@ -243,11 +318,14 @@ All exports include `Content-Disposition: attachment` header with appropriate fi
 - Invalid `page`: "page must be a positive integer (minimum 1)"
 - Invalid `limit`: "limit must be a positive integer between 1 and 100"
 - Invalid `status`: "status must be one of: open, in_progress, closed"
-- Invalid `priority`: "priority must be one of: low, medium, high"
 - Invalid date format: "Dates must be in YYYY-MM-DD format"
 - Incomplete date range: "Both startDate and endDate must be provided when filtering by date"
 - Invalid date range: "startDate must be before or equal to endDate"
 - Search term too long: "searchTerm must not exceed 255 characters"
+- Product name too long: "productName must not exceed 255 characters"
+- Company name too long: "companyName must not exceed 255 characters"
+- Request reason name too long: "requestReasonName must not exceed 255 characters"
+- Invalid inspected value: "inspected must be true or false"
 - Invalid export format: "Invalid or missing format parameter. Supported formats: csv, excel, pdf"
 
 ### Authentication Errors (401 Unauthorized)
@@ -270,7 +348,6 @@ All exports include `Content-Disposition: attachment` header with appropriate fi
 - `categoryName`: Name of the ticket category
 - `description`: Ticket description
 - `status`: Current ticket status (`open`, `in_progress`, `closed`)
-- `priority`: Ticket priority (`low`, `medium`, `high`)
 - `createdBy`: ID of the user who created the ticket
 - `createdByName`: Name of the user who created the ticket
 - `createdAt`: Ticket creation timestamp (ISO 8601 format)
@@ -312,7 +389,32 @@ All exports include `Content-Disposition: attachment` header with appropriate fi
 ### Summary Object
 
 - `statusCounts`: Object with counts for each status
-- `priorityCounts`: Object with counts for each priority
+
+### Filters Object
+
+- `companyId`: Company ID used for filtering
+- `status`: Status filter applied (if any)
+- `categoryId`: Category ID filter applied (if any)
+- `customerId`: Customer ID filter applied (if any)
+- `governorate`: Governorate name filter applied (if any)
+- `city`: City name filter applied (if any)
+- `startDate`: Start date filter applied (if any)
+- `endDate`: End date filter applied (if any)
+- `searchTerm`: Search term filter applied (if any)
+- `productName`: Product name filter applied (if any)
+- `companyName`: Company name filter applied (if any)
+- `requestReasonName`: Request reason name filter applied (if any)
+- `inspected`: Inspection status filter applied (if any)
+
+### Available Filters Object
+
+- `governorates`: Array of available governorate names for filtering
+- `cities`: Array of available city names for filtering
+- `categories`: Array of available ticket category names for filtering
+- `statuses`: Array of available ticket status values for filtering
+- `productNames`: Array of available product names for filtering
+- `companyNames`: Array of available company names for filtering
+- `requestReasonNames`: Array of available request reason names for filtering
 
 ## Project Structure
 
@@ -350,7 +452,6 @@ The API queries the following main tables:
 ### Data Transformation
 
 - **Status Mapping**: Database integers (0=open, 1=in_progress, 2=closed) are converted to readable strings
-- **Priority Mapping**: Database integers (0=low, 1=medium, 2=high) are converted to readable strings
 - **BLOB Handling**: Database BLOB fields are safely converted to strings
 - **Date Formatting**: All timestamps are returned in ISO 8601 format
 
@@ -395,7 +496,7 @@ A comprehensive test suite is available in `tickets-api.http` which includes:
 ### Functional Tests
 - Basic tickets report requests
 - Pagination testing
-- All filter combinations (status, priority, category, customer, date range, search)
+- All filter combinations (status, category, customer, date range, search, productName, companyName, requestReasonName, inspected)
 - Export functionality in all formats
 
 ### Error Handling Tests

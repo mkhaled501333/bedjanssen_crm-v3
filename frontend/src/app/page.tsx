@@ -8,7 +8,7 @@ import type { AppType } from '../shared/constants';
 import { NewRecordForm } from '../features/records/ui';
 import { CustomerData } from '../features/customerdata';
 import { MasterData, UserManagement } from '../features/masterdata/ui/components';
-import { Reports } from '../features/reports';
+
 import { logout } from '../shared/utils';
 import { getCurrentUserName, getCurrentUserCompanyName, hasPermission } from '../shared/utils/auth';
 
@@ -188,8 +188,6 @@ export default function Home() {
         return <MasterData />;
       case 'usermanagement':
         return <UserManagement />;
-      case 'reports':
-        return <Reports />;
       default:
         return (
           <div className={navStyles.defaultContent}>

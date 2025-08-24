@@ -40,18 +40,27 @@ Future<Response> _handleGet(RequestContext context) async {
     
     final params = validationResult.params!;
     
+    // Extract additional filter parameters
+    final governorate = uri.queryParameters['governorate'];
+    final city = uri.queryParameters['city'];
+    
     // Get tickets report
     final reportResult = await getTicketsReport(
       companyId: params.companyId,
       page: params.page,
       limit: params.limit,
       status: params.status,
-      priority: params.priority,
       categoryId: params.categoryId,
       customerId: params.customerId,
       startDate: params.startDate,
       endDate: params.endDate,
       searchTerm: params.searchTerm,
+      governorate: governorate,
+      city: city,
+      productName: params.productName,
+      companyName: params.companyName,
+      requestReasonName: params.requestReasonName,
+      inspected: params.inspected,
     );
     
     if (!reportResult.success) {

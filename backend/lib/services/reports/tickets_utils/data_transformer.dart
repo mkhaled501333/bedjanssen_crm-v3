@@ -39,34 +39,6 @@ class DataTransformer {
     }
   }
   
-  /// Convert priority integer to string
-  static String convertPriorityToString(int? priority) {
-    switch (priority) {
-      case 0:
-        return 'low';
-      case 1:
-        return 'medium';
-      case 2:
-        return 'high';
-      default:
-        return 'unknown';
-    }
-  }
-  
-  /// Convert priority string to integer
-  static int convertPriorityToInt(String priority) {
-    switch (priority.toLowerCase()) {
-      case 'low':
-        return 0;
-      case 'medium':
-        return 1;
-      case 'high':
-        return 2;
-      default:
-        return 1;
-    }
-  }
-  
   /// Convert call type integer to string
   static String convertCallTypeToString(int? callType) {
     switch (callType) {
@@ -157,7 +129,6 @@ class DataTransformer {
       'categoryName': safeToString(row['category_name']),
       'description': safeToString(row['description']),
       'status': convertStatusToString(safeToInt(row['status'])),
-      'priority': convertPriorityToString(safeToInt(row['priority'])),
       'createdBy': safeToInt(row['created_by']),
       'createdByName': safeToString(row['created_by_name']),
       'createdAt': formatDateTime(row['created_at']),
@@ -212,21 +183,14 @@ class DataTransformer {
   /// Transform summary statistics
   static Map<String, dynamic> transformSummaryStats({
     required Map<int, int> statusCounts,
-    required Map<int, int> priorityCounts,
   }) {
     final transformedStatusCounts = <String, int>{};
     statusCounts.forEach((key, value) {
       transformedStatusCounts[convertStatusToString(key)] = value;
     });
     
-    final transformedPriorityCounts = <String, int>{};
-    priorityCounts.forEach((key, value) {
-      transformedPriorityCounts[convertPriorityToString(key)] = value;
-    });
-    
     return {
       'statusCounts': transformedStatusCounts,
-      'priorityCounts': transformedPriorityCounts,
     };
   }
 }

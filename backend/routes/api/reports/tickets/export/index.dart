@@ -53,18 +53,27 @@ Future<Response> _handleExport(RequestContext context) async {
     
     final params = validationResult.params!;
     
+    // Extract additional filter parameters
+    final governorate = queryParams['governorate'];
+    final city = queryParams['city'];
+    
     // Get all tickets (no pagination for export)
     final reportResult = await getTicketsReport(
       companyId: params.companyId,
       page: 1,
       limit: 10000, // Large limit to get all tickets
       status: params.status,
-      priority: params.priority,
       categoryId: params.categoryId,
       customerId: params.customerId,
       startDate: params.startDate,
       endDate: params.endDate,
       searchTerm: params.searchTerm,
+      governorate: governorate,
+      city: city,
+      productName: params.productName,
+      companyName: params.companyName,
+      requestReasonName: params.requestReasonName,
+      inspected: params.inspected,
     );
     
     if (!reportResult.success) {
@@ -109,17 +118,18 @@ Response _generateCsvExport(List<dynamic> tickets) {
   final csvLines = <String>[];
   
   // CSV Header
-  csvLines.add('ID,Customer Name,Category,Description,Status,Priority,Created By,Created At,Updated At,Calls Count,Items Count');
+  csvLines.add('ID,Customer Name,Governorate,City,Category,Description,Status,Created By,Created At,Updated At,Calls Count,Items Count');
   
   // CSV Data
   for (final ticket in tickets) {
     final row = [
       ticket['id']?.toString() ?? '',
       _escapeCsvField(ticket['customerName']?.toString() ?? ''),
+      _escapeCsvField(ticket['governorateName']?.toString() ?? ''),
+      _escapeCsvField(ticket['cityName']?.toString() ?? ''),
       _escapeCsvField(ticket['categoryName']?.toString() ?? ''),
       _escapeCsvField(ticket['description']?.toString() ?? ''),
       ticket['status']?.toString() ?? '',
-      ticket['priority']?.toString() ?? '',
       _escapeCsvField(ticket['createdByName']?.toString() ?? ''),
       ticket['createdAt']?.toString() ?? '',
       ticket['updatedAt']?.toString() ?? '',
@@ -151,8 +161,8 @@ Response _generateExcelExport(List<dynamic> tickets) {
   
   // Add headers
   final headers = [
-    'ID', 'Customer Name', 'Category', 'Description', 'Status', 
-    'Priority', 'Created By', 'Created At', 'Updated At', 'Calls Count', 'Items Count'
+    'ID', 'Customer Name', 'Governorate', 'City', 'Category', 'Description', 'Status', 
+    'Created By', 'Created At', 'Updated At', 'Calls Count', 'Items Count'
   ];
   
   for (int i = 0; i < headers.length; i++) {
@@ -166,10 +176,11 @@ Response _generateExcelExport(List<dynamic> tickets) {
     final rowData = [
       ticket['id']?.toString() ?? '',
       ticket['customerName']?.toString() ?? '',
+      ticket['governorateName']?.toString() ?? '',
+      ticket['cityName']?.toString() ?? '',
       ticket['categoryName']?.toString() ?? '',
       ticket['description']?.toString() ?? '',
       ticket['status']?.toString() ?? '',
-      ticket['priority']?.toString() ?? '',
       ticket['createdByName']?.toString() ?? '',
       ticket['createdAt']?.toString() ?? '',
       ticket['updatedAt']?.toString() ?? '',
@@ -210,10 +221,11 @@ Response _generatePdfExport(List<dynamic> tickets) {
   for (final ticket in tickets) {
     lines.add('Ticket ID: ${ticket['id']}');
     lines.add('Customer: ${ticket['customerName']}');
+    lines.add('Governorate: ${ticket['governorateName']}');
+    lines.add('City: ${ticket['cityName']}');
     lines.add('Category: ${ticket['categoryName']}');
     lines.add('Description: ${ticket['description']}');
     lines.add('Status: ${ticket['status']}');
-    lines.add('Priority: ${ticket['priority']}');
     lines.add('Created By: ${ticket['createdByName']}');
     lines.add('Created At: ${ticket['createdAt']}');
     lines.add('Calls Count: ${ticket['callsCount']}');

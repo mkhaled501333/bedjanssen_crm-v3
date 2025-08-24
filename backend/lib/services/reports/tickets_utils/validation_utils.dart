@@ -3,24 +3,30 @@ class TicketsReportParams {
   final int page;
   final int limit;
   final String? status;
-  final String? priority;
   final int? categoryId;
   final int? customerId;
   final String? startDate;
   final String? endDate;
   final String? searchTerm;
+  final String? productName;
+  final String? companyName;
+  final String? requestReasonName;
+  final bool? inspected;
 
   TicketsReportParams({
     required this.companyId,
     required this.page,
     required this.limit,
     this.status,
-    this.priority,
     this.categoryId,
     this.customerId,
     this.startDate,
     this.endDate,
     this.searchTerm,
+    this.productName,
+    this.companyName,
+    this.requestReasonName,
+    this.inspected,
   });
 }
 
@@ -64,12 +70,6 @@ ValidationResult validateTicketsReportParams(Map<String, String> queryParams) {
   final status = queryParams['status'];
   if (status != null && !['open', 'in_progress', 'closed'].contains(status.toLowerCase())) {
     return ValidationResult.error('status must be one of: open, in_progress, closed');
-  }
-  
-  // Validate optional priority
-  final priority = queryParams['priority'];
-  if (priority != null && !['low', 'medium', 'high'].contains(priority.toLowerCase())) {
-    return ValidationResult.error('priority must be one of: low, medium, high');
   }
   
   // Validate optional categoryId
@@ -123,18 +123,52 @@ ValidationResult validateTicketsReportParams(Map<String, String> queryParams) {
     return ValidationResult.error('searchTerm must not exceed 255 characters');
   }
   
+  // Validate optional productName
+  final productName = queryParams['productName'];
+  if (productName != null && productName.length > 255) {
+    return ValidationResult.error('productName must not exceed 255 characters');
+  }
+  
+  // Validate optional companyName
+  final companyName = queryParams['companyName'];
+  if (companyName != null && companyName.length > 255) {
+    return ValidationResult.error('companyName must not exceed 255 characters');
+  }
+  
+  // Validate optional requestReasonName
+  final requestReasonName = queryParams['requestReasonName'];
+  if (requestReasonName != null && requestReasonName.length > 255) {
+    return ValidationResult.error('requestReasonName must not exceed 255 characters');
+  }
+  
+  // Validate optional inspected
+  bool? inspected;
+  final inspectedStr = queryParams['inspected'];
+  if (inspectedStr != null && inspectedStr.isNotEmpty) {
+    if (inspectedStr.toLowerCase() == 'true') {
+      inspected = true;
+    } else if (inspectedStr.toLowerCase() == 'false') {
+      inspected = false;
+    } else {
+      return ValidationResult.error('inspected must be true or false');
+    }
+  }
+  
   return ValidationResult.success(
     TicketsReportParams(
       companyId: companyId,
       page: page,
       limit: limit,
       status: status?.toLowerCase(),
-      priority: priority?.toLowerCase(),
       categoryId: categoryId,
       customerId: customerId,
       startDate: startDate,
       endDate: endDate,
       searchTerm: searchTerm?.trim(),
+      productName: productName?.trim(),
+      companyName: companyName?.trim(),
+      requestReasonName: requestReasonName?.trim(),
+      inspected: inspected,
     ),
   );
 }

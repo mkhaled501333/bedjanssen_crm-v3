@@ -1,7 +1,9 @@
 ### Tickets Report API Testing
 ### Base URL: http://localhost:8081
 
-@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjEsIm5hbWUiOiJtIiwiaWF0IjoxNzU1OTc1NDM3LCJleHAiOjE3NTYwMDQyMzd9.Fjn4NNRTC8HKNz92cx25-tAe3UJRbvBNsBdcJ3r9SfI
+@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjEsIm5hbWUiOiJtIiwiaWF0IjoxNzU2MDQ2OTk4LCJleHAiOjE3NTYwNzU3OTh9.IG2os56qbv9Qx8q_z-l09XqDPLyVhmcRzH1FONLazxs
+
+### 1. Basic tickets report
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
@@ -11,85 +13,115 @@ GET http://localhost:8081/api/reports/tickets?companyId=1&status=open&page=1&lim
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 3. Tickets with priority filter
-GET http://localhost:8081/api/reports/tickets?companyId=1&priority=high&page=1&limit=10
+### 3. Tickets with product name filter
+GET http://localhost:8081/api/reports/tickets?companyId=1&productName=Product%20A&page=1&limit=10
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 4. Tickets with date range filter
+### 4. Tickets with company name filter
+GET http://localhost:8081/api/reports/tickets?companyId=1&companyName=Company%20XYZ&page=1&limit=10
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 5. Tickets with request reason filter
+GET http://localhost:8081/api/reports/tickets?companyId=1&requestReasonName=Defective&page=1&limit=10
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 6. Tickets with inspection status filter
+GET http://localhost:8081/api/reports/tickets?companyId=1&inspected=true&page=1&limit=10
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 7. Tickets with date range filter
 GET http://localhost:8081/api/reports/tickets?companyId=1&startDate=2024-01-01&endDate=2024-12-31&page=1&limit=10
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 5. Tickets with search term
+### 8. Tickets with search term
 GET http://localhost:8081/api/reports/tickets?companyId=1&searchTerm=product&page=1&limit=10
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 6. Tickets with multiple filters
-GET http://localhost:8081/api/reports/tickets?companyId=1&status=open&priority=high&startDate=2024-01-01&endDate=2024-12-31&searchTerm=urgent&page=1&limit=25
+### 9. Tickets with multiple filters
+GET http://localhost:8081/api/reports/tickets?companyId=1&status=open&startDate=2024-01-01&endDate=2024-12-31&searchTerm=urgent&productName=Product%20A&inspected=true&page=1&limit=25
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 7. Tickets with category filter
+### 10. Tickets with category filter
 GET http://localhost:8081/api/reports/tickets?companyId=1&categoryId=1&page=1&limit=10
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 8. Tickets with customer filter
+### 11. Tickets with customer filter
 GET http://localhost:8081/api/reports/tickets?companyId=1&customerId=123&page=1&limit=10
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 9. Test pagination - page 2
+### 12. Tickets with governorate filter
+GET http://localhost:8081/api/reports/tickets?companyId=1&governorate=الشرقيه&page=1&limit=10
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 13. Tickets with city filter
+GET http://localhost:8081/api/reports/tickets?companyId=1&city=بلبيس&page=1&limit=10
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 14. Tickets with governorate and city filters
+GET http://localhost:8081/api/reports/tickets?companyId=1&governorate=الشرقيه&city=بلبيس&page=1&limit=10
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 15. Test pagination - page 2
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=2&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 10. Test large limit
+### 16. Test large limit
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=50
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 11. OPTIONS request (CORS preflight)
+### 17. OPTIONS request (CORS preflight)
 OPTIONS http://localhost:8081/api/reports/tickets
 Content-Type: application/json
 
 ### Error Testing
 
-### 12. Missing companyId (should return 400)
+### 18. Missing companyId (should return 400)
 GET http://localhost:8081/api/reports/tickets?page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 13. Invalid status (should return 400)
+### 19. Invalid status (should return 400)
 GET http://localhost:8081/api/reports/tickets?companyId=1&status=invalid&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 14. Invalid priority (should return 400)
-GET http://localhost:8081/api/reports/tickets?companyId=1&priority=invalid&page=1&limit=5
-Content-Type: application/json
-Authorization: Bearer {{authToken}}
-
-### 15. Invalid date format (should return 400)
+### 20. Invalid date format (should return 400)
 GET http://localhost:8081/api/reports/tickets?companyId=1&startDate=invalid-date&endDate=2024-12-31&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 16. Limit too high (should return 400)
+### 21. Limit too high (should return 400)
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=200
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 17. Invalid page number (should return 400)
+### 22. Invalid page number (should return 400)
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=0&limit=5
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 23. Invalid inspected value (should return 400)
+GET http://localhost:8081/api/reports/tickets?companyId=1&inspected=invalid&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 ### Authentication Testing
 
-### 18. Login to get JWT token
+### 24. Login to get JWT token
 POST http://localhost:8081/api/auth/login
 Content-Type: application/json
 
@@ -98,16 +130,36 @@ Content-Type: application/json
   "password": "your-password"
 }
 
-### 19. Test without authorization header (should return 401)
+### 25. Test without authorization header (should return 401)
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=5
 Content-Type: application/json
 
-### 20. Test with invalid token (should return 401)
+### 26. Test with invalid token (should return 401)
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer invalid-token
 
-### 21. Test new features - governorate, city, and item details
+### 27. Test new features - governorate, city, and item details
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=2
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 28. Test available filters response (check available_filters in response)
+GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 29. Export tickets with product name filter (CSV)
+GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=csv&productName=Product%20A
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 30. Export tickets with inspection status filter (Excel)
+GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=excel&inspected=true
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 31. Export tickets with combined filters (PDF)
+GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=pdf&status=open&productName=Product%20A&inspected=true
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
