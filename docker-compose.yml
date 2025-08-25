@@ -13,6 +13,17 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  adminer:
+    image: adminer:latest
+    container_name: janssencrm-adminer
+    restart: always
+    ports:
+      - "81:8080"
+    depends_on:
+      - mysql
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+
   backend:
     build:
       context: ./backend

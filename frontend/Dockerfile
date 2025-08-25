@@ -10,7 +10,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# ❗ Rebuild lightningcss manually (بناءه من source مش دايم يشتغل، لذا الأفضل منع استخدامه)
+# ❗ Rebuild lifghtningcss manually (بناءه من source مش دايم يشتغل، لذا الأفضل منع استخدامه)
 RUN npm rebuild
 
 # ❗ Build app بعد تعطيل lightningcss
