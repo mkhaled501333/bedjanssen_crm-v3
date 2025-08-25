@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel-like Table</title>
+    <link rel="stylesheet" href="excel-table.css">
+</head>
+<body>
+    <div class="excel-container">
+        <div class="excel-toolbar">
+            <button class="toolbar-button" onclick="alert('Open functionality')">📁 Open</button>
+            <button class="toolbar-button" onclick="alert('Save functionality')">💾 Save</button>
+            <button class="toolbar-button" onclick="exportToCSV()">📤 Export</button>
+            <button class="toolbar-button" onclick="alert('Find functionality')">🔍 Find</button>
+            <button class="toolbar-button" onclick="alert('Filter functionality')">📊 Filter</button>
+            <button class="toolbar-button" onclick="alert('Sort functionality')">📈 Sort</button>
+            <button class="toolbar-button" onclick="addNewRow()">➕ Insert</button>
+            <button class="toolbar-button" onclick="alert('Edit functionality')">✏️ Edit</button>
+            <button class="toolbar-button" onclick="clearAllFilters()" style="background: #dc3545; color: white; border-color: #dc3545;">🗑️ Clear Filters</button>
+        </div>
+
+        <div class="excel-table-wrapper">
+            <table class="excel-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
+                        <th>ID <span class="filter-icon" onclick="toggleFilter(this, 'ID')">🔽</span></th>
+                        <th>Company <span class="filter-icon" onclick="toggleFilter(this, 'Company')">🔽</span></th>
+                        <th>Customer <span class="filter-icon" onclick="toggleFilter(this, 'Customer')">🔽</span></th>
+                        <th>Governorate <span class="filter-icon" onclick="toggleFilter(this, 'Governorate')">🔽</span></th>
+                        <th>City <span class="filter-icon" onclick="toggleFilter(this, 'City')">🔽</span></th>
+                        <th>Category <span class="filter-icon" onclick="toggleFilter(this, 'Category')">🔽</span></th>
+                        <th>Status <span class="filter-icon" onclick="toggleFilter(this, 'Status')">🔽</span></th>
+                        <th>Created By <span class="filter-icon" onclick="toggleFilter(this, 'CreatedBy')">🔽</span></th>
+                        <th>Created Date <span class="filter-icon" onclick="toggleFilter(this, 'CreatedDate')">🔽</span></th>
+                        <th>Closed Date <span class="filter-icon" onclick="toggleFilter(this, 'ClosedDate')">🔽</span></th>
+                        <th>Product <span class="filter-icon" onclick="toggleFilter(this, 'Product')">🔽</span></th>
+                        <th>Size <span class="filter-icon" onclick="toggleFilter(this, 'Size')">🔽</span></th>
+                        <th>Quantity <span class="filter-icon" onclick="toggleFilter(this, 'Quantity')">🔽</span></th>
+                        <th>Purchase Date <span class="filter-icon" onclick="toggleFilter(this, 'PurchaseDate')">🔽</span></th>
+                        <th>Location <span class="filter-icon" onclick="toggleFilter(this, 'Location')">🔽</span></th>
+                        <th>Reason <span class="filter-icon" onclick="toggleFilter(this, 'Reason')">🔽</span></th>
+                        <th>Inspected <span class="filter-icon" onclick="toggleFilter(this, 'Inspected')">🔽</span></th>
+                        <th>Inspection Date <span class="filter-icon" onclick="toggleFilter(this, 'InspectionDate')">🔽</span></th>
+                        <th>Client Approval <span class="filter-icon" onclick="toggleFilter(this, 'ClientApproval')">🔽</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="excel-footer">
+            <div class="pagination-controls">
+                <button class="pagination-btn" onclick="goToFirstPage()" title="First Page">⏮️</button>
+                <button class="pagination-btn" onclick="goToPreviousPage()" title="Previous Page">◀️</button>
+                <span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+                <button class="pagination-btn" onclick="goToNextPage()" title="Next Page">▶️</button>
+                <button class="pagination-btn" onclick="goToLastPage()" title="Last Page">⏭️</button>
+            </div>
+            <div class="pagination-settings">
+                <label for="pageSize">Show:</label>
+                <select id="pageSize" onchange="changePageSize()">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <span class="records-info">records per page</span>
+            </div>
+            <div class="status-info">
+                <span>Ready | <span id="totalRecords">0</span> records | Maintenance System</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="sample-data.js"></script>
+    <script src="excel-table.js"></script>
+    <script>
+        // Initialize the table with maintenance data when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof populateTableWithMaintenanceData === 'function') {
+                populateTableWithMaintenanceData();
+            }
+        });
+    </script>
+</body>
+</html>

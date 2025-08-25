@@ -10,7 +10,7 @@ class DatabaseConfig {
     if (_isInitialized) return;
 
     // Load environment variables
-    const host = 'localhost';
+    const host = 'mysql';
     const port = 3306;
     const database = 'janssencrm';
     const username = 'root';
