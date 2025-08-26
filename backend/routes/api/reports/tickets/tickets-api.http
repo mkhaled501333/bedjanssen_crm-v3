@@ -59,7 +59,7 @@ Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 ### 12. Tickets with governorate filter
-GET http://localhost:8081/api/reports/tickets?companyId=1&governorate=الشرقيه&page=1&limit=10
+GET http://localhost:8081/api/reports/tickets?companyId=1&governorate=الجيزة&page=1&limit=10
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
@@ -83,45 +83,117 @@ GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=50
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 17. OPTIONS request (CORS preflight)
+### Multiple Query Parameters Testing
+
+### 17. Multiple governorates (comma-separated)
+GET http://localhost:8081/api/reports/tickets?companyId=1&governorate=الجيزة,الغربية&page=1&limit=15
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 18. Multiple cities (comma-separated)
+GET http://localhost:8081/api/reports/tickets?companyId=1&city=بلبيس,الزقازيق,بنها&page=1&limit=15
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 19. Multiple governorates and cities combination
+GET http://localhost:8081/api/reports/tickets?companyId=1&governorate=الشرقيه,الجيزة&city=بلبيس,الزقازيق,6أكتوبر&page=1&limit=20
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 20. Multiple statuses
+GET http://localhost:8081/api/reports/tickets?companyId=1&status=open,closed,in_progress&page=1&limit=15
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 21. Multiple product names
+GET http://localhost:8081/api/reports/tickets?companyId=1&productName=Product%20A,Product%20B,Product%20C&page=1&limit=15
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 22. Multiple request reasons
+GET http://localhost:8081/api/reports/tickets?companyId=1&requestReasonName=Defective,Maintenance,Installation&page=1&limit=15
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 23. Multiple categories
+GET http://localhost:8081/api/reports/tickets?companyId=1&categoryId=1,2,3&page=1&limit=15
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 24. Multiple customers
+GET http://localhost:8081/api/reports/tickets?companyId=1&customerId=123,456,789&page=1&limit=15
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 25. Complex multiple filters combination
+GET http://localhost:8081/api/reports/tickets?companyId=1&governorate=الشرقيه,الجيزة&city=بلبيس,الزقازيق&status=open,in_progress&productName=Product%20A,Product%20B&inspected=true&startDate=2024-01-01&endDate=2024-12-31&page=1&limit=25
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 26. Multiple companies (if supported)
+GET http://localhost:8081/api/reports/tickets?companyId=1,2,3&page=1&limit=20
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 27. Multiple inspection statuses
+GET http://localhost:8081/api/reports/tickets?companyId=1&inspected=true,false&page=1&limit=15
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 28. Multiple date ranges (if supported)
+GET http://localhost:8081/api/reports/tickets?companyId=1&startDate=2024-01-01,2024-06-01&endDate=2024-03-31,2024-12-31&page=1&limit=15
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 29. OPTIONS request (CORS preflight)
 OPTIONS http://localhost:8081/api/reports/tickets
 Content-Type: application/json
 
 ### Error Testing
 
-### 18. Missing companyId (should return 400)
+### 30. Missing companyId (should return 400)
 GET http://localhost:8081/api/reports/tickets?page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 19. Invalid status (should return 400)
+### 31. Invalid status (should return 400)
 GET http://localhost:8081/api/reports/tickets?companyId=1&status=invalid&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 20. Invalid date format (should return 400)
+### 32. Invalid date format (should return 400)
 GET http://localhost:8081/api/reports/tickets?companyId=1&startDate=invalid-date&endDate=2024-12-31&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 21. Limit too high (should return 400)
+### 33. Limit too high (should return 400)
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=200
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 22. Invalid page number (should return 400)
+### 34. Invalid page number (should return 400)
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=0&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 23. Invalid inspected value (should return 400)
+### 35. Invalid inspected value (should return 400)
 GET http://localhost:8081/api/reports/tickets?companyId=1&inspected=invalid&page=1&limit=5
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 36. Invalid multiple governorates format (should return 400)
+GET http://localhost:8081/api/reports/tickets?companyId=1&governorate=invalid-governorate,الجيزة&page=1&limit=5
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 37. Invalid multiple cities format (should return 400)
+GET http://localhost:8081/api/reports/tickets?companyId=1&city=invalid-city,بلبيس&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 ### Authentication Testing
 
-### 24. Login to get JWT token
+### 38. Login to get JWT token
 POST http://localhost:8081/api/auth/login
 Content-Type: application/json
 
@@ -130,36 +202,43 @@ Content-Type: application/json
   "password": "your-password"
 }
 
-### 25. Test without authorization header (should return 401)
+### 39. Test without authorization header (should return 401)
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=5
 Content-Type: application/json
 
-### 26. Test with invalid token (should return 401)
+### 40. Test with invalid token (should return 401)
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=5
 Content-Type: application/json
 Authorization: Bearer invalid-token
 
-### 27. Test new features - governorate, city, and item details
+### 41. Test new features - governorate, city, and item details
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=2
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 28. Test available filters response (check available_filters in response)
+### 42. Test available filters response (check available_filters in response)
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=1
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 29. Export tickets with product name filter (CSV)
-GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=csv&productName=Product%20A
+### Export Testing with Multiple Parameters
+
+### 43. Export tickets with multiple governorates (CSV)
+GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=csv&governorate=الجيزة,الشرقيه
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 30. Export tickets with inspection status filter (Excel)
-GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=excel&inspected=true
+### 44. Export tickets with multiple cities (Excel)
+GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=excel&city=بلبيس,الزقازيق
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
-### 31. Export tickets with combined filters (PDF)
-GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=pdf&status=open&productName=Product%20A&inspected=true
+### 45. Export tickets with multiple statuses (PDF)
+GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=pdf&status=open,in_progress
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 46. Export tickets with complex multiple filters (CSV)
+GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=csv&governorate=الشرقيه,الجيزة&city=بلبيس,الزقازيق&status=open,closed&productName=Product%20A,Product%20B
 Content-Type: application/json
 Authorization: Bearer {{authToken}}

@@ -1,233 +1,167 @@
 import 'package:janssencrm_backend/database/database_service.dart';
 import 'package:janssencrm_backend/services/reports/tickets_utils/data_transformer.dart';
 
-/// Get available filter options for cities and governorates
-Future<Map<String, List<String>>> getAvailableFilters({int? companyId}) async {
+Future<Map<String, List<dynamic>>> getAvailableFilters({
+  required int companyId,
+  String? status,
+  int? categoryId,
+  int? customerId,
+  String? startDate,
+  String? endDate,
+  String? searchTerm,
+  String? governorate,
+  String? city,
+  String? productName,
+  String? companyName,
+  String? requestReasonName,
+  bool? inspected,
+}) async {
   try {
-    final filters = <String, List<String>>{};
+    // Build the base WHERE clause and parameters, similar to getTicketsReport
+    final whereConditions = <String>['t.company_id = ?'];
+    final parameters = <dynamic>[companyId];
 
-    // Get distinct governorate names - company-specific when possible
-    if (companyId != null) {
-      final governorateResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT g.name 
-        FROM governorates g
-        INNER JOIN customers c ON c.governomate_id = g.id
-        INNER JOIN tickets t ON t.customer_id = c.id
-        WHERE t.company_id = ? AND g.name IS NOT NULL AND g.name != ''
-        ORDER BY g.name
-      ''', parameters: [companyId]);
-      filters['governorates'] = governorateResult.map((row) => row.fields['name'] as String).toList();
-      
-      // If no governorates found with tickets, get all governorates for the company
-      if (filters['governorates']!.isEmpty) {
-        final fallbackResult = await DatabaseService.queryMany('''
-          SELECT DISTINCT g.name 
-          FROM governorates g
-          INNER JOIN customers c ON c.governomate_id = g.id
-          WHERE c.company_id = ? AND g.name IS NOT NULL AND g.name != ''
-          ORDER BY g.name
-        ''', parameters: [companyId]);
-        filters['governorates'] = fallbackResult.map((row) => row.fields['name'] as String).toList();
+    // Add filters to the WHERE clause and parameters
+    if (status != null) {
+      whereConditions.add('t.status = ?');
+      parameters.add(DataTransformer.convertStatusToInt(status));
+    }
+    if (categoryId != null) {
+      whereConditions.add('t.ticket_cat_id = ?');
+      parameters.add(categoryId);
+    }
+    if (customerId != null) {
+      whereConditions.add('t.customer_id = ?');
+      parameters.add(customerId);
+    }
+    if (startDate != null && endDate != null) {
+      whereConditions.add('DATE(t.created_at) BETWEEN ? AND ?');
+      parameters.addAll([startDate, endDate]);
+    }
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      whereConditions.add('(t.description LIKE ? OR c.name LIKE ? OR tc.name LIKE ?)');
+      final searchPattern = '%$searchTerm%';
+      parameters.addAll([searchPattern, searchPattern, searchPattern]);
+    }
+    if (governorate != null && governorate.isNotEmpty) {
+      final governorateList = governorate.split(',').map((e) => e.trim()).toList();
+      if (governorateList.isNotEmpty) {
+        final placeholders = List.filled(governorateList.length, '?').join(', ');
+        whereConditions.add('g.name IN ($placeholders)');
+        parameters.addAll(governorateList);
       }
-      
-      // If still empty, get all governorates in the system
-      if (filters['governorates']!.isEmpty) {
-        final allGovernoratesResult = await DatabaseService.queryMany('''
-          SELECT DISTINCT g.name 
-          FROM governorates g
-          WHERE g.name IS NOT NULL AND g.name != ''
-          ORDER BY g.name
-        ''');
-        filters['governorates'] = allGovernoratesResult.map((row) => row.fields['name'] as String).toList();
-      }
-    } else {
-      final governorateResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT g.name 
-        FROM governorates g
-        WHERE g.name IS NOT NULL AND g.name != ''
-        ORDER BY g.name
-      ''');
-      filters['governorates'] = governorateResult.map((row) => row.fields['name'] as String).toList();
+    }
+    if (city != null && city.isNotEmpty) {
+      whereConditions.add('ct.name = ?');
+      parameters.add(city);
+    }
+    if (productName != null && productName.isNotEmpty) {
+      whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti2 INNER JOIN product_info pi2 ON ti2.product_id = pi2.id WHERE ti2.ticket_id = t.id AND pi2.product_name LIKE ?)');
+      parameters.add('%$productName%');
+    }
+    if (companyName != null && companyName.isNotEmpty) {
+      whereConditions.add('comp.name LIKE ?');
+      parameters.add('%$companyName%');
+    }
+    if (requestReasonName != null && requestReasonName.isNotEmpty) {
+      whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti3 INNER JOIN request_reasons rr ON ti3.request_reason_id = rr.id WHERE ti3.ticket_id = t.id AND rr.name LIKE ?)');
+      parameters.add('%$requestReasonName%');
+    }
+    if (inspected != null) {
+      whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti4 WHERE ti4.ticket_id = t.id AND ti4.inspected = ?)');
+      parameters.add(inspected ? 1 : 0);
     }
 
-    // Get distinct city names - company-specific when possible
-    if (companyId != null) {
-      final cityResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT ct.name 
-        FROM cities ct
-        INNER JOIN customers c ON c.city_id = ct.id
-        INNER JOIN tickets t ON t.customer_id = c.id
-        WHERE t.company_id = ? AND ct.name IS NOT NULL AND ct.name != ''
-        ORDER BY ct.name
-      ''', parameters: [companyId]);
-      filters['cities'] = cityResult.map((row) => row.fields['name'] as String).toList();
-      
-      // If no cities found with tickets, get all cities for the company
-      if (filters['cities']!.isEmpty) {
-        final fallbackResult = await DatabaseService.queryMany('''
-          SELECT DISTINCT ct.name 
-          FROM cities ct
-          INNER JOIN customers c ON c.city_id = ct.id
-          WHERE c.company_id = ? AND ct.name IS NOT NULL AND ct.name != ''
-          ORDER BY ct.name
-        ''', parameters: [companyId]);
-        filters['cities'] = fallbackResult.map((row) => row.fields['name'] as String).toList();
-      }
-    } else {
-      final cityResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT ct.name 
-        FROM cities ct
-        WHERE ct.name IS NOT NULL AND ct.name != ''
-        ORDER BY ct.name
-      ''');
-      filters['cities'] = cityResult.map((row) => row.fields['name'] as String).toList();
-    }
+    final whereClause = whereConditions.join(' AND ');
 
-    // Get distinct ticket categories - company-specific when possible
-    if (companyId != null) {
-      final categoryResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT tc.name 
-        FROM ticket_categories tc
-        INNER JOIN tickets t ON t.ticket_cat_id = tc.id
-        WHERE t.company_id = ? AND tc.name IS NOT NULL AND tc.name != ''
-        ORDER BY tc.name
-      ''', parameters: [companyId]);
-      filters['categories'] = categoryResult.map((row) => row.fields['name'] as String).toList();
-    } else {
-      final categoryResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT tc.name 
-        FROM ticket_categories tc
-        WHERE tc.name IS NOT NULL AND tc.name != ''
-        ORDER BY tc.name
-      ''');
-      filters['categories'] = categoryResult.map((row) => row.fields['name'] as String).toList();
-    }
-
-    // Get distinct status values from tickets - company-specific when possible
-    if (companyId != null) {
-      final statusResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT t.status 
-        FROM tickets t
-        WHERE t.company_id = ? AND t.status IS NOT NULL
-        ORDER BY t.status
-      ''', parameters: [companyId]);
-      filters['statuses'] = statusResult.map((row) {
-        final statusInt = row.fields['status'] as int;
-        return DataTransformer.convertStatusToString(statusInt);
-      }).toList();
-    } else {
-      final statusResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT t.status 
-        FROM tickets t
-        WHERE t.status IS NOT NULL
-        ORDER BY t.status
-      ''');
-      filters['statuses'] = statusResult.map((row) {
-        final statusInt = row.fields['status'] as int;
-        return DataTransformer.convertStatusToString(statusInt);
-      }).toList();
-    }
-
-    // Get distinct product names - company-specific when possible
-    if (companyId != null) {
-      final productResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT pi.product_name 
-        FROM product_info pi
-        INNER JOIN ticket_items ti ON ti.product_id = pi.id
-        INNER JOIN tickets t ON ti.ticket_id = t.id
-        WHERE t.company_id = ? AND pi.product_name IS NOT NULL AND pi.product_name != ''
-        ORDER BY pi.product_name
-      ''', parameters: [companyId]);
-      filters['productNames'] = productResult.map((row) => row.fields['product_name'] as String).toList();
-    } else {
-      final productResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT pi.product_name 
-        FROM product_info pi
-        WHERE pi.product_name IS NOT NULL AND pi.product_name != ''
-        ORDER BY pi.product_name
-      ''');
-      filters['productNames'] = productResult.map((row) => row.fields['product_name'] as String).toList();
-    }
-
-    // Get distinct company names - company-specific when possible
-    if (companyId != null) {
-      final companyResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT comp.name 
-        FROM companies comp
-        INNER JOIN tickets t ON t.company_id = comp.id
-        WHERE t.company_id = ? AND comp.name IS NOT NULL AND comp.name != ''
-        ORDER BY comp.name
-      ''', parameters: [companyId]);
-      filters['companyNames'] = companyResult.map((row) => row.fields['name'] as String).toList();
-    } else {
-      final companyResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT comp.name 
-        FROM companies comp
-        WHERE comp.name IS NOT NULL AND comp.name != ''
-        ORDER BY comp.name
-      ''');
-      filters['companyNames'] = companyResult.map((row) => row.fields['name'] as String).toList();
-    }
-
-    // Get distinct request reason names - company-specific when possible
-    if (companyId != null) {
-      final requestReasonResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT rr.name 
-        FROM request_reasons rr
-        INNER JOIN ticket_items ti ON ti.request_reason_id = rr.id
-        INNER JOIN tickets t ON ti.ticket_id = t.id
-        WHERE t.company_id = ? AND rr.name IS NOT NULL AND rr.name != ''
-        ORDER BY rr.name
-      ''', parameters: [companyId]);
-      filters['requestReasonNames'] = requestReasonResult.map((row) => row.fields['name'] as String).toList();
-    } else {
-      final requestReasonResult = await DatabaseService.queryMany('''
-        SELECT DISTINCT rr.name 
-        FROM request_reasons rr
-        WHERE rr.name IS NOT NULL AND rr.name != ''
-        ORDER BY rr.name
-      ''');
-      filters['requestReasonNames'] = requestReasonResult.map((row) => row.fields['name'] as String).toList();
-    }
-
-    // Debug logging
-    print('Available filters found:');
-    print('Governorates: ${filters['governorates']}');
-    print('Cities: ${filters['cities']}');
-    print('Categories: ${filters['categories']}');
-    print('Statuses: ${filters['statuses']}');
-    print('Product Names: ${filters['productNames']}');
-    print('Company Names: ${filters['companyNames']}');
-    print('Request Reason Names: ${filters['requestReasonNames']}');
-    
-    // Debug: Check data types
-    print('Data type debugging:');
-    if (filters['statuses']!.isNotEmpty) {
-      print('First status value: ${filters['statuses']!.first} (type: ${filters['statuses']!.first.runtimeType})');
+    // Helper function to execute a query and return a list of strings
+    Future<List<String>> _fetchStringList(String select, String from, {List<dynamic>? params}) async {
+      final query = 'SELECT DISTINCT $select FROM $from WHERE $whereClause AND $select IS NOT NULL';
+      final result = await DatabaseService.queryMany(query, parameters: params);
+      return result.map((row) => row.fields.values.first as String).where((s) => s.isNotEmpty).toList();
     }
     
-    // Additional debug: Check if we have any data at all
-    if (companyId != null) {
-      final ticketCount = await DatabaseService.queryOne('''
-        SELECT COUNT(*) as count FROM tickets WHERE company_id = ?
-      ''', parameters: [companyId]);
-      print('Total tickets for company $companyId: ${ticketCount?.fields['count']}');
-      
-      final governorateCount = await DatabaseService.queryOne('''
-        SELECT COUNT(*) as count FROM governorates
-      ''');
-      print('Total governorates in system: ${governorateCount?.fields['count']}');
-      
-      final cityCount = await DatabaseService.queryOne('''
-        SELECT COUNT(*) as count FROM cities
-      ''');
-      print('Total cities in system: ${cityCount?.fields['count']}');
-    }
+    final baseFrom = '''
+      tickets t
+      LEFT JOIN customers c ON t.customer_id = c.id
+      LEFT JOIN companies comp ON t.company_id = comp.id
+      LEFT JOIN governorates g ON c.governomate_id = g.id
+      LEFT JOIN cities ct ON c.city_id = ct.id
+      LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
+    ''';
 
-    return filters;
+    // Fetch available filters based on the constructed WHERE clause
+    final availableGovernorates = await _fetchStringList(
+      'g.name',
+      baseFrom,
+      params: parameters,
+    );
+
+    final availableCities = await _fetchStringList(
+      'ct.name',
+      baseFrom,
+      params: parameters,
+    );
+
+    final availableCategories = await _fetchStringList(
+      'tc.name',
+      baseFrom,
+      params: parameters,
+    );
+
+    final statusResult = await DatabaseService.queryMany(
+      'SELECT DISTINCT t.status FROM $baseFrom WHERE $whereClause AND t.status IS NOT NULL',
+      parameters: parameters,
+    );
+    final availableStatuses = statusResult.map((row) => DataTransformer.convertStatusToString(row['status'] as int)).toList();
+
+    final availableProductNames = await _fetchStringList(
+      'pi.product_name',
+      '''
+        tickets t
+        INNER JOIN ticket_items ti ON ti.ticket_id = t.id
+        INNER JOIN product_info pi ON ti.product_id = pi.id
+        LEFT JOIN customers c ON t.customer_id = c.id
+        LEFT JOIN companies comp ON t.company_id = comp.id
+        LEFT JOIN governorates g ON c.governomate_id = g.id
+        LEFT JOIN cities ct ON c.city_id = ct.id
+        LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
+      ''',
+      params: parameters,
+    );
+
+    final availableCompanyNames = await _fetchStringList(
+      'comp.name',
+      baseFrom,
+      params: parameters,
+    );
+
+    final availableRequestReasonNames = await _fetchStringList(
+      'rr.name',
+      '''
+        tickets t
+        INNER JOIN ticket_items ti ON ti.ticket_id = t.id
+        INNER JOIN request_reasons rr ON ti.request_reason_id = rr.id
+        LEFT JOIN customers c ON t.customer_id = c.id
+        LEFT JOIN companies comp ON t.company_id = comp.id
+        LEFT JOIN governorates g ON c.governomate_id = g.id
+        LEFT JOIN cities ct ON c.city_id = ct.id
+        LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
+      ''',
+      params: parameters,
+    );
+
+    return {
+      'governorates': availableGovernorates,
+      'cities': availableCities,
+      'categories': availableCategories,
+      'statuses': availableStatuses,
+      'productNames': availableProductNames,
+      'companyNames': availableCompanyNames,
+      'requestReasonNames': availableRequestReasonNames,
+    };
   } catch (e) {
     print('Error getting available filters: $e');
-    // Return empty filters on error to avoid breaking the main functionality
     return {
       'governorates': [],
       'cities': [],
@@ -306,8 +240,12 @@ Future<TicketsReportResult> getTicketsReport({
     
     // Add governorate filter
     if (governorate != null && governorate.isNotEmpty) {
-      whereConditions.add('g.name = ?');
-      parameters.add(governorate);
+      final governorateList = governorate.split(',').map((e) => e.trim()).toList();
+      if (governorateList.isNotEmpty) {
+        final placeholders = List.filled(governorateList.length, '?').join(', ');
+        whereConditions.add('g.name IN ($placeholders)');
+        parameters.addAll(governorateList);
+      }
     }
     
     // Add city filter
@@ -365,7 +303,21 @@ Future<TicketsReportResult> getTicketsReport({
     final ticketsWithItems = await _addTicketItemsDetails(tickets);
 
     // Get available filter options
-    final availableFilters = await getAvailableFilters(companyId: companyId);
+    final availableFilters = await getAvailableFilters(
+      companyId: companyId,
+      status: status,
+      categoryId: categoryId,
+      customerId: customerId,
+      startDate: startDate,
+      endDate: endDate,
+      searchTerm: searchTerm,
+      governorate: governorate,
+      city: city,
+      productName: productName,
+      companyName: companyName,
+      requestReasonName: requestReasonName,
+      inspected: inspected,
+    );
 
     return TicketsReportResult.success({
       'tickets': ticketsWithItems,
@@ -407,10 +359,13 @@ Future<int> _getTotalTicketsCount(String whereClause, List<dynamic> parameters) 
   try {
     final result = await DatabaseService.queryOne(
       '''
-      SELECT COUNT(*) as total
+      SELECT COUNT(DISTINCT t.id) as total
       FROM tickets t
       LEFT JOIN customers c ON t.customer_id = c.id
       LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
+      LEFT JOIN companies comp ON t.company_id = comp.id
+      LEFT JOIN governorates g ON c.governomate_id = g.id
+      LEFT JOIN cities ct ON c.city_id = ct.id
       WHERE $whereClause
       ''',
       parameters: parameters,
@@ -472,6 +427,7 @@ Future<List<Map<String, dynamic>>> _getTicketsData({
         GROUP BY ticket_id
       ) ti_counts ON ti_counts.ticket_id = t.id
       WHERE $whereClause
+      
       ORDER BY t.created_at DESC
       LIMIT ? OFFSET ?
       ''',
@@ -491,10 +447,13 @@ Future<Map<String, dynamic>> _getTicketsSummary(int companyId, String whereClaus
     // Get status counts
     final result = await DatabaseService.query(
       '''
-      SELECT t.status as value, COUNT(*) as count
+      SELECT t.status as value, COUNT(DISTINCT t.id) as count
       FROM tickets t
       LEFT JOIN customers c ON t.customer_id = c.id
       LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
+      LEFT JOIN companies comp ON t.company_id = comp.id
+      LEFT JOIN governorates g ON c.governomate_id = g.id
+      LEFT JOIN cities ct ON c.city_id = ct.id
       WHERE $whereClause
       GROUP BY t.status
       ''',
