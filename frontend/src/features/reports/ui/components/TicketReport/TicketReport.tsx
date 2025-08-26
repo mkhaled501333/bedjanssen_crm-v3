@@ -121,6 +121,10 @@ export const TicketReport: React.FC = () => {
     });
     const [currentApiUrl, setCurrentApiUrl] = useState<string>('');
 
+    // Create mappings for ID-based filters
+    const [categoryNameToId, setCategoryNameToId] = useState<Record<string, number>>({});
+    const [customerNameToId, setCustomerNameToId] = useState<Record<string, number>>({});
+
     // Refs
     const tableRef = useRef<HTMLTableElement>(null);
     const selectAllCheckboxRef = useRef<HTMLInputElement>(null);
@@ -164,7 +168,9 @@ export const TicketReport: React.FC = () => {
 
             // Add filters to query parameters
             console.log('Building query params with filters:', activeFilters);
+            console.log('Active filters entries:', Object.entries(activeFilters));
             Object.entries(activeFilters).forEach(([key, values]) => {
+                console.log(`Processing filter key: "${key}" with values:`, values);
                 if (values.length > 0) {
                     // Map frontend filter names to backend parameter names
                     let paramName = key.toLowerCase();
@@ -173,10 +179,10 @@ export const TicketReport: React.FC = () => {
                             paramName = 'status';
                             break;
                         case 'Category':
-                            paramName = 'category'; // Changed from categoryId to category
+                            paramName = 'categoryId'; // Backend expects categoryId
                             break;
                         case 'Customer':
-                            paramName = 'customer'; // Changed from customerId to customer
+                            paramName = 'customerId'; // Backend expects customerId
                             break;
                         case 'Governorate':
                             paramName = 'governorate';
@@ -188,16 +194,16 @@ export const TicketReport: React.FC = () => {
                             paramName = 'createdBy';
                             break;
                         case 'Company':
-                            paramName = 'company'; // Changed from companyName to company
+                            paramName = 'companyName'; // Backend expects companyName
                             break;
                         case 'Product':
-                            paramName = 'product'; // Changed from productName to product
+                            paramName = 'productName'; // Backend expects productName
                             break;
                         case 'Size':
-                            paramName = 'size'; // Changed from productSize to size
+                            paramName = 'productSize'; // Backend expects productSize
                             break;
                         case 'Reason':
-                            paramName = 'reason'; // Changed from requestReasonName to reason
+                            paramName = 'requestReasonName'; // Backend expects requestReasonName
                             break;
                         case 'Inspected':
                             paramName = 'inspected';
@@ -205,18 +211,84 @@ export const TicketReport: React.FC = () => {
                         case 'ClientApproval':
                             paramName = 'clientApproval';
                             break;
+                        case 'CreatedDate':
+                            // Handle date range filtering
+                            if (values.length === 2 && values[0] && values[1]) {
+                                queryParams.append('startDate', values[0]);
+                                queryParams.append('endDate', values[1]);
+                            }
+                            return; // Skip the default handling for dates
                         default:
                             paramName = key.toLowerCase();
                     }
                     
                     console.log(`Mapping filter ${key} -> ${paramName} with values:`, values);
                     
-                    // Only add non-empty values
-                    values.forEach(value => {
-                        if (value && value.trim() !== '') {
-                            queryParams.append(paramName, value.trim());
+                    // Handle multiple values for supported filters
+                    if (['status', 'governorate', 'city', 'productName', 'companyName', 'requestReasonName'].includes(paramName)) {
+                        // Join multiple values with commas for backend
+                        const joinedValues = values.filter(v => v && v.trim() !== '').join(',');
+                        if (joinedValues) {
+                            queryParams.append(paramName, joinedValues);
                         }
-                    });
+                    } else if (paramName === 'categoryId') {
+                        // For categoryId, we need to convert category names to IDs
+                        console.log('Processing categoryId filter with values:', values);
+                        console.log('Available tickets for lookup:', allData.length);
+                        const categoryIds: number[] = [];
+                        
+                        if (allData.length === 0) {
+                            // If no local data, we can't convert names to IDs
+                            console.log('No local data available, cannot convert category names to IDs');
+                            console.log('Skipping categoryId filter until data is loaded');
+                            return; // Skip this filter for now
+                        }
+                        
+                        values.forEach(value => {
+                            if (value && value.trim() !== '') {
+                                console.log(`Looking for category name: "${value.trim()}"`);
+                                // Find the ticket with this category name and get its ID
+                                const ticket = allData.find(t => t.categoryName === value.trim());
+                                if (ticket) {
+                                    console.log(`Found ticket with category "${value.trim()}", ID: ${ticket.ticketCatId}`);
+                                    categoryIds.push(ticket.ticketCatId);
+                                } else {
+                                    console.log(`No ticket found with category name: "${value.trim()}"`);
+                                    // Log available category names for debugging
+                                    const availableCategories = [...new Set(allData.map(t => t.categoryName))];
+                                    console.log('Available category names:', availableCategories);
+                                }
+                            }
+                        });
+                        if (categoryIds.length > 0) {
+                            console.log(`Adding categoryId parameter: ${categoryIds.join(',')}`);
+                            queryParams.append(paramName, categoryIds.join(','));
+                        } else {
+                            console.log('No category IDs found, skipping categoryId parameter');
+                        }
+                    } else if (paramName === 'customerId') {
+                        // For customerId, we need to convert customer names to IDs
+                        const customerIds: number[] = [];
+                        values.forEach(value => {
+                            if (value && value.trim() !== '') {
+                                // Find the ticket with this customer name and get its ID
+                                const ticket = allData.find(t => t.customerName === value.trim());
+                                if (ticket) {
+                                    customerIds.push(ticket.customerId);
+                                }
+                            }
+                        });
+                        if (customerIds.length > 0) {
+                            queryParams.append(paramName, customerIds.join(','));
+                        }
+                    } else {
+                        // Single value filters
+                        values.forEach(value => {
+                            if (value && value.trim() !== '') {
+                                queryParams.append(paramName, value.trim());
+                            }
+                        });
+                    }
                 }
             });
 
@@ -225,6 +297,7 @@ export const TicketReport: React.FC = () => {
             setCurrentApiUrl(apiUrl);
             console.log('Final API URL:', apiUrl);
             console.log('Query parameters:', queryParams.toString());
+            console.log('Query params entries:', Array.from(queryParams.entries()));
 
             
             const response = await fetch(apiUrl, {
@@ -268,6 +341,15 @@ export const TicketReport: React.FC = () => {
                     requestReasonNames: []
                 });
                 setFilteredData(null); // Reset filtered data when new data arrives
+                
+                // If we have active filters and this is the first data load, apply them
+                if (Object.keys(activeFilters).length > 0 && data.data.tickets.length > 0) {
+                    console.log('Data loaded, now applying pending filters...');
+                    // Trigger filter application after a short delay to ensure state is updated
+                    setTimeout(() => {
+                        fetchTicketsData();
+                    }, 100);
+                }
             } else {
                 setError(data.message || 'Failed to fetch tickets data');
             }
@@ -287,6 +369,7 @@ export const TicketReport: React.FC = () => {
 
     // Initialize data on component mount
     useEffect(() => {
+        console.log('Component mounted, fetching initial data...');
         fetchTicketsData();
     }, [fetchTicketsData]);
 
@@ -323,14 +406,16 @@ export const TicketReport: React.FC = () => {
     const applyFilter = (column: string, selectedValues: string[]) => {
         console.log('Applying filter:', { column, selectedValues });
         if (selectedValues.length > 0) {
-            setActiveFilters(prev => ({
-                ...prev,
-                [column]: selectedValues
-            }));
+            setActiveFilters(prev => {
+                const newFilters = { ...prev, [column]: selectedValues };
+                console.log('Updated active filters:', newFilters);
+                return newFilters;
+            });
         } else {
             setActiveFilters(prev => {
                 const newFilters = { ...prev };
                 delete newFilters[column];
+                console.log('Updated active filters (removed):', newFilters);
                 return newFilters;
             });
         }
@@ -367,14 +452,26 @@ export const TicketReport: React.FC = () => {
         setCurrentPage(1);
     }, [activeFilters]);
 
-    // Trigger API call when filters change
+    // Trigger API call when filters change (debounced to avoid excessive calls)
     useEffect(() => {
         console.log('Filters changed:', activeFilters);
-        if (Object.keys(activeFilters).length > 0) {
-            console.log('Triggering API call with filters');
-            fetchTicketsData();
+        
+        // Only apply filters if we have data loaded
+        if (allData.length === 0) {
+            console.log('No data loaded yet, skipping filter application');
+            return;
         }
-    }, [activeFilters, fetchTicketsData]);
+        
+        // Debounce the API call to avoid excessive requests
+        const timeoutId = setTimeout(() => {
+            if (Object.keys(activeFilters).length > 0) {
+                console.log('Triggering API call with filters');
+                fetchTicketsData();
+            }
+        }, 300); // 300ms delay
+
+        return () => clearTimeout(timeoutId);
+    }, [activeFilters, fetchTicketsData, allData.length]);
 
     // Get unique values for a column (for local filtering)
     const getUniqueColumnValues = useCallback((column: string): string[] => {
@@ -456,7 +553,9 @@ export const TicketReport: React.FC = () => {
             case 'City':
                 return availableFilters.cities;
             case 'Category':
-                return availableFilters.categories;
+                // For Category, use local data if available, otherwise fallback to API data
+                const localCategories = getUniqueColumnValues(column);
+                return localCategories.length > 0 ? localCategories : availableFilters.categories;
             case 'Status':
                 return availableFilters.statuses;
             case 'Product':
@@ -474,20 +573,43 @@ export const TicketReport: React.FC = () => {
     const FilterDropdown: React.FC<{ column: string; isOpen: boolean; onClose: () => void }> = ({ column, isOpen, onClose }) => {
         const [searchTerm, setSearchTerm] = useState('');
         const [selectedValues, setSelectedValues] = useState<string[]>([]);
+        const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
         
         // Initialize selectedValues with current active filters for this column
         useEffect(() => {
             if (isOpen) {
-                setSelectedValues(activeFilters[column] || []);
+                console.log(`Filter dropdown opened for column: ${column}`);
+                console.log(`Current active filters:`, activeFilters);
+                console.log(`Active filters for this column:`, activeFilters[column]);
+                if (column === 'CreatedDate') {
+                    const dates = activeFilters[column] || [];
+                    setDateRange({
+                        start: dates[0] || '',
+                        end: dates[1] || ''
+                    });
+                } else {
+                    const values = activeFilters[column] || [];
+                    console.log(`Setting selected values for ${column}:`, values);
+                    setSelectedValues(values);
+                }
             }
-        }, [isOpen, column]);
+        }, [isOpen, column, activeFilters]);
         
         // Use available filters from API when possible, fallback to local unique values
         const availableValues = getAvailableFilterValues(column);
         const uniqueValues = availableValues.length > 0 ? availableValues : getUniqueColumnValues(column);
 
         const handleApply = () => {
-            applyFilter(column, selectedValues);
+            console.log(`Filter dropdown handleApply called for column: ${column}`);
+            if (column === 'CreatedDate') {
+                if (dateRange.start && dateRange.end) {
+                    console.log(`Applying date range filter: ${dateRange.start} to ${dateRange.end}`);
+                    applyFilter(column, [dateRange.start, dateRange.end]);
+                }
+            } else {
+                console.log(`Applying filter for ${column} with values:`, selectedValues);
+                applyFilter(column, selectedValues);
+            }
             onClose();
         };
 
@@ -501,6 +623,52 @@ export const TicketReport: React.FC = () => {
         );
 
         if (!isOpen) return null;
+
+        // Show message if no options available
+        if (uniqueValues.length === 0) {
+            return (
+                <div className={`${styles.filterDropdown} ${styles.show}`}>
+                    <div className={styles.filterHeader}>Filter {column}</div>
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                        {column === 'Category' ? 
+                            'Loading category options...' : 
+                            'No options available'
+                        }
+                    </div>
+                </div>
+            );
+        }
+
+        // Special handling for date range filter
+        if (column === 'CreatedDate') {
+            return (
+                <div className={`${styles.filterDropdown} ${styles.show}`}>
+                    <div className={styles.filterHeader}>Filter {column}</div>
+                    <div className={styles.dateRangeContainer}>
+                        <div className={styles.dateInput}>
+                            <label>Start Date:</label>
+                            <input
+                                type="date"
+                                value={dateRange.start}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                            />
+                        </div>
+                        <div className={styles.dateInput}>
+                            <label>End Date:</label>
+                            <input
+                                type="date"
+                                value={dateRange.end}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                            />
+                        </div>
+                    </div>
+                    <div className={styles.filterActions}>
+                        <button onClick={handleClear}>Clear</button>
+                        <button className={styles.apply} onClick={handleApply}>Apply</button>
+                    </div>
+                </div>
+            );
+        }
 
         return (
             <div className={`${styles.filterDropdown} ${styles.show}`}>
@@ -647,6 +815,13 @@ export const TicketReport: React.FC = () => {
             <div className={styles.excelContainer}>
                 <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
                     <p>Error: {error}</p>
+                    {currentApiUrl && (
+                        <details style={{ margin: '10px 0', padding: '10px', background: '#f8f9fa', borderRadius: '4px', textAlign: 'left' }}>
+                            <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>API Request Details</summary>
+                            <p><strong>URL:</strong> {currentApiUrl}</p>
+                            <p><strong>Active Filters:</strong> {JSON.stringify(activeFilters, null, 2)}</p>
+                        </details>
+                    )}
                     <button onClick={fetchTicketsData}>Retry</button>
                 </div>
             </div>
@@ -707,9 +882,31 @@ export const TicketReport: React.FC = () => {
                                 borderRadius: '12px',
                                 fontSize: '11px'
                             }}>
-                                {key}: {values.join(', ')}
+                                {key}: {key === 'CreatedDate' ? `${values[0]} to ${values[1]}` : values.join(', ')}
                             </span>
                         ))}
+                        {loading && (
+                            <span style={{ 
+                                background: '#ff9800', 
+                                color: 'white', 
+                                padding: '2px 8px', 
+                                borderRadius: '12px',
+                                fontSize: '11px'
+                            }}>
+                                🔄 Applying...
+                            </span>
+                        )}
+                        {!loading && allData.length === 0 && (
+                            <span style={{ 
+                                background: '#ff9800', 
+                                color: 'white', 
+                                padding: '2px 8px', 
+                                borderRadius: '12px',
+                                fontSize: '11px'
+                            }}>
+                                ⏳ Waiting for data to load...
+                            </span>
+                        )}
                     </div>
                 )}
                 <button 
@@ -719,6 +916,19 @@ export const TicketReport: React.FC = () => {
                 >
                     🔄 Refresh
                 </button>
+                {process.env.NODE_ENV === 'development' && (
+                    <button 
+                        className={styles.toolbarButton} 
+                        onClick={() => {
+                            console.log('Current API URL:', currentApiUrl);
+                            console.log('Active Filters:', activeFilters);
+                            console.log('All Data:', allData);
+                        }}
+                        style={{ background: '#6c757d', color: 'white', borderColor: '#6c757d', fontSize: '11px' }}
+                    >
+                        🐛 Debug
+                    </button>
+                )}
             </div>
 
             {/* Table */}
