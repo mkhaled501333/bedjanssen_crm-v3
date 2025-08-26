@@ -239,6 +239,6 @@ Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 ### 46. Export tickets with complex multiple filters (CSV)
-GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=csv&governorate=الشرقيه,الجيزة&city=بلبيس,الزقازيق&status=open,closed&productName=Product%20A,Product%20B
+GET http://localhost:8081/api/reports/tickets/export?companyId=1&format=csv&governorate=الشرقيه,الجيزة&city=بلبيس,الزقازيق&status=open,closed&productName=Product A,Product B
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
