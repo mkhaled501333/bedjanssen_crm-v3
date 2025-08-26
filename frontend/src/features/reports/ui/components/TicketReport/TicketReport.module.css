@@ -458,3 +458,38 @@
     text-align: center;
     padding: 8px 1px;
 }
+
+/* Special cell styles */
+.statusCell {
+    font-weight: 600;
+    text-align: center;
+}
+
+.statusCellOpen {
+    color: #dc3545;
+}
+
+.statusCellClosed {
+    color: #28a745;
+}
+
+.statusCellInProgress {
+    color: #ffc107;
+}
+
+.priorityCell {
+    font-weight: 600;
+    text-align: center;
+}
+
+.priorityCellHigh {
+    color: #dc3545;
+}
+
+.priorityCellMedium {
+    color: #ffc107;
+}
+
+.priorityCellLow {
+    color: #28a745;
+}
