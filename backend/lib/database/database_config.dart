@@ -1,6 +1,7 @@
 // ignore_for_file: inference_failure_on_instance_creation, public_member_api_docs
 
 import 'package:mysql1/mysql1.dart';
+import 'config.dart';
 
 class DatabaseConfig {
   static late MySqlConnection _connection;
@@ -9,17 +10,20 @@ class DatabaseConfig {
   static Future<void> initialize() async {
     if (_isInitialized) return;
 
-    // Load environment variables
-    const host = 'mysql';
-    const port = 3306;
-    const database = 'janssencrm';
-    const username = 'root';
-    const password = 'Admin@1234';
-    const useSSL = false;
+    // Load configuration from Config class
+    final host = Config.dbHost;
+    final port = Config.dbPort;
+    final database = Config.dbName;
+    final username = Config.dbUser;
+    final password = Config.dbPassword;
+    final useSSL = Config.dbUseSSL;
 
     int retries = 0;
     const maxRetries = 10;
     const retryDelay = Duration(seconds: 3);
+    
+    print('Attempting to connect to MySQL at $host:$port (database: $database)');
+    
     while (retries < maxRetries) {
       try {
         final settings = ConnectionSettings(

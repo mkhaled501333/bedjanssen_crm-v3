@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, useCallback } from 'react';
 import styles from '@/app/masterdata.module.css';
 import * as api from '../../api';
 import type { User, UserCreateRequest, UserUpdateRequest, Company } from '../../types';
@@ -35,12 +35,7 @@ export function UserManagement({ onClose }: UserManagementProps) {
     permissions: []
   });
 
-  useEffect(() => {
-    loadUsers();
-    loadCompanies();
-  }, [currentPage, searchTerm]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -52,7 +47,12 @@ export function UserManagement({ onClose }: UserManagementProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm]);
+
+  useEffect(() => {
+    loadUsers();
+    loadCompanies();
+  }, [currentPage, searchTerm, loadUsers]);
 
   const loadCompanies = async () => {
     try {

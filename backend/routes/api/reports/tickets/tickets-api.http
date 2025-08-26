@@ -1,7 +1,7 @@
 ### Tickets Report API Testing
 ### Base URL: http://localhost:8081
 
-@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjEsIm5hbWUiOiJtIiwiaWF0IjoxNzU2MTAyNzg0LCJleHAiOjE3NTYxMzE1ODR9.09OkUqty7TELgG9mczYK5rlJ94XTfYz1173WDdGd6yU
+@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjEsIm5hbWUiOiJtIiwiaWF0IjoxNzU2MTg5MDEwLCJleHAiOjE3NTYyMTc4MTB9.icUel1sUg9Vdm9S_W573cxKnd3kbF07xYsR-7ilPGG0
 
 ### 1. Basic tickets report
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=5

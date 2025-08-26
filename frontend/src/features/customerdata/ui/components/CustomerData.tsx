@@ -88,7 +88,6 @@ export function CustomerData({ customerId }: CustomerDataProps) {
   const [selectedItemForEdit, setSelectedItemForEdit] = useState<TicketItemState | null>(null);
   const [selectedItemForDelete, setSelectedItemForDelete] = useState<{ ticketId: string; itemId: string; item: TicketItemState } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [isActivityLogsModalOpen, setIsActivityLogsModalOpen] = useState(false);
   const [selectedItemForActivities, setSelectedItemForActivities] = useState<string | null>(null);
   const [isTicketActivityLogsModalOpen, setIsTicketActivityLogsModalOpen] = useState(false);
@@ -802,7 +801,6 @@ export function CustomerData({ customerId }: CustomerDataProps) {
   }) => {
     if (!selectedItemForEdit) return;
     
-    setIsUpdating(true);
     try {
       await updateTicketItem(
         selectedItemForEdit.ticketID.toString(),
@@ -815,8 +813,6 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     } catch (error) {
       console.error('Failed to update ticket item:', error);
       alert('Failed to update item. Please try again.');
-    } finally {
-      setIsUpdating(false);
     }
   };
 

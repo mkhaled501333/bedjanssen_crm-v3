@@ -126,7 +126,7 @@ export function ActivityLogsModal({ onClose, itemId, ticketId, customerId }: Act
     };
 
     fetchActivityLogs();
-  }, [itemId, ticketId]);
+  }, [itemId, ticketId, customerId]);
 
   return (
     <div className={styles.modalOverlay}>

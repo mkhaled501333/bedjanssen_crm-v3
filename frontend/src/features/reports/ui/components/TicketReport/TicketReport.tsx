@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './TicketReport.module.css';
 
 // Types based on the API response
@@ -98,9 +98,7 @@ export const TicketReport: React.FC = () => {
     const [filterDropdowns, setFilterDropdowns] = useState<Record<string, boolean>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const [availableFilters, setAvailableFilters] = useState<any>(null);
 
     // Refs
     const tableRef = useRef<HTMLTableElement>(null);
@@ -119,7 +117,7 @@ export const TicketReport: React.FC = () => {
     }, [selectedRows.size, currentPageData.length]);
 
     // Fetch data from API
-    const fetchTicketsData = async () => {
+    const fetchTicketsData = useCallback(async () => {
         setLoading(true);
         setError(null);
 
@@ -153,9 +151,7 @@ export const TicketReport: React.FC = () => {
 
             if (data.success && data.data) {
                 setAllData(data.data.tickets);
-                setTotalItems(data.data.pagination.totalItems);
                 setTotalPages(data.data.pagination.totalPages);
-                setAvailableFilters(data.data.available_filters);
                 setFilteredData(null); // Reset filtered data when new data arrives
             } else {
                 setError(data.message || 'Failed to fetch tickets data');
@@ -170,19 +166,19 @@ export const TicketReport: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, pageSize]);
 
     // Initialize data on component mount
     useEffect(() => {
         fetchTicketsData();
-    }, []);
+    }, [fetchTicketsData]);
 
     // Refetch data when pagination changes
     useEffect(() => {
         if (allData.length > 0) {
             fetchTicketsData();
         }
-    }, [currentPage, pageSize]);
+    }, [currentPage, pageSize, allData.length, fetchTicketsData]);
 
     // Update pagination when data changes
     useEffect(() => {

@@ -24,6 +24,20 @@ services:
     environment:
       ADMINER_DEFAULT_SERVER: mysql
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: janssencrm-phpmyadmin
+    restart: always
+    ports:
+      - "82:80"
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    volumes:
+      - phpmyadmin_data:/var/lib/phpmyadmin
+
   backend:
     build:
       context: ./backend
@@ -47,3 +61,4 @@ services:
 
 volumes:
   mysql_data:
+  phpmyadmin_data:
