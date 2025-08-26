@@ -111,6 +111,19 @@ export function useSearch({
     setSelectedIndex(-1);
   }, [fetchApiSuggestions]);
 
+  const selectSuggestion = useCallback((suggestion: SearchSuggestion) => {
+    setSearchQuery(suggestion.text);
+    setShowDropdown(false);
+    setSelectedIndex(-1);
+    
+    // Check if this is a customer suggestion (from API) and handle customer click
+    if (onCustomerClick && apiSuggestions.some(s => s.id === suggestion.id)) {
+      onCustomerClick(suggestion.id, suggestion.text);
+    } else if (onSearch) {
+      onSearch(suggestion.text);
+    }
+  }, [onSearch, onCustomerClick, apiSuggestions]);
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showDropdown) {
       if (e.key === 'Enter' && onSearch) {
@@ -156,19 +169,6 @@ export function useSearch({
         break;
     }
   }, [showDropdown, filteredSuggestions, onSearch, onAddNew, searchQuery, selectedIndex, selectSuggestion]);
-
-  const selectSuggestion = useCallback((suggestion: SearchSuggestion) => {
-    setSearchQuery(suggestion.text);
-    setShowDropdown(false);
-    setSelectedIndex(-1);
-    
-    // Check if this is a customer suggestion (from API) and handle customer click
-    if (onCustomerClick && apiSuggestions.some(s => s.id === suggestion.id)) {
-      onCustomerClick(suggestion.id, suggestion.text);
-    } else if (onSearch) {
-      onSearch(suggestion.text);
-    }
-  }, [onSearch, onCustomerClick, apiSuggestions]);
 
   const handleFocus = useCallback(() => {
     setIsFocused(true);
