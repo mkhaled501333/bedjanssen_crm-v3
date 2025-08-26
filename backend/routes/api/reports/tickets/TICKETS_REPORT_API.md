@@ -121,13 +121,37 @@ The API returns a JSON object with the following structure:
     "governorate": "الجيزة,الغربية"
   },
   "available_filters": {
-    "governorates": ["الجيزة", "الغربية", "الشرقيه"],
-    "cities": ["بلبيس", "الزقازيق", "6أكتوبر"],
-    "categories": ["Category A", "Category B"],
-    "statuses": ["open", "closed", "in_progress"],
-    "productNames": ["Product A", "Product B"],
-    "companyNames": ["Company X", "Company Y"],
-    "requestReasonNames": ["Defective", "Maintenance"]
+    "governorates": [
+      {"id": 1, "name": "الجيزة"},
+      {"id": 2, "name": "الغربية"},
+      {"id": 3, "name": "الشرقيه"}
+    ],
+    "cities": [
+      {"id": 1, "name": "بلبيس"},
+      {"id": 2, "name": "الزقازيق"},
+      {"id": 3, "name": "6أكتوبر"}
+    ],
+    "categories": [
+      {"id": 1, "name": "Category A"},
+      {"id": 2, "name": "Category B"}
+    ],
+    "statuses": [
+      {"id": 0, "name": "open"},
+      {"id": 1, "name": "in_progress"},
+      {"id": 2, "name": "closed"}
+    ],
+    "productNames": [
+      {"id": 1, "name": "Product A"},
+      {"id": 2, "name": "Product B"}
+    ],
+    "companyNames": [
+      {"id": 1, "name": "Company X"},
+      {"id": 2, "name": "Company Y"}
+    ],
+    "requestReasonNames": [
+      {"id": 1, "name": "Defective"},
+      {"id": 2, "name": "Maintenance"}
+    ]
   }
 }
 ```
@@ -179,7 +203,28 @@ An object containing the filters that were applied to the request.
 
 ### `available_filters` Object
 
-An object containing the available filter options based on the current filter selection. This is useful for dynamically updating the filter options in the UI.
+An object containing the available filter options based on the current filter selection. This is useful for dynamically updating the filter options in the UI. Each filter option now includes both an `id` and a `name` field to facilitate frontend filtering operations.
+
+**Filter Structure:**
+Each filter array contains objects with the following structure:
+```json
+{
+  "id": <integer>,
+  "name": "<string>"
+}
+```
+
+**Available Filter Types:**
+- `governorates`: List of available governorates with their IDs and names
+- `cities`: List of available cities with their IDs and names  
+- `categories`: List of available ticket categories with their IDs and names
+- `statuses`: List of available ticket statuses with their numeric IDs and string names
+- `productNames`: List of available product names with their IDs and names
+- `companyNames`: List of available company names with their IDs and names
+- `requestReasonNames`: List of available request reason names with their IDs and names
+
+**Frontend Usage:**
+The `id` field can be used for database queries and API calls, while the `name` field can be displayed in the UI. This dual structure allows for efficient filtering while maintaining user-friendly display names.
 
 ## Export Functionality
 

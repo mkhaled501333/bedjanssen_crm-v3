@@ -93,83 +93,73 @@ Future<Map<String, List<dynamic>>> getAvailableFilters({
       parameters.add(inspected ? 1 : 0);
     }
 
-    final whereClause = whereConditions.join(' AND ');
+    whereConditions.join(' AND ');
 
-    // Helper function to execute a query and return a list of strings
-    Future<List<String>> _fetchStringList(String select, String from, {List<dynamic>? params}) async {
-      final query = 'SELECT DISTINCT $select FROM $from WHERE $whereClause AND $select IS NOT NULL';
-      final result = await DatabaseService.queryMany(query, parameters: params);
-      return result.map((row) => row.fields.values.first as String).where((s) => s.isNotEmpty).toList();
-    }
+    // Helper function to get all available options for a specific company (unfiltered)
     
-    final baseFrom = '''
-      tickets t
-      LEFT JOIN customers c ON t.customer_id = c.id
-      LEFT JOIN companies comp ON t.company_id = comp.id
-      LEFT JOIN governorates g ON c.governomate_id = g.id
-      LEFT JOIN cities ct ON c.city_id = ct.id
-      LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
-    ''';
+    // Helper function to get all available options from a simple table
+    Future<List<Map<String, dynamic>>> _fetchSimpleTable(String selectId, String selectName, String tableName) async {
+      try {
+        final query = 'SELECT DISTINCT $selectId, $selectName FROM $tableName WHERE $selectName IS NOT NULL';
+        print('Executing query: $query');
+        final result = await DatabaseService.queryMany(query);
+        print('Query result for $tableName: ${result.length} rows');
+        final mappedResult = result.map((row) => {
+          'id': row[selectId],
+          'name': row[selectName],
+        }).where((item) => item['name'] != null && item['name'].toString().isNotEmpty).toList();
+        print('Mapped result for $tableName: ${mappedResult.length} items');
+        return mappedResult;
+      } catch (e) {
+        print('Error fetching from $tableName: $e');
+        return [];
+      }
+    }
 
-    // Fetch available filters based on the constructed WHERE clause
-    final availableGovernorates = await _fetchStringList(
-      'g.name',
-      baseFrom,
-      params: parameters,
+    // For basic filters, get all available options from master data tables
+    final availableGovernorates = await _fetchSimpleTable(
+      'id',
+      'name',
+      'governorates',
     );
 
-    final availableCities = await _fetchStringList(
-      'ct.name',
-      baseFrom,
-      params: parameters,
+    final availableCities = await _fetchSimpleTable(
+      'id',
+      'name',
+      'cities',
     );
 
-    final availableCategories = await _fetchStringList(
-      'tc.name',
-      baseFrom,
-      params: parameters,
+    final availableCategories = await _fetchSimpleTable(
+      'id',
+      'name',
+      'ticket_categories',
     );
 
     final statusResult = await DatabaseService.queryMany(
-      'SELECT DISTINCT t.status FROM $baseFrom WHERE $whereClause AND t.status IS NOT NULL',
-      parameters: parameters,
+      'SELECT DISTINCT t.status FROM tickets t WHERE t.company_id = ? AND t.status IS NOT NULL',
+      parameters: [companyId],
     );
-    final availableStatuses = statusResult.map((row) => DataTransformer.convertStatusToString(row['status'] as int)).toList();
+    final availableStatuses = statusResult.map((row) => {
+      'id': row['status'],
+      'name': DataTransformer.convertStatusToString(row['status'] as int),
+    }).toList();
 
-    final availableProductNames = await _fetchStringList(
-      'pi.product_name',
-      '''
-        tickets t
-        INNER JOIN ticket_items ti ON ti.ticket_id = t.id
-        INNER JOIN product_info pi ON ti.product_id = pi.id
-        LEFT JOIN customers c ON t.customer_id = c.id
-        LEFT JOIN companies comp ON t.company_id = comp.id
-        LEFT JOIN governorates g ON c.governomate_id = g.id
-        LEFT JOIN cities ct ON c.city_id = ct.id
-        LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
-      ''',
-      params: parameters,
+    final availableProductNames = await _fetchSimpleTable(
+      'id',
+      'product_name',
+      'product_info',
     );
 
-    final availableCompanyNames = await _fetchStringList(
-      'comp.name',
-      baseFrom,
-      params: parameters,
+    final availableCompanyNames = await _fetchSimpleTable(
+      'id',
+      'name',
+      'companies',
     );
 
-    final availableRequestReasonNames = await _fetchStringList(
-      'rr.name',
-      '''
-        tickets t
-        INNER JOIN ticket_items ti ON ti.ticket_id = t.id
-        INNER JOIN request_reasons rr ON ti.request_reason_id = rr.id
-        LEFT JOIN customers c ON t.customer_id = c.id
-        LEFT JOIN companies comp ON t.company_id = comp.id
-        LEFT JOIN governorates g ON c.governomate_id = g.id
-        LEFT JOIN cities ct ON c.city_id = ct.id
-        LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
-      ''',
-      params: parameters,
+    final availableRequestReasonNames = await _fetchSimpleTable(
+      'id',
+      'name',
+      'request_reasons',
     );
 
     return {

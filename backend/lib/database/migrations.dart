@@ -41,195 +41,130 @@ Future<void> _createIndexSafely(MySqlConnection conn, String indexName, String t
   }
 }
 
-/// Create all indexes needed for tickets report service optimization
-Future<void> _createTicketsReportIndexes(MySqlConnection conn) async {
-  print('Creating indexes for tickets report service optimization...');
+/// Create optimized indexes for tickets report service
+Future<void> _createOptimizedTicketsReportIndexes(MySqlConnection conn) async {
+  print('Creating optimized indexes for tickets report service...');
 
   // =============================================================================
-  // TICKETS TABLE INDEXES
+  // CORE TICKETS TABLE INDEXES (المهم فقط)
   // =============================================================================
+  
+  // 1. الفهرس الأساسي للشركة + التاريخ + الحالة (الأكثر استخداماً)
+  await _createIndexSafely(conn, 'idx_tickets_main_filter', 'tickets',
+    'CREATE INDEX idx_tickets_main_filter ON tickets(company_id, created_at DESC, status)');
 
-  // Most frequently used WHERE condition: company filtering
-  await _createIndexSafely(conn, 'idx_tickets_company_id', 'tickets',
-    'CREATE INDEX idx_tickets_company_id ON tickets(company_id)');
+  // 2. فهرس للعضو + الفئة (للفلترة المتقدمة)
+  await _createIndexSafely(conn, 'idx_tickets_customer_category', 'tickets',
+    'CREATE INDEX idx_tickets_customer_category ON tickets(customer_id, ticket_cat_id)');
 
-  // Status filtering (very common in WHERE clauses)
-  await _createIndexSafely(conn, 'idx_tickets_status', 'tickets',
-    'CREATE INDEX idx_tickets_status ON tickets(status)');
+  // 3. فهرس للأولوية + من أنشأها
+  await _createIndexSafely(conn, 'idx_tickets_priority_creator', 'tickets',
+    'CREATE INDEX idx_tickets_priority_creator ON tickets(priority, created_by)');
 
-  // Priority filtering
-  await _createIndexSafely(conn, 'idx_tickets_priority', 'tickets',
-    'CREATE INDEX idx_tickets_priority ON tickets(priority)');
-
-  // Date range filtering
-  await _createIndexSafely(conn, 'idx_tickets_created_at', 'tickets',
-    'CREATE INDEX idx_tickets_created_at ON tickets(created_at)');
-
-  // Foreign key indexes for JOINs
-  await _createIndexSafely(conn, 'idx_tickets_customer_id', 'tickets',
-    'CREATE INDEX idx_tickets_customer_id ON tickets(customer_id)');
-
-  await _createIndexSafely(conn, 'idx_tickets_ticket_cat_id', 'tickets',
-    'CREATE INDEX idx_tickets_ticket_cat_id ON tickets(ticket_cat_id)');
-
-  await _createIndexSafely(conn, 'idx_tickets_created_by', 'tickets',
-    'CREATE INDEX idx_tickets_created_by ON tickets(created_by)');
-
-  await _createIndexSafely(conn, 'idx_tickets_closed_by', 'tickets',
-    'CREATE INDEX idx_tickets_closed_by ON tickets(closed_by)');
-
-  // Composite indexes for common WHERE condition combinations
-  await _createIndexSafely(conn, 'idx_tickets_company_status', 'tickets',
-    'CREATE INDEX idx_tickets_company_status ON tickets(company_id, status)');
-
-  await _createIndexSafely(conn, 'idx_tickets_company_priority', 'tickets',
-    'CREATE INDEX idx_tickets_company_priority ON tickets(company_id, priority)');
-
-  await _createIndexSafely(conn, 'idx_tickets_company_date', 'tickets',
-    'CREATE INDEX idx_tickets_company_date ON tickets(company_id, created_at)');
-
-  await _createIndexSafely(conn, 'idx_tickets_company_customer', 'tickets',
-    'CREATE INDEX idx_tickets_company_customer ON tickets(company_id, customer_id)');
-
-  await _createIndexSafely(conn, 'idx_tickets_company_category', 'tickets',
-    'CREATE INDEX idx_tickets_company_category ON tickets(company_id, ticket_cat_id)');
-
-  // Composite index for the most common query pattern: company + date range + status
-  await _createIndexSafely(conn, 'idx_tickets_company_date_status', 'tickets',
-    'CREATE INDEX idx_tickets_company_date_status ON tickets(company_id, created_at, status)');
-
-  // Full composite index for complex filtering
-  await _createIndexSafely(conn, 'idx_tickets_complex_filter', 'tickets',
-    'CREATE INDEX idx_tickets_complex_filter ON tickets(company_id, customer_id, ticket_cat_id, status, priority, created_at)');
+  // 4. فهرس للإغلاق
+  await _createIndexSafely(conn, 'idx_tickets_closed', 'tickets',
+    'CREATE INDEX idx_tickets_closed ON tickets(closed_at, closed_by)');
 
   // =============================================================================
   // CUSTOMERS TABLE INDEXES
   // =============================================================================
+  
+  // فهرس مركب للعملاء (شركة + محافظة + مدينة)
+  await _createIndexSafely(conn, 'idx_customers_location', 'customers',
+    'CREATE INDEX idx_customers_location ON customers(company_id, governomate_id, city_id)');
 
-  await _createIndexSafely(conn, 'idx_customers_company_id', 'customers',
-    'CREATE INDEX idx_customers_company_id ON customers(company_id)');
-
-  await _createIndexSafely(conn, 'idx_customers_governomate_id', 'customers',
-    'CREATE INDEX idx_customers_governomate_id ON customers(governomate_id)');
-
-  await _createIndexSafely(conn, 'idx_customers_city_id', 'customers',
-    'CREATE INDEX idx_customers_city_id ON customers(city_id)');
-
-  await _createIndexSafely(conn, 'idx_customers_created_by', 'customers',
-    'CREATE INDEX idx_customers_created_by ON customers(created_by)');
-
-  await _createIndexSafely(conn, 'idx_customers_name', 'customers',
-    'CREATE INDEX idx_customers_name ON customers(name)');
-
-  await _createIndexSafely(conn, 'idx_customers_company_name', 'customers',
-    'CREATE INDEX idx_customers_company_name ON customers(company_id, name)');
+  // فهرس للبحث بالاسم (مع prefix للنص)
+  await _createIndexSafely(conn, 'idx_customers_name_search', 'customers',
+    'CREATE INDEX idx_customers_name_search ON customers(name(50), company_id)');
 
   // =============================================================================
-  // TICKET_CATEGORIES TABLE INDEXES
+  // TICKET_ITEMS TABLE INDEXES (الأهم للأداء)
   // =============================================================================
+  
+  // الفهرس الأساسي لربط التذاكر بالعناصر
+  await _createIndexSafely(conn, 'idx_ticket_items_main', 'ticket_items',
+    'CREATE INDEX idx_ticket_items_main ON ticket_items(ticket_id, product_id, request_reason_id)');
 
-  await _createIndexSafely(conn, 'idx_ticket_categories_name', 'ticket_categories',
-    'CREATE INDEX idx_ticket_categories_name ON ticket_categories(name)');
-
-  await _createIndexSafely(conn, 'idx_ticket_categories_company_id', 'ticket_categories',
-    'CREATE INDEX idx_ticket_categories_company_id ON ticket_categories(company_id)');
-
-  // =============================================================================
-  // TICKET_ITEMS TABLE INDEXES
-  // =============================================================================
-
-  await _createIndexSafely(conn, 'idx_ticket_items_ticket_id', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_ticket_id ON ticket_items(ticket_id)');
-
-  await _createIndexSafely(conn, 'idx_ticket_items_product_id', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_product_id ON ticket_items(product_id)');
-
-  await _createIndexSafely(conn, 'idx_ticket_items_request_reason_id', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_request_reason_id ON ticket_items(request_reason_id)');
-
-  await _createIndexSafely(conn, 'idx_ticket_items_created_by', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_created_by ON ticket_items(created_by)');
-
-  await _createIndexSafely(conn, 'idx_ticket_items_company_id', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_company_id ON ticket_items(company_id)');
-
-  await _createIndexSafely(conn, 'idx_ticket_items_ticket_created', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_ticket_created ON ticket_items(ticket_id, created_at)');
-
-  await _createIndexSafely(conn, 'idx_ticket_items_batch_query', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_batch_query ON ticket_items(ticket_id, product_id, request_reason_id, created_at)');
+  // فهرس للفحص والموافقة
+  await _createIndexSafely(conn, 'idx_ticket_items_approval', 'ticket_items',
+    'CREATE INDEX idx_ticket_items_approval ON ticket_items(inspected, client_approval, company_id)');
 
   // =============================================================================
   // TICKETCALL TABLE INDEXES
   // =============================================================================
-
-  await _createIndexSafely(conn, 'idx_ticketcall_ticket_id', 'ticketcall',
-    'CREATE INDEX idx_ticketcall_ticket_id ON ticketcall(ticket_id)');
-
-  await _createIndexSafely(conn, 'idx_ticketcall_company_id', 'ticketcall',
-    'CREATE INDEX idx_ticketcall_company_id ON ticketcall(company_id)');
-
-  await _createIndexSafely(conn, 'idx_ticketcall_call_cat_id', 'ticketcall',
-    'CREATE INDEX idx_ticketcall_call_cat_id ON ticketcall(call_cat_id)');
-
-  await _createIndexSafely(conn, 'idx_ticketcall_created_by', 'ticketcall',
-    'CREATE INDEX idx_ticketcall_created_by ON ticketcall(created_by)');
-
-  await _createIndexSafely(conn, 'idx_ticketcall_count_optimization', 'ticketcall',
-    'CREATE INDEX idx_ticketcall_count_optimization ON ticketcall(ticket_id, company_id)');
+  
+  // فهرس للعد السريع للمكالمات
+  await _createIndexSafely(conn, 'idx_ticketcall_count', 'ticketcall',
+    'CREATE INDEX idx_ticketcall_count ON ticketcall(ticket_id, company_id)');
 
   // =============================================================================
-  // LOOKUP TABLES INDEXES
+  // LOOKUP TABLES INDEXES (أساسية فقط)
   // =============================================================================
+  
+  await _createIndexSafely(conn, 'idx_product_info_company_name', 'product_info',
+    'CREATE INDEX idx_product_info_company_name ON product_info(company_id, product_name(50))');
 
-  await _createIndexSafely(conn, 'idx_product_info_company_id', 'product_info',
-    'CREATE INDEX idx_product_info_company_id ON product_info(company_id)');
+  await _createIndexSafely(conn, 'idx_request_reasons_company_name', 'request_reasons',
+    'CREATE INDEX idx_request_reasons_company_name ON request_reasons(company_id, name)');
 
-  await _createIndexSafely(conn, 'idx_product_info_created_by', 'product_info',
-    'CREATE INDEX idx_product_info_created_by ON product_info(created_by)');
+  await _createIndexSafely(conn, 'idx_ticket_categories_company_name', 'ticket_categories',
+    'CREATE INDEX idx_ticket_categories_company_name ON ticket_categories(company_id, name)');
 
-  await _createIndexSafely(conn, 'idx_request_reasons_company_id', 'request_reasons',
-    'CREATE INDEX idx_request_reasons_company_id ON request_reasons(company_id)');
-
-  await _createIndexSafely(conn, 'idx_request_reasons_created_by', 'request_reasons',
-    'CREATE INDEX idx_request_reasons_created_by ON request_reasons(created_by)');
-
-  await _createIndexSafely(conn, 'idx_users_company_id', 'users',
-    'CREATE INDEX idx_users_company_id ON users(company_id)');
-
-  await _createIndexSafely(conn, 'idx_users_is_active', 'users',
-    'CREATE INDEX idx_users_is_active ON users(is_active)');
+  await _createIndexSafely(conn, 'idx_companies_name', 'companies',
+    'CREATE INDEX idx_companies_name ON companies(name)');
 
   // =============================================================================
-  // ADDITIONAL PERFORMANCE INDEXES
+  // LOCATION TABLES (بدون فهارس إضافية - الحجم صغير عادة)
   // =============================================================================
+  
+  await _createIndexSafely(conn, 'idx_governorates_name', 'governorates',
+    'CREATE INDEX idx_governorates_name ON governorates(name)');
 
-  await _createIndexSafely(conn, 'idx_tickets_updated_at', 'tickets',
-    'CREATE INDEX idx_tickets_updated_at ON tickets(updated_at)');
+  await _createIndexSafely(conn, 'idx_cities_name_gov', 'cities',
+    'CREATE INDEX idx_cities_name_gov ON cities(name, governorate_id)');
 
-  await _createIndexSafely(conn, 'idx_customers_updated_at', 'customers',
-    'CREATE INDEX idx_customers_updated_at ON customers(updated_at)');
-
-  await _createIndexSafely(conn, 'idx_ticket_items_updated_at', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_updated_at ON ticket_items(updated_at)');
-
-  await _createIndexSafely(conn, 'idx_ticketcall_created_at', 'ticketcall',
-    'CREATE INDEX idx_ticketcall_created_at ON ticketcall(created_at)');
-
-  // =============================================================================
-  // SEARCH OPTIMIZATION INDEXES
-  // =============================================================================
-
-  // For search functionality - prefix indexes for LIKE queries
-  await _createIndexSafely(conn, 'idx_tickets_description_prefix', 'tickets',
-    'CREATE INDEX idx_tickets_description_prefix ON tickets(description(50))');
-
-  await _createIndexSafely(conn, 'idx_customers_name_prefix', 'customers',
-    'CREATE INDEX idx_customers_name_prefix ON customers(name(50))');
-
-  print('✓ All tickets report indexes created successfully.');
+  print('✓ Optimized tickets report indexes created successfully.');
 }
 
+
+/// Analyze and optimize existing indexes
+Future<void> analyzeTicketsIndexUsage(MySqlConnection conn) async {
+  print('Analyzing tickets indexes usage...');
+  
+  try {
+    // تحقق من استخدام الفهارس
+    final indexUsage = await DatabaseService.query('''
+      SHOW INDEX FROM tickets 
+      WHERE Key_name != 'PRIMARY'
+    ''');
+    
+    print('Current tickets indexes:');
+    for (final index in indexUsage) {
+      print('- ${index['Key_name']}: ${index['Column_name']}');
+    }
+    
+    // تحقق من إحصائيات الجداول
+    final tableStats = await DatabaseService.query('''
+      SELECT 
+        TABLE_NAME,
+        TABLE_ROWS,
+        DATA_LENGTH,
+        INDEX_LENGTH,
+        (INDEX_LENGTH / DATA_LENGTH) * 100 as INDEX_RATIO
+      FROM information_schema.TABLES 
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME IN ('tickets', 'ticket_items', 'customers', 'ticketcall')
+    ''');
+    
+    print('Table statistics:');
+    for (final stat in tableStats) {
+      print('${stat['TABLE_NAME']}: ${stat['TABLE_ROWS']} rows, Index ratio: ${stat['INDEX_RATIO']?.toStringAsFixed(2)}%');
+    }
+    
+  } catch (e) {
+    print('Could not analyze index usage: $e');
+  }
+}
 Future<void> runMigrations(MySqlConnection conn) async {
   try {
 
@@ -568,7 +503,7 @@ Future<void> runMigrations(MySqlConnection conn) async {
 
 
     // Create indexes for tickets report service optimization
-    await _createTicketsReportIndexes(conn);
+    await _createOptimizedTicketsReportIndexes(conn);
 
     print('✓ All migrations completed: database schema and indexes ensured.');
   } catch (e) {

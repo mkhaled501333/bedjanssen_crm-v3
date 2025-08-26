@@ -1,7 +1,16 @@
 ### Tickets Report API Testing
 ### Base URL: http://localhost:8081
+### 
+### Note: The available_filters in the response now include both IDs and names for each filter option.
+### This allows the frontend to use IDs for efficient filtering while displaying user-friendly names.
+### 
+### Example filter structure:
+### "governorates": [
+###   {"id": 1, "name": "الجيزة"},
+###   {"id": 2, "name": "الغربية"}
+### ]
 
-@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjEsIm5hbWUiOiJtIiwiaWF0IjoxNzU2MTg5MDEwLCJleHAiOjE3NTYyMTc4MTB9.icUel1sUg9Vdm9S_W573cxKnd3kbF07xYsR-7ilPGG0
+@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjEsIm5hbWUiOiJtIiwiaWF0IjoxNzU2MjI3NjA1LCJleHAiOjE3NTYyNTY0MDV9.E9xZGca5GsKHJLLwa6n5ea8w1IsN-Ty-N9V3kqTBPZM
 
 ### 1. Basic tickets report
 GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=5
@@ -99,6 +108,13 @@ Authorization: Bearer {{authToken}}
 GET http://localhost:8081/api/reports/tickets?companyId=1&governorate=الشرقيه,الجيزة&city=بلبيس,الزقازيق,6أكتوبر&page=1&limit=20
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
+
+### 20. Test available filters with IDs and names
+GET http://localhost:8081/api/reports/tickets?companyId=1&page=1&limit=5
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+# This request will return available_filters with both IDs and names for frontend filtering
 
 ### 20. Multiple statuses
 GET http://localhost:8081/api/reports/tickets?companyId=1&status=open,closed,in_progress&page=1&limit=15
