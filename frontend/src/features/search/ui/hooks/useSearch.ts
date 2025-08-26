@@ -155,7 +155,7 @@ export function useSearch({
         inputRef.current?.blur();
         break;
     }
-  }, [showDropdown, filteredSuggestions, onSearch, onAddNew, searchQuery, selectedIndex]);
+  }, [showDropdown, filteredSuggestions, onSearch, onAddNew, searchQuery, selectedIndex, selectSuggestion]);
 
   const selectSuggestion = useCallback((suggestion: SearchSuggestion) => {
     setSearchQuery(suggestion.text);

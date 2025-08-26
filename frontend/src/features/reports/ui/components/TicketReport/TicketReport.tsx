@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+
 import styles from './TicketReport.module.css';
 
 // Types based on the API response
@@ -139,7 +140,7 @@ export const TicketReport: React.FC = () => {
     }, [selectedRows.size, currentPageData.length]);
 
     // Fetch data from API
-    const fetchTicketsData = async () => {
+    const fetchTicketsData = useCallback(async () => {
         setLoading(true);
         setError(null);
 
@@ -160,12 +161,6 @@ export const TicketReport: React.FC = () => {
                 page: currentPage.toString(),
                 limit: pageSize.toString()
             });
-
-            // Store the current URL for debugging
-            const apiUrl = `http://localhost:8081/api/reports/tickets?${queryParams.toString()}`;
-            setCurrentApiUrl(apiUrl);
-            console.log('Final API URL:', apiUrl);
-            console.log('Query parameters:', queryParams.toString());
 
             // Add filters to query parameters
             console.log('Building query params with filters:', activeFilters);
@@ -225,6 +220,11 @@ export const TicketReport: React.FC = () => {
                 }
             });
 
+            // Store the current URL for debugging
+            const apiUrl = `http://localhost:8081/api/reports/tickets?${queryParams.toString()}`;
+            setCurrentApiUrl(apiUrl);
+            console.log('Final API URL:', apiUrl);
+            console.log('Query parameters:', queryParams.toString());
 
             
             const response = await fetch(apiUrl, {
@@ -245,7 +245,7 @@ export const TicketReport: React.FC = () => {
                     if (errorData.details) {
                         errorMessage += ` - ${JSON.stringify(errorData.details)}`;
                     }
-                } catch (e) {
+                } catch {
                     // If we can't parse the error response, just use the status
                 }
                 throw new Error(errorMessage);
@@ -281,21 +281,21 @@ export const TicketReport: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, pageSize, activeFilters]);
 
 
 
     // Initialize data on component mount
     useEffect(() => {
         fetchTicketsData();
-    }, []);
+    }, [fetchTicketsData]);
 
     // Fetch data when pagination changes
     useEffect(() => {
         if (allData.length > 0) { // Only fetch if we already have some data
             fetchTicketsData();
         }
-    }, [currentPage, pageSize]);
+    }, [currentPage, pageSize, allData.length, fetchTicketsData]);
 
 
 
@@ -347,6 +347,8 @@ export const TicketReport: React.FC = () => {
         setCurrentPage(1); // Reset to first page when clearing filters
     };
 
+
+
     const clearAllFilters = () => {
         setActiveFilters({});
         setFilteredData(null);
@@ -372,10 +374,10 @@ export const TicketReport: React.FC = () => {
             console.log('Triggering API call with filters');
             fetchTicketsData();
         }
-    }, [activeFilters]);
+    }, [activeFilters, fetchTicketsData]);
 
     // Get unique values for a column (for local filtering)
-    const getUniqueColumnValues = (column: string): string[] => {
+    const getUniqueColumnValues = useCallback((column: string): string[] => {
         const values = new Set<string>();
         
         allData.forEach(ticket => {
@@ -444,10 +446,10 @@ export const TicketReport: React.FC = () => {
         });
         
         return Array.from(values).sort();
-    };
+    }, [allData]);
 
     // Get available filter values from API response
-    const getAvailableFilterValues = (column: string): string[] => {
+    const getAvailableFilterValues = useCallback((column: string): string[] => {
         switch (column) {
             case 'Governorate':
                 return availableFilters.governorates;
@@ -466,7 +468,7 @@ export const TicketReport: React.FC = () => {
             default:
                 return getUniqueColumnValues(column);
         }
-    };
+    }, [availableFilters, getUniqueColumnValues]);
 
     // Filter dropdown component
     const FilterDropdown: React.FC<{ column: string; isOpen: boolean; onClose: () => void }> = ({ column, isOpen, onClose }) => {
@@ -478,7 +480,7 @@ export const TicketReport: React.FC = () => {
             if (isOpen) {
                 setSelectedValues(activeFilters[column] || []);
             }
-        }, [isOpen, column, activeFilters]);
+        }, [isOpen, column]);
         
         // Use available filters from API when possible, fallback to local unique values
         const availableValues = getAvailableFilterValues(column);
@@ -508,7 +510,7 @@ export const TicketReport: React.FC = () => {
                     className={styles.filterSearch}
                     placeholder="Search..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(event) => setSearchTerm(event.target.value)}
                 />
                 <div className={styles.filterOptions}>
                     {filteredOptions.map(value => (
@@ -517,8 +519,8 @@ export const TicketReport: React.FC = () => {
                                 type="checkbox"
                                 id={`filter-${column}-${value}`}
                                 checked={selectedValues.includes(value)}
-                                onChange={(e) => {
-                                    if (e.target.checked) {
+                                onChange={(event) => {
+                                    if (event.target.checked) {
                                         setSelectedValues(prev => [...prev, value]);
                                     } else {
                                         setSelectedValues(prev => prev.filter(v => v !== value));
@@ -729,7 +731,7 @@ export const TicketReport: React.FC = () => {
                                     ref={selectAllCheckboxRef}
                                     type="checkbox"
                                     className={styles.selectAll}
-                                    onChange={(e) => toggleSelectAll(e.target.checked)}
+                                    onChange={(event) => toggleSelectAll(event.target.checked)}
                                     checked={selectedRows.size === currentPageData.length && currentPageData.length > 0}
                                 />
                             </th>
@@ -998,7 +1000,7 @@ export const TicketReport: React.FC = () => {
                                         type="checkbox"
                                         className={styles.rowCheckbox}
                                         checked={selectedRows.has(ticket.id)}
-                                        onChange={(e) => toggleRowSelection(ticket.id, e.target.checked)}
+                                        onChange={(event) => toggleRowSelection(ticket.id, event.target.checked)}
                                     />
                                 </td>
                                 <td>
@@ -1188,7 +1190,7 @@ export const TicketReport: React.FC = () => {
                     <select
                         id="pageSize"
                         value={pageSize}
-                        onChange={(e) => changePageSize(Number(e.target.value))}
+                        onChange={(event) => changePageSize(Number(event.target.value))}
                         disabled={loading}
                     >
                         <option value={10}>10</option>
