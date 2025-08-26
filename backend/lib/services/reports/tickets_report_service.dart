@@ -22,9 +22,14 @@ Future<Map<String, List<dynamic>>> getAvailableFilters({
     final parameters = <dynamic>[companyId];
 
     // Add filters to the WHERE clause and parameters
-    if (status != null) {
-      whereConditions.add('t.status = ?');
-      parameters.add(DataTransformer.convertStatusToInt(status));
+    if (status != null && status.isNotEmpty) {
+      final statusList = status.split(',').map((e) => e.trim()).toList();
+      if (statusList.isNotEmpty) {
+        final statusValues = statusList.map((s) => DataTransformer.convertStatusToInt(s)).toList();
+        final placeholders = List.filled(statusValues.length, '?').join(', ');
+        whereConditions.add('t.status IN ($placeholders)');
+        parameters.addAll(statusValues);
+      }
     }
     if (categoryId != null) {
       whereConditions.add('t.ticket_cat_id = ?');
@@ -52,20 +57,36 @@ Future<Map<String, List<dynamic>>> getAvailableFilters({
       }
     }
     if (city != null && city.isNotEmpty) {
-      whereConditions.add('ct.name = ?');
-      parameters.add(city);
+      final cityList = city.split(',').map((e) => e.trim()).toList();
+      if (cityList.isNotEmpty) {
+        final placeholders = List.filled(cityList.length, '?').join(', ');
+        whereConditions.add('ct.name IN ($placeholders)');
+        parameters.addAll(cityList);
+      }
     }
     if (productName != null && productName.isNotEmpty) {
-      whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti2 INNER JOIN product_info pi2 ON ti2.product_id = pi2.id WHERE ti2.ticket_id = t.id AND pi2.product_name LIKE ?)');
-      parameters.add('%$productName%');
+      final productNameList = productName.split(',').map((e) => e.trim()).toList();
+      if (productNameList.isNotEmpty) {
+        final placeholders = List.filled(productNameList.length, '?').join(', ');
+        whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti2 INNER JOIN product_info pi2 ON ti2.product_id = pi2.id WHERE ti2.ticket_id = t.id AND pi2.product_name IN ($placeholders))');
+        parameters.addAll(productNameList);
+      }
     }
     if (companyName != null && companyName.isNotEmpty) {
-      whereConditions.add('comp.name LIKE ?');
-      parameters.add('%$companyName%');
+      final companyNameList = companyName.split(',').map((e) => e.trim()).toList();
+      if (companyNameList.isNotEmpty) {
+        final placeholders = List.filled(companyNameList.length, '?').join(', ');
+        whereConditions.add('comp.name IN ($placeholders)');
+        parameters.addAll(companyNameList);
+      }
     }
     if (requestReasonName != null && requestReasonName.isNotEmpty) {
-      whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti3 INNER JOIN request_reasons rr ON ti3.request_reason_id = rr.id WHERE ti3.ticket_id = t.id AND rr.name LIKE ?)');
-      parameters.add('%$requestReasonName%');
+      final requestReasonNameList = requestReasonName.split(',').map((e) => e.trim()).toList();
+      if (requestReasonNameList.isNotEmpty) {
+        final placeholders = List.filled(requestReasonNameList.length, '?').join(', ');
+        whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti3 INNER JOIN request_reasons rr ON ti3.request_reason_id = rr.id WHERE ti3.ticket_id = t.id AND rr.name IN ($placeholders))');
+        parameters.addAll(requestReasonNameList);
+      }
     }
     if (inspected != null) {
       whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti4 WHERE ti4.ticket_id = t.id AND ti4.inspected = ?)');
@@ -250,26 +271,42 @@ Future<TicketsReportResult> getTicketsReport({
     
     // Add city filter
     if (city != null && city.isNotEmpty) {
-      whereConditions.add('ct.name = ?');
-      parameters.add(city);
+      final cityList = city.split(',').map((e) => e.trim()).toList();
+      if (cityList.isNotEmpty) {
+        final placeholders = List.filled(cityList.length, '?').join(', ');
+        whereConditions.add('ct.name IN ($placeholders)');
+        parameters.addAll(cityList);
+      }
     }
     
     // Add product name filter
     if (productName != null && productName.isNotEmpty) {
-      whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti2 INNER JOIN product_info pi2 ON ti2.product_id = pi2.id WHERE ti2.ticket_id = t.id AND pi2.product_name LIKE ?)');
-      parameters.add('%$productName%');
+      final productNameList = productName.split(',').map((e) => e.trim()).toList();
+      if (productNameList.isNotEmpty) {
+        final placeholders = List.filled(productNameList.length, '?').join(', ');
+        whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti2 INNER JOIN product_info pi2 ON ti2.product_id = pi2.id WHERE ti2.ticket_id = t.id AND pi2.product_name IN ($placeholders))');
+        parameters.addAll(productNameList);
+      }
     }
     
     // Add company name filter
     if (companyName != null && companyName.isNotEmpty) {
-      whereConditions.add('comp.name LIKE ?');
-      parameters.add('%$companyName%');
+      final companyNameList = companyName.split(',').map((e) => e.trim()).toList();
+      if (companyNameList.isNotEmpty) {
+        final placeholders = List.filled(companyNameList.length, '?').join(', ');
+        whereConditions.add('comp.name IN ($placeholders)');
+        parameters.addAll(companyNameList);
+      }
     }
     
     // Add request reason name filter
     if (requestReasonName != null && requestReasonName.isNotEmpty) {
-      whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti3 INNER JOIN request_reasons rr ON ti3.request_reason_id = rr.id WHERE ti3.ticket_id = t.id AND rr.name LIKE ?)');
-      parameters.add('%$requestReasonName%');
+      final requestReasonNameList = requestReasonName.split(',').map((e) => e.trim()).toList();
+      if (requestReasonNameList.isNotEmpty) {
+        final placeholders = List.filled(requestReasonNameList.length, '?').join(', ');
+        whereConditions.add('EXISTS (SELECT 1 FROM ticket_items ti3 INNER JOIN request_reasons rr ON ti3.request_reason_id = rr.id WHERE ti3.ticket_id = t.id AND rr.name IN ($placeholders))');
+        parameters.addAll(requestReasonNameList);
+      }
     }
     
     // Add inspected filter
