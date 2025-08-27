@@ -42,14 +42,14 @@ except ImportError:
         'log_level': 'INFO'
     }
     DEFAULT_VALUES = {
-        'company_id': 1,
-        'created_by': 1,
-        'phone_type': 1,
-        'governorate_id': 1,
-        'city_id': 1,
-        'call_status': 'completed',
-        'call_type_id': 1,
-        'call_reason_id': 1
+        'company_id': 0,
+        'created_by': 0,
+        'phone_type':0,
+        'governorate_id': 0,
+        'city_id': 0,
+        'call_status': 0,
+        'call_type_id': 0,
+        'call_reason_id': 0
     }
 
 class EnhancedCallDataImporter:

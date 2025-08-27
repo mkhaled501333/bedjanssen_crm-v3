@@ -41,11 +41,11 @@ except ImportError:
         'log_level': 'INFO'
     }
     DEFAULT_VALUES = {
-        'company_id': 1,
-        'created_by': 1,
-        'phone_type': 1,
-        'governorate_id': 1,
-        'city_id': 1
+        'company_id': 0,
+        'created_by': 0,
+        'phone_type': 0,
+        'governorate_id': 0,
+        'city_id': 0
     }
 
 class EnhancedJanssenCRMDataImporter:
@@ -69,13 +69,24 @@ class EnhancedJanssenCRMDataImporter:
         """Setup logging configuration."""
         log_level = getattr(logging, IMPORT_SETTINGS['log_level'])
         
+        # Create formatter
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        
+        # Create file handler with UTF-8 encoding
+        file_handler = logging.FileHandler(
+            f'data_import_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log',
+            encoding='utf-8'
+        )
+        file_handler.setFormatter(formatter)
+        
+        # Create console handler
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(formatter)
+        
+        # Configure root logger
         logging.basicConfig(
             level=log_level,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(f'data_import_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'),
-                logging.StreamHandler(sys.stdout)
-            ]
+            handlers=[file_handler, console_handler]
         )
         self.logger = logging.getLogger(__name__)
         
@@ -515,9 +526,9 @@ class EnhancedJanssenCRMDataImporter:
                 self.logger.info(f"Starting import for {table_name}...")
                 if import_func(file_path):
                     success_count += 1
-                    self.logger.info(f"✓ Successfully imported {table_name}")
+                    self.logger.info(f"[SUCCESS] Successfully imported {table_name}")
                 else:
-                    self.logger.error(f"✗ Failed to import {table_name}")
+                    self.logger.error(f"[FAILED] Failed to import {table_name}")
             
             self.stats['end_time'] = datetime.now()
             self._print_summary(success_count, total_tasks)
@@ -581,10 +592,10 @@ def main():
     success = importer.run_import(data_folder)
     
     if success:
-        print("\n🎉 Data import completed successfully!")
+        print("\n[SUCCESS] Data import completed successfully!")
         sys.exit(0)
     else:
-        print("\n❌ Data import failed!")
+        print("\n[FAILED] Data import failed!")
         sys.exit(1)
 
 if __name__ == "__main__":
