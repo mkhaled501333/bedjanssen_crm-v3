@@ -93,73 +93,119 @@ Future<Map<String, List<dynamic>>> getAvailableFilters({
       parameters.add(inspected ? 1 : 0);
     }
 
-    whereConditions.join(' AND ');
+    final whereClause = whereConditions.join(' AND ');
 
-    // Helper function to get all available options for a specific company (unfiltered)
-    
-    // Helper function to get all available options from a simple table
-    Future<List<Map<String, dynamic>>> _fetchSimpleTable(String selectId, String selectName, String tableName) async {
+    // Helper function to get distinct values from the filtered dataset
+    Future<List<Map<String, dynamic>>> _fetchDistinctValues(
+      String selectColumn, 
+      String tableAlias, 
+      String columnName,
+      {String? additionalJoin = '', String? additionalWhere = ''}
+    ) async {
       try {
-        final query = 'SELECT DISTINCT $selectId, $selectName FROM $tableName WHERE $selectName IS NOT NULL';
-        print('Executing query: $query');
-        final result = await DatabaseService.queryMany(query);
-        print('Query result for $tableName: ${result.length} rows');
+        String query = '''
+          SELECT DISTINCT $selectColumn as id, $selectColumn as name
+          FROM tickets t
+          LEFT JOIN customers c ON t.customer_id = c.id
+          LEFT JOIN companies comp ON t.company_id = comp.id
+          LEFT JOIN governorates g ON c.governomate_id = g.id
+          LEFT JOIN cities ct ON c.city_id = ct.id
+          LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
+          LEFT JOIN users u ON t.created_by = u.id
+          $additionalJoin
+          WHERE $whereClause
+          ${additionalWhere?.isNotEmpty == true ? 'AND $additionalWhere' : ''}
+          AND $selectColumn IS NOT NULL
+          ORDER BY $selectColumn
+        ''';
+
+        print('Executing distinct query for $columnName: $query');
+        final result = await DatabaseService.queryMany(query, parameters: parameters);
+        print('Distinct query result for $columnName: ${result.length} rows');
+        
         final mappedResult = result.map((row) => {
-          'id': row[selectId],
-          'name': row[selectName],
+          'id': row['id'],
+          'name': row['name'],
         }).where((item) => item['name'] != null && item['name'].toString().isNotEmpty).toList();
-        print('Mapped result for $tableName: ${mappedResult.length} items');
+        
+        print('Mapped distinct result for $columnName: ${mappedResult.length} items');
         return mappedResult;
       } catch (e) {
-        print('Error fetching from $tableName: $e');
+        print('Error fetching distinct values for $columnName: $e');
         return [];
       }
     }
 
-    // For basic filters, get all available options from master data tables
-    final availableGovernorates = await _fetchSimpleTable(
-      'id',
-      'name',
+    // Get available governorates from the filtered dataset
+    final availableGovernorates = await _fetchDistinctValues(
+      'g.name',
+      'g',
       'governorates',
     );
 
-    final availableCities = await _fetchSimpleTable(
-      'id',
-      'name',
+    // Get available cities from the filtered dataset
+    final availableCities = await _fetchDistinctValues(
+      'ct.name',
+      'ct',
       'cities',
     );
 
-    final availableCategories = await _fetchSimpleTable(
-      'id',
-      'name',
-      'ticket_categories',
+    // Get available categories from the filtered dataset
+    final availableCategories = await _fetchDistinctValues(
+      'tc.name',
+      'tc',
+      'categories',
     );
 
+    // Get available statuses from the filtered dataset
     final statusResult = await DatabaseService.queryMany(
-      'SELECT DISTINCT t.status FROM tickets t WHERE t.company_id = ? AND t.status IS NOT NULL',
-      parameters: [companyId],
+      '''
+      SELECT DISTINCT t.status
+      FROM tickets t
+      LEFT JOIN customers c ON t.customer_id = c.id
+      LEFT JOIN companies comp ON t.company_id = comp.id
+      LEFT JOIN governorates g ON c.governomate_id = g.id
+      LEFT JOIN cities ct ON c.city_id = ct.id
+      LEFT JOIN ticket_categories tc ON t.ticket_cat_id = tc.id
+      LEFT JOIN users u ON t.created_by = u.id
+      WHERE $whereClause
+      AND t.status IS NOT NULL
+      ORDER BY t.status
+      ''',
+      parameters: parameters,
     );
     final availableStatuses = statusResult.map((row) => {
       'id': row['status'],
       'name': DataTransformer.convertStatusToString(row['status'] as int),
     }).toList();
 
-    final availableProductNames = await _fetchSimpleTable(
-      'id',
-      'product_name',
-      'product_info',
+    // Get available product names from the filtered dataset
+    final availableProductNames = await _fetchDistinctValues(
+      'pi.product_name',
+      'pi',
+      'product_names',
+      additionalJoin: '''
+        INNER JOIN ticket_items ti2 ON ti2.ticket_id = t.id
+        INNER JOIN product_info pi ON ti2.product_id = pi.id
+      ''',
     );
 
-    final availableCompanyNames = await _fetchSimpleTable(
-      'id',
-      'name',
-      'companies',
+    // Get available company names from the filtered dataset
+    final availableCompanyNames = await _fetchDistinctValues(
+      'comp.name',
+      'comp',
+      'company_names',
     );
 
-    final availableRequestReasonNames = await _fetchSimpleTable(
-      'id',
-      'name',
-      'request_reasons',
+    // Get available request reason names from the filtered dataset
+    final availableRequestReasonNames = await _fetchDistinctValues(
+      'rr.name',
+      'rr',
+      'request_reason_names',
+      additionalJoin: '''
+        INNER JOIN ticket_items ti3 ON ti3.ticket_id = t.id
+        INNER JOIN request_reasons rr ON ti3.request_reason_id = rr.id
+      ''',
     );
 
     return {

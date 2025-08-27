@@ -62,3 +62,4 @@ This document lists all the activities available in the reports API routes with 
 ---
 
 **Note**: All report endpoints support CORS and include comprehensive error handling and validation. Export endpoints retrieve all matching records without pagination limits.
+
