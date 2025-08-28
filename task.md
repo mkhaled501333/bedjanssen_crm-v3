@@ -83,3 +83,23 @@ inspection_date from to
 action
 pulled_status
 delivered_status
+
+
+
+Ticket ID	
+Status
+Customer
+Governorate	
+City
+Category
+Product
+Product	Size
+Request Reason
+Inspected
+Inspection Date	
+Client Approval
+Action
+Pulled Status
+Delivered Status
+
+

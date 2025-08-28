@@ -40,7 +40,8 @@ Authorization: Bearer {{authToken}}
 
 {
   "filters": {
-    "companyId": 1
+    "companyId": 1,
+    "ticketStatus": "0"
   },
   "page": 1,
   "limit": 50
@@ -54,8 +55,7 @@ Authorization: Bearer {{authToken}}
 {
   "filters": {
     "companyId": 1,
-    "governomateIds": [1, 2],
-    "cityIds": [5, 6]
+    "governomateIds": [1, 2]
   },
   "page": 1,
   "limit": 25

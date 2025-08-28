@@ -23,6 +23,7 @@ TicketReport/
 
 - **Real-time Data**: Fetches data from the ticket-items API endpoint
 - **Dynamic Filtering**: Filter by any column with real-time updates
+- **Search in Dropdowns**: Search functionality in multi-select filter dropdowns for quick option finding
 - **Pagination**: Built-in pagination with configurable page sizes
 - **Row Selection**: Select individual rows or all rows
 - **Export**: Export filtered data to CSV
@@ -178,6 +179,17 @@ A table header component with integrated filter functionality.
   onClearFilter={clearFilter}
 />
 ```
+
+## Search Functionality
+
+The component now includes search functionality in dropdown filters:
+
+- **MultiSelect Filters**: Search through available options in real-time
+- **Text Filters**: Enhanced input fields with clear buttons
+- **Smart Selection**: "Select All" works with filtered results
+- **Real-time Filtering**: Options are filtered as you type
+
+For detailed information about the search functionality, see [SEARCH_FUNCTIONALITY.md](./SEARCH_FUNCTIONALITY.md).
 
 ## Utilities
 

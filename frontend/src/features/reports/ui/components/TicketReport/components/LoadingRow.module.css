@@ -1,0 +1,70 @@
+.loadingRow {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+
+.checkboxCell {
+  text-align: center;
+  padding: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.checkboxSkeleton {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  border-radius: 3px;
+  animation: shimmer 1.5s infinite;
+}
+
+.cellSkeleton {
+  padding: 8px;
+  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+}
+
+.skeletonContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+}
+
+.skeletonLine {
+  width: 80%;
+  height: 12px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Loading state for the entire row */
+.loadingRow.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loadingRow.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}

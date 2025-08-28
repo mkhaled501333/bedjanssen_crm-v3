@@ -1,70 +1,118 @@
 import React from 'react';
 import styles from '../TicketReport.module.css';
+import { FilterValue, COLUMN_FILTER_CONFIG } from '../types';
+import MultiSelectFilter from './MultiSelectFilter';
+import TextFilter from './TextFilter';
+import BooleanFilter from './BooleanFilter';
+import DateRangePicker from './DateRangePicker';
+import RadioFilter from './RadioFilter';
+import YesNoRadioFilter from './YesNoRadioFilter';
 
 interface FilterDropdownProps {
   column: string;
   isOpen: boolean;
   uniqueValues: string[];
-  selectedValues: string[];
-  onFilterSelection: (column: string, value: string, checked: boolean) => void;
-  onSelectAllFilter: (column: string, checked: boolean, uniqueValues: string[]) => void;
+  selectedValues: FilterValue;
+  onFilterSelection: (column: string, value: FilterValue) => void;
   onApplyFilter: (column: string) => void;
   onClearFilter: (column: string) => void;
+  isLoading?: boolean;
 }
 
 const FilterDropdown: React.FC<FilterDropdownProps> = ({
   column,
   isOpen,
-  uniqueValues,
+  uniqueValues = [],
   selectedValues,
   onFilterSelection,
-  onSelectAllFilter,
   onApplyFilter,
   onClearFilter,
+  isLoading = false,
 }) => {
   if (!isOpen) return null;
 
-  const allSelected = uniqueValues.length > 0 && selectedValues.length === uniqueValues.length;
+  const filterConfig = COLUMN_FILTER_CONFIG.find(config => config.column === column);
+  if (!filterConfig) return null;
+
+  // Ensure uniqueValues is always an array
+  const safeUniqueValues = Array.isArray(uniqueValues) ? uniqueValues : [];
+
+  const renderFilterComponent = () => {
+    switch (filterConfig.filterType) {
+      case 'multiSelect':
+        return (
+          <MultiSelectFilter
+            uniqueValues={safeUniqueValues}
+            selectedValues={Array.isArray(selectedValues) ? selectedValues : []}
+            onFilterSelection={(value) => onFilterSelection(column, value)}
+            onApplyFilter={() => onApplyFilter(column)}
+            onClearFilter={() => onClearFilter(column)}
+            isLoading={isLoading}
+          />
+        );
+      case 'text':
+        return (
+          <TextFilter
+            value={typeof selectedValues === 'string' ? selectedValues : ''}
+            onChange={(value) => onFilterSelection(column, value)}
+            onApply={() => onApplyFilter(column)}
+            onClear={() => onClearFilter(column)}
+          />
+        );
+      case 'radio':
+        // Use different radio filters based on the column
+        if (column === 'Pulled Status' || column === 'Delivered Status') {
+          console.log('FilterDropdown: Rendering YesNoRadioFilter for', column, 'with selectedValues:', selectedValues, 'type:', typeof selectedValues);
+          return (
+            <YesNoRadioFilter
+              value={typeof selectedValues === 'boolean' ? selectedValues : null}
+              onChange={(value) => onFilterSelection(column, value)}
+              onApply={() => onApplyFilter(column)}
+              onClear={() => onClearFilter(column)}
+            />
+          );
+        } else {
+          // Default radio filter for Status column
+          return (
+            <RadioFilter
+              value={typeof selectedValues === 'string' ? selectedValues : null}
+              onChange={(value) => onFilterSelection(column, value)}
+              onApply={() => onApplyFilter(column)}
+              onClear={() => onClearFilter(column)}
+            />
+          );
+        }
+      case 'boolean':
+        return (
+          <BooleanFilter
+            value={typeof selectedValues === 'boolean' ? selectedValues : null}
+            onChange={(value) => onFilterSelection(column, value)}
+            onApply={() => onApplyFilter(column)}
+            onClear={() => onClearFilter(column)}
+          />
+        );
+      case 'dateRange':
+        return (
+          <DateRangePicker
+            value={selectedValues && typeof selectedValues === 'object' && 'from' in selectedValues 
+              ? selectedValues as { from: Date | null; to: Date | null } 
+              : { from: null, to: null }}
+            onChange={(value) => onFilterSelection(column, value)}
+            onApply={() => onApplyFilter(column)}
+            onClear={() => onClearFilter(column)}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className={styles.filterDropdown}>
       <div className={styles.filterHeader}>
         Filter {column}
       </div>
-      <div className={styles.filterOptions}>
-        <div className={styles.filterOption}>
-          <input
-            type="checkbox"
-            checked={allSelected}
-            onChange={(e) => onSelectAllFilter(column, e.target.checked, uniqueValues)}
-          />
-          <label>Select All</label>
-        </div>
-        {uniqueValues.map((value) => (
-          <div key={value} className={styles.filterOption}>
-            <input
-              type="checkbox"
-              checked={selectedValues.includes(value)}
-              onChange={(e) => onFilterSelection(column, value, e.target.checked)}
-            />
-            <label>{value}</label>
-          </div>
-        ))}
-      </div>
-      <div className={styles.filterActions}>
-        <button 
-          className={styles.clear} 
-          onClick={() => onClearFilter(column)}
-        >
-          Clear
-        </button>
-        <button 
-          className={styles.apply} 
-          onClick={() => onApplyFilter(column)}
-        >
-          Apply
-        </button>
-      </div>
+      {renderFilterComponent()}
     </div>
   );
 };

@@ -102,9 +102,46 @@ export interface ColumnMapping {
 }
 
 export interface FilterState {
-  [column: string]: string[];
+  [column: string]: FilterValue;
 }
 
 export interface FilterDropdownState {
   [column: string]: boolean;
 }
+
+export type FilterValue = 
+  | string[] 
+  | string 
+  | boolean 
+  | DateRange 
+  | null;
+
+export interface DateRange {
+  from: Date | null;
+  to: Date | null;
+}
+
+export interface FilterConfig {
+  column: string;
+  filterType: 'multiSelect' | 'text' | 'boolean' | 'dateRange' | 'radio';
+  backendKey: string;
+  dataType: 'string' | 'number' | 'boolean' | 'date';
+}
+
+export const COLUMN_FILTER_CONFIG: FilterConfig[] = [
+  { column: 'Ticket ID', filterType: 'multiSelect', backendKey: 'ticketIds', dataType: 'number' },
+  { column: 'Status', filterType: 'radio', backendKey: 'ticketStatus', dataType: 'string' },
+  { column: 'Customer', filterType: 'multiSelect', backendKey: 'customerIds', dataType: 'number' },
+  { column: 'Governorate', filterType: 'multiSelect', backendKey: 'governomateIds', dataType: 'number' },
+  { column: 'City', filterType: 'multiSelect', backendKey: 'cityIds', dataType: 'number' },
+  { column: 'Category', filterType: 'multiSelect', backendKey: 'ticketCatIds', dataType: 'number' },
+  { column: 'Product', filterType: 'multiSelect', backendKey: 'productIds', dataType: 'number' },
+  { column: 'Size', filterType: 'text', backendKey: 'productSize', dataType: 'string' },
+  { column: 'Request Reason', filterType: 'multiSelect', backendKey: 'requestReasonIds', dataType: 'number' },
+  { column: 'Inspected', filterType: 'boolean', backendKey: 'inspected', dataType: 'boolean' },
+  { column: 'Inspection Date', filterType: 'dateRange', backendKey: 'inspectionDate', dataType: 'date' },
+  { column: 'Client Approval', filterType: 'boolean', backendKey: 'clientApproval', dataType: 'boolean' },
+  { column: 'Action', filterType: 'text', backendKey: 'action', dataType: 'string' },
+  { column: 'Pulled Status', filterType: 'radio', backendKey: 'pulledStatus', dataType: 'boolean' },
+  { column: 'Delivered Status', filterType: 'radio', backendKey: 'deliveredStatus', dataType: 'boolean' },
+];

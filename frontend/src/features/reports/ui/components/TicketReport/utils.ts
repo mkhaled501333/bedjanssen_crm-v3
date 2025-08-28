@@ -53,23 +53,40 @@ export const formatBoolean = (value: boolean | null): string => {
   return value ? 'Yes' : 'No';
 };
 
+export const formatStatus = (value: string | number | null): string => {
+  if (value === null || value === undefined) return '-';
+  
+  // Convert to string and trim whitespace
+  const stringValue = String(value).trim();
+  
+  // Handle numeric values
+  if (stringValue === '0') return 'Open';
+  if (stringValue === '1') return 'Closed';
+  
+  // Handle string values (case-insensitive)
+  if (stringValue.toLowerCase() === 'open') return 'Open';
+  if (stringValue.toLowerCase() === 'closed') return 'Closed';
+  
+  // Return original value if it doesn't match expected patterns
+  return stringValue;
+};
+
 export const exportToCSV = (data: TicketItem[], filename: string = 'ticket-report-export.csv') => {
   const headers = [
-    'ID', 'Customer', 'Governorate', 'City', 'Ticket ID', 'Category', 'Status',
-    'Product', 'Size', 'Request Reason', 'Inspected', 'Inspection Date',
+    'Ticket ID', 'Status', 'Customer', 'Governorate', 'City', 'Category', 'Product',
+    'Size', 'Request Reason', 'Inspected', 'Inspection Date',
     'Client Approval', 'Action', 'Pulled Status', 'Delivered Status'
   ];
 
   const csvContent = [
     headers.join(','),
     ...data.map(row => [
-      row.ticket_item_id,
+      row.ticket_id,
+      `"${formatStatus(row.ticket_status)}"`,
       `"${row.customer_name}"`,
       `"${row.governorate_name}"`,
       `"${row.city_name}"`,
-      row.ticket_id,
       `"${row.ticket_category_name}"`,
-      `"${row.ticket_status}"`,
       `"${row.product_name}"`,
       `"${row.product_size}"`,
       `"${row.request_reason_name}"`,
@@ -101,6 +118,8 @@ export const getDisplayValue = (item: TicketItem, columnKey: keyof TicketItem): 
   switch (columnKey) {
     case 'inspection_date':
       return formatDate(value as string);
+    case 'ticket_status':
+      return formatStatus(value as string);
     case 'inspected':
     case 'client_approval':
     case 'pulled_status':
@@ -112,8 +131,7 @@ export const getDisplayValue = (item: TicketItem, columnKey: keyof TicketItem): 
 };
 
 export const getColumnDisplayName = (columnKey: keyof TicketItem): string => {
-  const displayNames: Record<keyof TicketItem, string> = {
-    ticket_item_id: 'ID',
+  const displayNames: Partial<Record<keyof TicketItem, string>> = {
     customer_id: 'Customer ID',
     customer_name: 'Customer',
     governomate_id: 'Governorate ID',

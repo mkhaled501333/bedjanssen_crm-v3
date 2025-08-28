@@ -1,6 +1,12 @@
 export { default as TicketReport } from './TicketReport';
 export { default as FilterDropdown } from './components/FilterDropdown';
 export { default as FilterHeader } from './components/FilterHeader';
+export { default as MultiSelectFilter } from './components/MultiSelectFilter';
+export { default as TextFilter } from './components/TextFilter';
+export { default as BooleanFilter } from './components/BooleanFilter';
+export { default as DateRangePicker } from './components/DateRangePicker';
+export { default as RadioFilter } from './components/RadioFilter';
+export { default as YesNoRadioFilter } from './components/YesNoRadioFilter';
 export * from './types';
 export * from './api';
 export * from './hooks';

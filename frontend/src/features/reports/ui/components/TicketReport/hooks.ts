@@ -4,7 +4,9 @@ import {
   AppliedFilters, 
   FilterState, 
   FilterDropdownState,
-  AvailableFilters 
+  AvailableFilters,
+  FilterValue,
+  DateRange
 } from './types';
 import TicketItemsReportAPI from './api';
 
@@ -71,9 +73,37 @@ export const useTicketReportData = (companyId: number = 1) => {
 };
 
 export const useTicketReportFilters = () => {
-  const [activeFilters, setActiveFilters] = useState<FilterState>({});
-  const [filterSelections, setFilterSelections] = useState<FilterState>({});
+  // Load initial filter state from localStorage
+  const getInitialFilterState = (): FilterState => {
+    try {
+      const saved = localStorage.getItem('ticketReport_filters');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const getInitialFilterSelections = (): FilterState => {
+    try {
+      const saved = localStorage.getItem('ticketReport_filterSelections');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const [activeFilters, setActiveFilters] = useState<FilterState>(getInitialFilterState);
+  const [filterSelections, setFilterSelections] = useState<FilterState>(getInitialFilterSelections);
   const [filterDropdowns, setFilterDropdowns] = useState<FilterDropdownState>({});
+
+  // Save filter state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('ticketReport_filters', JSON.stringify(activeFilters));
+  }, [activeFilters]);
+
+  useEffect(() => {
+    localStorage.setItem('ticketReport_filterSelections', JSON.stringify(filterSelections));
+  }, [filterSelections]);
 
   const toggleFilter = useCallback((column: string) => {
     setFilterDropdowns(prev => ({
@@ -82,31 +112,39 @@ export const useTicketReportFilters = () => {
     }));
   }, []);
 
-  const handleFilterSelection = useCallback((column: string, value: string, checked: boolean) => {
+  const handleFilterSelection = useCallback((column: string, value: FilterValue) => {
+    console.log('handleFilterSelection called for column:', column, 'with value:', value, 'type:', typeof value);
     setFilterSelections(prev => {
-      const current = prev[column] || [];
-      if (checked) {
-        return { ...prev, [column]: [...current, value] };
-      } else {
-        return { ...prev, [column]: current.filter(v => v !== value) };
-      }
+      const newState = { ...prev, [column]: value };
+      console.log('New filterSelections state:', newState);
+      return newState;
     });
   }, []);
 
-  const handleSelectAllFilter = useCallback((column: string, checked: boolean, uniqueValues: string[]) => {
-    if (checked) {
-      setFilterSelections(prev => ({ ...prev, [column]: uniqueValues }));
-    } else {
-      setFilterSelections(prev => ({ ...prev, [column]: [] }));
-    }
-  }, []);
-
   const applyFilter = useCallback((column: string) => {
-    const selectedValues = filterSelections[column] || [];
-    if (selectedValues.length > 0) {
+    const selectedValue = filterSelections[column];
+    
+    // Check if the value is meaningful (not empty array, empty string, etc.)
+    let hasValue = false;
+    if (Array.isArray(selectedValue)) {
+      hasValue = selectedValue.length > 0;
+    } else if (typeof selectedValue === 'string') {
+      hasValue = selectedValue.trim().length > 0;
+    } else if (typeof selectedValue === 'boolean') {
+      hasValue = true; // Boolean values are always meaningful
+    } else if (selectedValue === null) {
+      // For radio filters, null means "All" which should clear the filter
+      hasValue = false;
+    } else if (selectedValue && typeof selectedValue === 'object' && 'from' in selectedValue) {
+      // DateRange type
+      const dateRange = selectedValue as DateRange;
+      hasValue = !!(dateRange.from || dateRange.to);
+    }
+
+    if (hasValue) {
       setActiveFilters(prev => ({
         ...prev,
-        [column]: selectedValues
+        [column]: selectedValue
       }));
     } else {
       setActiveFilters(prev => {
@@ -130,11 +168,15 @@ export const useTicketReportFilters = () => {
       return newSelections;
     });
     setFilterDropdowns(prev => ({ ...prev, [column]: false }));
+    // Note: localStorage will be automatically updated by the useEffect hooks
   }, []);
 
   const clearAllFilters = useCallback(() => {
     setActiveFilters({});
     setFilterSelections({});
+    // Clear localStorage
+    localStorage.removeItem('ticketReport_filters');
+    localStorage.removeItem('ticketReport_filterSelections');
   }, []);
 
   const closeAllDropdowns = useCallback(() => {
@@ -147,7 +189,6 @@ export const useTicketReportFilters = () => {
     filterDropdowns,
     toggleFilter,
     handleFilterSelection,
-    handleSelectAllFilter,
     applyFilter,
     clearFilter,
     clearAllFilters,

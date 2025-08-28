@@ -4,7 +4,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     margin: 0 auto;
-    max-width: 1200px;
 }
 
 .excelToolbar {
@@ -32,11 +31,34 @@
     border-color: #adb5bd;
 }
 
+.toolbarButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f8f9fa;
+    color: #6c757d;
+}
+
+.toolbarButton:disabled:hover {
+    background: #f8f9fa;
+    border-color: #ced4da;
+}
+
+.toolbarLoading {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    padding: 0 10px;
+    background: rgba(33, 115, 70, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(33, 115, 70, 0.2);
+}
+
 .excelTableWrapper {
     overflow-x: auto;
     border: 2px solid #217346;
     max-height: 600px;
     overflow-y: auto;
+    min-width: 100%;
 }
 
 .excelTable {
@@ -92,6 +114,42 @@
 
 .excelTable tr:hover td {
     background: #e3f2fd;
+}
+
+/* Loading state for table */
+.excelTable.loading {
+    opacity: 0.8;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.excelTable.loading tbody tr {
+    pointer-events: none;
+}
+
+/* Loading animation for table cells */
+.excelTable.loading td {
+    position: relative;
+}
+
+.excelTable.loading td::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 .excelTable tr:first-child td {
@@ -231,12 +289,36 @@
 .paginationBtn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.paginationBtn:disabled:hover {
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
 }
 
 .pageInfo {
     font-weight: 500;
     color: #495057;
     margin: 0 8px;
+}
+
+.loadingIndicator {
+    color: #217346;
+    font-weight: 600;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
 .paginationSettings {
@@ -256,6 +338,13 @@
     border-radius: 4px;
     font-size: 12px;
     background: white;
+}
+
+.paginationSettings select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f8f9fa;
+    color: #6c757d;
 }
 
 .recordsInfo {
@@ -390,16 +479,30 @@
     background: #5a6268;
 }
 
+.filterActions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.filterActions button:disabled:hover {
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
 .excelTable th {
     position: relative;
 }
 
-.columnFiltered {
+.excelTable th.columnFiltered {
     background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
     color: #856404 !important;
 }
 
-.columnFiltered .filterIcon {
+.excelTable th.columnFiltered .filterIcon {
     color: #856404;
 }
 
@@ -488,4 +591,400 @@
 
 .errorMessage button:hover {
   background: #c82333;
+}
+
+.noDataMessage {
+  padding: 20px;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* New Filter Component Styles */
+.dateRangePicker {
+  padding: 15px;
+  min-width: 300px;
+}
+
+.dateRangeInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.dateInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dateInputGroup label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.dateInput {
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.dateRangeActions {
+  display: flex;
+  gap: 10px;
+}
+
+.booleanFilter {
+  padding: 15px;
+  min-width: 250px;
+}
+
+.booleanSelect {
+  margin-bottom: 15px;
+}
+
+.booleanSelectInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.booleanActions {
+  display: flex;
+  gap: 10px;
+}
+
+.textFilter {
+  padding: 15px;
+  min-width: 250px;
+}
+
+.textInputContainer {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.textFilterInput {
+  width: 100%;
+  padding: 8px 30px 8px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.textFilterInput:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.clearTextButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.clearTextButton:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.textActions {
+  display: flex;
+  gap: 10px;
+}
+
+.radioFilter {
+  padding: 15px;
+  min-width: 250px;
+}
+
+.radioOptions {
+  margin-bottom: 15px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.radioOption:hover {
+  background: #f8f9fa;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 0 -8px;
+}
+
+.radioOption input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.radioLabel {
+  cursor: pointer;
+  flex: 1;
+  color: #495057;
+}
+
+.radioActions {
+  display: flex;
+  gap: 10px;
+}
+
+.multiSelectFilter {
+  padding: 15px;
+  min-width: 250px;
+}
+
+.searchContainer {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 30px 8px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.clearSearchButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.clearSearchButton:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.noSearchResults {
+  padding: 10px;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.filterOptions {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.filterOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 12px;
+}
+
+.filterOption input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.filterOption label {
+  cursor: pointer;
+  user-select: none;
+}
+
+.filterActions {
+  display: flex;
+  gap: 10px;
+}
+
+.applyButton {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.applyButton:hover {
+  background: #218838;
+}
+
+.applyButton:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.clearButton {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.clearButton:hover {
+  background: #5a6268;
+}
+
+.clear {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.clear:hover {
+  background: #5a6268;
+}
+
+.apply {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.apply:hover {
+  background: #218838;
+}
+
+.excelTable th.requestReasonColumn,
+.excelTable td.requestReasonColumn {
+    min-width: 200px !important;
+    width: 200px !important;
+}
+
+.statusClosed {
+    color: #dc3545;
+    font-weight: 600;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.statusOpen {
+    color: #28a745;
+    font-weight: 600;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+/* Responsive design for different screen sizes */
+@media (max-width: 768px) {
+  .excelContainer {
+    margin: 0 10px;
+  }
+  
+  .excelToolbar {
+    padding: 8px 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .toolbarButton {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+  
+  .excelTable th,
+  .excelTable td {
+    min-width: 80px;
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+  
+  .excelTable th.requestReasonColumn,
+  .excelTable td.requestReasonColumn {
+    min-width: 150px !important;
+    width: 150px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .excelContainer {
+    margin: 0 5px;
+  }
+  
+  .excelToolbar {
+    padding: 6px 10px;
+  }
+  
+  .excelTable th,
+  .excelTable td {
+    min-width: 60px;
+    padding: 4px 2px;
+    font-size: 10px;
+  }
+  
+  .excelTable th.requestReasonColumn,
+  .excelTable td.requestReasonColumn {
+    min-width: 120px !important;
+    width: 120px !important;
+  }
 }
