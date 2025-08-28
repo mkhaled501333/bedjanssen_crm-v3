@@ -13,6 +13,7 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
 - **Comprehensive Data**: Includes customer, ticket, product, and geographic information
 - **Pagination Support**: Built-in pagination with configurable page size
 - **Real-time Updates**: Filter options update in real-time as filters are applied
+- **CORS Support**: Full CORS support with OPTIONS method handling
 
 ## Request Format
 
@@ -24,6 +25,7 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
     "governomateIds": [1],
     "cityIds": [5, 6],
     "ticketIds": [100, 200],
+    "companyIds": [1, 2],
     "ticketCatIds": [1, 2],
     "ticketStatus": "مفتوح",
     "productIds": [10, 20],
@@ -55,6 +57,7 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
 #### Customer & Ticket Filters
 - **customerIds** (List<int>): Filter by customer IDs
 - **ticketIds** (List<int>): Filter by ticket IDs
+- **companyIds** (List<int>): Filter by additional company IDs (secondary companies)
 - **ticketCatIds** (List<int>): Filter by ticket category IDs
 - **ticketStatus** (string): Filter by ticket status
 
@@ -89,6 +92,8 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
     "available_filters": {
       "governorates": [{"id": 1, "name": "Governorate X"}],
       "cities": [{"id": 5, "name": "City E"}],
+      "customers": [{"id": 1, "name": "Customer A"}],
+      "tickets": [{"id": 100, "name": "Ticket 100"}],
       "ticket_categories": [{"id": 1, "name": "Category A"}],
       "ticket_statuses": [{"id": "مفتوح", "name": "مفتوح"}],
       "products": [{"id": 10, "name": "Product X"}],
@@ -202,7 +207,7 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
 
 ## Error Responses
 
-### Validation Error
+### Validation Error (400)
 ```json
 {
   "success": false,
@@ -210,7 +215,7 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
 }
 ```
 
-### Server Error
+### Server Error (500)
 ```json
 {
   "success": false,
@@ -218,12 +223,30 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
 }
 ```
 
+### Method Not Allowed (405)
+```
+Method not allowed
+```
+
+## HTTP Methods
+
+- **POST**: Get ticket items report with dynamic filtering
+- **OPTIONS**: CORS preflight request (returns 200 with CORS headers)
+
+## CORS Headers
+
+The API includes proper CORS headers for cross-origin requests:
+- `Access-Control-Allow-Origin: *`
+- `Access-Control-Allow-Methods: POST, OPTIONS`
+- `Access-Control-Allow-Headers: Content-Type, Authorization`
+
 ## Usage Examples
 
 ### Basic Report
 ```bash
-curl -X POST http://localhost:8080/api/reports/ticket-items \
+curl -X POST http://localhost:8081/api/reports/ticket-items \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
     "filters": {"companyId": 1},
     "page": 1,
@@ -233,8 +256,9 @@ curl -X POST http://localhost:8080/api/reports/ticket-items \
 
 ### Filtered Report
 ```bash
-curl -X POST http://localhost:8080/api/reports/ticket-items \
+curl -X POST http://localhost:8081/api/reports/ticket-items \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
     "filters": {
       "companyId": 1,
@@ -245,6 +269,12 @@ curl -X POST http://localhost:8080/api/reports/ticket-items \
     "page": 1,
     "limit": 100
   }'
+```
+
+### CORS Preflight
+```bash
+curl -X OPTIONS http://localhost:8081/api/reports/ticket-items \
+  -H "Origin: http://localhost:3000"
 ```
 
 ## Performance Considerations
@@ -270,6 +300,33 @@ CREATE INDEX idx_ticket_items_filter_covering ON ticket_items(
 - Implement Redis caching for frequently accessed filter data
 - Use database query result caching for complex filter combinations
 
+## Implementation Details
+
+### Service Layer
+The API uses `TicketItemsReportService.getTicketItemsReport()` method which:
+- Validates required parameters
+- Builds dynamic WHERE clauses based on applied filters
+- Fetches available filter options from the filtered dataset
+- Provides comprehensive error handling and fallbacks
+- Converts DateTime fields to ISO 8601 strings for JSON serialization
+
+### Database View
+The API relies on a `ticket_items_report` database view that joins:
+- `ticket_items` - Core ticket item data
+- `tickets` - Ticket information
+- `customers` - Customer details
+- `governorates` - Geographic data
+- `cities` - City information
+- `product_info` - Product details
+- `request_reasons` - Request reason data
+- Action-specific tables (maintenance, change same, change another)
+
+### Error Handling
+- Graceful fallbacks when database views are empty
+- Comprehensive error logging for debugging
+- Safe type casting for filter parameters
+- JSON serialization error handling
+
 ## Best Practices
 
 ### Frontend Implementation
@@ -277,12 +334,14 @@ CREATE INDEX idx_ticket_items_filter_covering ON ticket_items(
 2. **Progressive Loading**: Load essential filters first, then secondary options
 3. **Filter State Management**: Maintain filter state and sync with backend
 4. **Error Handling**: Provide fallback options when filters fail
+5. **CORS Handling**: Handle preflight requests properly
 
 ### Backend Optimization
 1. **Query Optimization**: Use prepared statements and parameterized queries
 2. **Index Strategy**: Create composite indexes for common filter combinations
 3. **Connection Pooling**: Use database connection pooling for concurrent requests
 4. **Response Compression**: Compress large responses for better performance
+5. **Error Logging**: Comprehensive logging for debugging and monitoring
 
 ## Migration Notes
 
@@ -292,6 +351,7 @@ This endpoint requires:
 2. **Service Layer**: `TicketItemsReportService` implementation
 3. **Database Indexes**: Performance optimization indexes
 4. **CORS Configuration**: Proper CORS headers for cross-origin requests
+5. **Authentication**: Bearer token authentication required
 
 ## Support
 
@@ -302,3 +362,14 @@ For issues with the Ticket Items Report API:
 3. Monitor API performance and response times
 4. Review filter combinations and dependencies
 5. Check database connection and query performance
+6. Verify CORS configuration for frontend integration
+7. Check authentication token validity
+
+## Testing
+
+Use the provided `ticket-items-api.http` file for comprehensive API testing:
+- Basic functionality tests
+- Filter combination tests
+- Pagination tests
+- Error handling tests
+- CORS and authentication tests
