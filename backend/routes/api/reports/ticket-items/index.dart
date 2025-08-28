@@ -79,6 +79,7 @@ Future<Response> _handlePost(RequestContext context) async {
       action: filters['action'] as String?,
       pulledStatus: filters['pulledStatus'] as bool?,
       deliveredStatus: filters['deliveredStatus'] as bool?,
+      clientApproval: filters['clientApproval'] as bool?,
       page: page,
       limit: limit,
     );

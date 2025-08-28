@@ -33,7 +33,8 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
     "inspectionDateTo": "2024-12-31T23:59:59Z",
     "action": "صيانه",
     "pulledStatus": false,
-    "deliveredStatus": true
+    "deliveredStatus": true,
+    "clientApproval": true
   },
   "page": 1,
   "limit": 50
@@ -69,6 +70,7 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
 - **inspected** (boolean): Filter by inspection status
 - **pulledStatus** (boolean): Filter by pulled status
 - **deliveredStatus** (boolean): Filter by delivered status
+- **clientApproval** (boolean): Filter by client approval status
 
 #### Date Filters
 - **inspectionDateFrom** (string): Filter by inspection date from (ISO 8601)

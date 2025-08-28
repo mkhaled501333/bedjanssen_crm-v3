@@ -1,3 +1,5 @@
+// ignore_for_file: inference_failure_on_collection_literal
+
 import 'package:janssencrm_backend/database/database_service.dart';
 
 class TicketItemsReportService {
@@ -19,16 +21,87 @@ class TicketItemsReportService {
     String? action,
     bool? pulledStatus,
     bool? deliveredStatus,
+    bool? clientApproval,
     int page = 1,
     int limit = 50,
   }) async {
     try {
       // First, check if the view exists and has data
       try {
+        // Diagnostic: Check each table individually to identify the issue
+        print('🔍 Diagnosing view data issue...');
+        
+        final tables = [
+          'ticket_items',
+          'tickets', 
+          'customers',
+          'governorates',
+          'cities',
+          'product_info',
+          'request_reasons',
+          'ticket_item_change_another',
+          'ticket_item_change_same',
+          'ticket_item_maintenance'
+        ];
+        
+        for (final table in tables) {
+          try {
+            final countQuery = 'SELECT COUNT(*) as count FROM $table';
+            final countResult = await DatabaseService.query(countQuery);
+            final count = countResult.first['count'] as int;
+            print('  📊 $table: $count records');
+          } catch (e) {
+            print('  ❌ $table: Error - $e');
+          }
+        }
+        
         final testQuery = 'SELECT COUNT(*) as count FROM ticket_items_report LIMIT 1';
         final testResult = await DatabaseService.query(testQuery);
         print('✓ View ticket_items_report exists and is accessible');
-        print('✓ View has ${testResult.first['count']} total records');
+        
+        // Handle case where view might be empty
+        if (testResult.isNotEmpty) {
+          final count = testResult.first['count'] as int;
+          print('✓ View has $count total records');
+          
+          // If view is completely empty, return empty result instead of error
+          if (count == 0) {
+            print('⚠ View is empty - returning empty result structure');
+            return {
+              'success': true,
+              'data': {
+                'available_filters': {
+                  'governorates': [],
+                  'cities': [],
+                  'customers': [],
+                  'tickets': [],
+                  'ticket_categories': [],
+                  'products': [],
+                  'request_reasons': [],
+                  'actions': []
+                },
+                'applied_filters': {'companyId': companyId},
+                'filter_summary': {
+                  'total_applied_filters': 1,
+                  'active_filters': ['companyId']
+                },
+                'report_data': {
+                  'ticket_items': [],
+                  'pagination': {
+                    'page': page,
+                    'limit': limit,
+                    'total': 0,
+                    'total_pages': 0,
+                    'has_next': false,
+                    'has_previous': false
+                  }
+                }
+              }
+            };
+          }
+        } else {
+          print('⚠ View exists but returned no results');
+        }
       } catch (e) {
         print('✗ Error accessing ticket_items_report view: $e');
         return {
@@ -97,6 +170,10 @@ class TicketItemsReportService {
       if (deliveredStatus != null) {
         whereConditions.add('delivered_status = ?');
         parameters.add(deliveredStatus);
+      }
+      if (clientApproval != null) {
+        whereConditions.add('client_approval = ?');
+        parameters.add(clientApproval);
       }
 
       final whereClause = whereConditions.join(' AND ');
@@ -239,6 +316,7 @@ class TicketItemsReportService {
         'action': action,
         'pulledStatus': pulledStatus,
         'deliveredStatus': deliveredStatus,
+        'clientApproval': clientApproval,
       };
 
       // Remove null/empty values for cleaner response

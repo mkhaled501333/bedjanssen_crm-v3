@@ -31,7 +31,7 @@ This directory contains the implementation of the **Ticket Items Report API** en
 - **Geographic**: Governorate, City
 - **Ticket**: Categories, Status
 - **Product & Request**: Product IDs, Request Reason IDs
-- **Action & Status**: Action type, Inspection status, Pulled/Delivered status
+- **Action & Status**: Action type, Inspection status, Pulled/Delivered status, Client approval
 - **Date Range**: Inspection date filtering
 
 ## Implementation Details

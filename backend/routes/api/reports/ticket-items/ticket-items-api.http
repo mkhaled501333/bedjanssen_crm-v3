@@ -4,13 +4,30 @@
 ### Note: The available_filters in the response include both IDs and names for each filter option.
 ### This allows the frontend to use IDs for efficient filtering while displaying user-friendly names.
 ### 
+### Available Filters:
+### - companyId (required): Company identifier
+### - customerIds: List of customer IDs
+### - governomateIds: List of governorate IDs  
+### - cityIds: List of city IDs
+### - ticketIds: List of ticket IDs
+### - ticketCatIds: List of ticket category IDs
+### - ticketStatus: Ticket status string
+### - productIds: List of product IDs
+### - requestReasonIds: List of request reason IDs
+### - inspected: Boolean for inspection status
+### - inspectionDateFrom/To: Date range for inspection
+### - action: Action type string (صيانه, استبدال لنفس النوع, etc.)
+### - pulledStatus: Boolean for pulled status
+### - deliveredStatus: Boolean for delivered status
+### - clientApproval: Boolean for client approval status
+### 
 ### Example filter structure:
 ### "governorates": [
 ###   {"id": 1, "name": "الجيزة"},
 ###   {"id": 2, "name": "الغربية"}
 ### ]
 
-@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjAsIm5hbWUiOiJtIiwiaWF0IjoxNzU2MzU3OTMyLCJleHAiOjE3NTYzODY3MzJ9.VQ4t0znO5lVIHrz7ttqjV_bCA0nkQTqR1Iq6BqKBjug
+@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjAsIm5hbWUiOiJtIiwiaWF0IjoxNzU2MzYyNTIxLCJleHAiOjE3NTYzOTEzMjF9.NrQqkUixzQMfRqpXPyhVR69oQXUxtVRHJb_N4NJJLPM
 
 # Get Ticket Items Report with Dynamic Filtering
 # POST /api/reports/ticket-items
@@ -60,6 +77,23 @@ Authorization: Bearer {{authToken}}
   "limit": 100
 }
 
+### Report with Client Approval and Status Filters
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1,
+    "clientApproval": true,
+    "pulledStatus": false,
+    "deliveredStatus": true,
+    "inspected": true
+  },
+  "page": 1,
+  "limit": 50
+}
+
 ### Report with Date Range Filtering
 POST http://localhost:8081/api/reports/ticket-items
 Content-Type: application/json
@@ -107,6 +141,7 @@ Authorization: Bearer {{authToken}}
     "inspected": true,
     "pulledStatus": false,
     "deliveredStatus": true,
+    "clientApproval": true,
     "ticketStatus": "مغلق"
   },
   "page": 1,
@@ -205,6 +240,24 @@ Authorization: Bearer {{authToken}}
   },
   "page": 1,
   "limit": 1
+}
+
+### Test All Status Filters Together
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1,
+    "inspected": true,
+    "clientApproval": true,
+    "pulledStatus": false,
+    "deliveredStatus": false,
+    "action": "صيانه"
+  },
+  "page": 1,
+  "limit": 25
 }
 
 ### Error Testing

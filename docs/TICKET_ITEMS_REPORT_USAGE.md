@@ -79,6 +79,7 @@ class TicketItemsReportService {
     String? action,
     bool? pulledStatus,
     bool? deliveredStatus,
+    bool? clientApproval,
     int page = 1,
     int limit = 50,
   }) async {
@@ -143,6 +144,10 @@ class TicketItemsReportService {
       if (deliveredStatus != null) {
         whereConditions.add('delivered_status = ?');
         parameters.add(deliveredStatus);
+      }
+      if (clientApproval != null) {
+        whereConditions.add('client_approval = ?');
+        parameters.add(clientApproval);
       }
 
       final whereClause = whereConditions.join(' AND ');
@@ -272,6 +277,7 @@ class TicketItemsReportService {
         'action': action,
         'pulledStatus': pulledStatus,
         'deliveredStatus': deliveredStatus,
+        'clientApproval': clientApproval,
       };
 
       // Remove null/empty values for cleaner response
@@ -380,6 +386,7 @@ Future<Map<String, dynamic>> getTicketItemsReport(
       action: filters['action'],
       pulledStatus: filters['pulledStatus'],
       deliveredStatus: filters['deliveredStatus'],
+      clientApproval: filters['clientApproval'],
       page: page,
       limit: limit,
     );
@@ -435,7 +442,8 @@ The API now returns everything in a single response:
           "inspected": true,
           "inspection_date": "2024-01-15T10:00:00Z",
           "pulled_status": false,
-          "delivered_status": true
+          "delivered_status": true,
+          "client_approval": true
         }
       ],
       "pagination": {
@@ -654,6 +662,7 @@ interface AppliedFilters {
   action?: string;
   pulledStatus?: boolean;
   deliveredStatus?: boolean;
+  clientApproval?: boolean;
 }
 
 interface FilterSummary {
@@ -945,7 +954,20 @@ Ticket Category ← Ticket Status
 - **Product**: Depends on company and action, affects tickets
 - **Ticket Category**: Depends on company and location, affects tickets
 
-### 3. Performance Optimization
+### 3. Boolean Status Filters
+
+The following boolean filters provide status-based filtering:
+
+- **inspected**: Filter by inspection status (true/false)
+- **pulledStatus**: Filter by pulled status (true/false)  
+- **deliveredStatus**: Filter by delivered status (true/false)
+- **clientApproval**: Filter by client approval status (true/false)
+
+These filters can be combined with other filters to create precise status-based queries. For example:
+- `inspected: true, clientApproval: true` - Show only inspected and approved items
+- `pulledStatus: false, deliveredStatus: false` - Show items that haven't been pulled or delivered
+
+### 4. Performance Optimization
 
 ```sql
 -- Use composite indexes for common filter combinations

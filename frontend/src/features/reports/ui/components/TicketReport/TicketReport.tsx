@@ -2,103 +2,76 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import styles from './TicketReport.module.css';
 
-// Types based on the API response
+// Types based on the ticket-items API response
 interface FilterOption {
-    id: number;
+    id: number | string;
     name: string;
 }
 
 interface TicketItem {
-    id: number;
-    productId: number;
-    productName: string;
-    productSize: string;
-    quantity: number;
-    purchaseDate: string;
-    purchaseLocation: string;
-    requestReasonId: number;
-    requestReasonName: string;
-    requestReasonDetail: string;
+    ticket_item_id: number;
+    customer_id: number;
+    customer_name: string;
+    governomate_id: number;
+    governorate_name: string;
+    city_id: number;
+    city_name: string;
+    ticket_id: number;
+    company_id: number;
+    ticket_cat_id: number;
+    ticket_category_name: string;
+    ticket_status: string;
+    product_id: number;
+    product_name: string;
+    product_size: string;
+    request_reason_id: number;
+    request_reason_name: string;
     inspected: boolean;
-    inspectionDate: string | null;
-    inspectionResult: string;
-    clientApproval: boolean;
-    createdAt: string;
-    updatedAt: string;
+    inspection_date: string | null;
+    client_approval: boolean;
+    action: string;
+    pulled_status: boolean;
+    delivered_status: boolean;
 }
 
-interface Ticket {
-    id: number;
-    companyId: number;
-    customerId: number;
-    customerName: string;
-    companyName: string;
-    governorateName: string;
-    cityName: string;
-    ticketCatId: number;
-    categoryName: string;
-    description: string;
-    status: string;
-    priority: string;
-    createdBy: number;
-    createdByName: string;
-    createdAt: string;
-    updatedAt: string;
-    closedAt: string | null;
-    closingNotes: string | null;
-    callsCount: number;
-    itemsCount: number;
-    items: TicketItem[];
-}
-
-interface TicketsReportResponse {
+interface TicketItemsReportResponse {
     success: boolean;
     data: {
-        tickets: Ticket[];
-        pagination: {
-            currentPage: number;
-            totalPages: number;
-            totalItems: number;
-            itemsPerPage: number;
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
-        };
-        summary: {
-            statusCounts: Record<string, number>;
-        };
-        filters: {
-            companyId: number;
-            status: string | null;
-            categoryId: number | null;
-            customerId: number | null;
-            startDate: string | null;
-            endDate: string | null;
-            searchTerm: string | null;
-            governorate: string | null;
-            city: string | null;
-            productName: string | null;
-            companyName: string | null;
-            requestReasonName: string | null;
-            inspected: boolean | null;
-        };
         available_filters: {
             governorates: FilterOption[];
             cities: FilterOption[];
-            categories: FilterOption[];
-            statuses: FilterOption[];
-            productNames: FilterOption[];
-            companyNames: FilterOption[];
-            requestReasonNames: FilterOption[];
+            ticket_categories: FilterOption[];
+            ticket_statuses: FilterOption[];
+            products: FilterOption[];
+            request_reasons: FilterOption[];
+            actions: FilterOption[];
+        };
+        applied_filters: Record<string, any>;
+        filter_summary: {
+            total_applied_filters: number;
+            active_filters: string[];
+        };
+        report_data: {
+            ticket_items: TicketItem[];
+            pagination: {
+                page: number;
+                limit: number;
+                total: number;
+                total_pages: number;
+                has_next: boolean;
+                has_previous: boolean;
+            };
         };
     };
-    message: string;
+    message?: string;
+    error?: string;
 }
 
 export const TicketReport: React.FC = () => {
     // State variables
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
-    const [allData, setAllData] = useState<Ticket[]>([]);
+    const [allData, setAllData] = useState<TicketItem[]>([]);
     const [activeFilters, setActiveFilters] = useState<Record<string, number[]>>({});
     const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
     const [filterDropdowns, setFilterDropdowns] = useState<Record<string, boolean>>({});
@@ -109,19 +82,19 @@ export const TicketReport: React.FC = () => {
     const [availableFilters, setAvailableFilters] = useState<{
         governorates: FilterOption[];
         cities: FilterOption[];
-        categories: FilterOption[];
-        statuses: FilterOption[];
-        productNames: FilterOption[];
-        companyNames: FilterOption[];
-        requestReasonNames: FilterOption[];
+        ticket_categories: FilterOption[];
+        ticket_statuses: FilterOption[];
+        products: FilterOption[];
+        request_reasons: FilterOption[];
+        actions: FilterOption[];
     }>({
         governorates: [],
         cities: [],
-        categories: [],
-        statuses: [],
-        productNames: [],
-        companyNames: [],
-        requestReasonNames: []
+        ticket_categories: [],
+        ticket_statuses: [],
+        products: [],
+        request_reasons: [],
+        actions: []
     });
     const [currentApiUrl, setCurrentApiUrl] = useState<string>('');
 
@@ -139,6 +112,30 @@ export const TicketReport: React.FC = () => {
         }
     }, [selectedRows.size, currentPageData.length]);
 
+    // Helper function to get filter option by name - defined before fetchTicketsData
+    const getFilterOptionByName = useCallback((filterType: string, id: number): FilterOption | null => {
+        switch (filterType) {
+            case 'Governorate':
+                return availableFilters.governorates.find(option => option.id === id) || null;
+            case 'City':
+                return availableFilters.cities.find(option => option.id === id) || null;
+            case 'Category':
+                return availableFilters.ticket_categories.find(option => option.id === id) || null;
+            case 'Status':
+                return availableFilters.ticket_statuses.find(option => option.id === id) || null;
+            case 'Product':
+                return availableFilters.products.find(option => option.id === id) || null;
+            case 'Company':
+                return availableFilters.governorates.find(option => option.id === id) || null; // Using governorates as fallback
+            case 'Reason':
+                return availableFilters.request_reasons.find(option => option.id === id) || null;
+            case 'Action':
+                return availableFilters.actions.find(option => option.id === id) || null;
+            default:
+                return null;
+        }
+    }, [availableFilters]);
+
     // Fetch data from API
     const fetchTicketsData = useCallback(async () => {
         setLoading(true);
@@ -153,62 +150,78 @@ export const TicketReport: React.FC = () => {
 
             // Get company ID from localStorage or use default
             const user = localStorage.getItem('user');
-            const companyId = user ? JSON.parse(user).company_id : 1;
+            let companyId = 1; // Default fallback
+            
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    if (userData.company_id && typeof userData.company_id === 'number' && userData.company_id > 0) {
+                        companyId = userData.company_id;
+                    } else if (userData.company_id && !isNaN(Number(userData.company_id)) && Number(userData.company_id) > 0) {
+                        companyId = Number(userData.company_id);
+                    } else {
+                        console.warn('Invalid company_id in user data, using default:', userData.company_id);
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing user data:', parseError);
+                    console.warn('Using default companyId: 1');
+                }
+            }
 
-            // Build query parameters
-            const queryParams = new URLSearchParams({
-                companyId: companyId.toString(),
-                page: currentPage.toString(),
-                limit: pageSize.toString()
-            });
+            console.log('Using companyId:', companyId);
 
-            // Add filters to query parameters using IDs
+            // Build filters object for the new API
+            const filters: Record<string, any> = {
+                companyId: companyId
+            };
+
+            // Add filters to the filters object using IDs
             Object.entries(activeFilters).forEach(([key, values]) => {
                 if (values.length > 0) {
                     // Map frontend filter names to backend parameter names
                     let paramName = key.toLowerCase();
                     switch (key) {
                         case 'Status':
-                            paramName = 'status';
+                            paramName = 'ticketStatus';
                             break;
                         case 'Category':
-                            paramName = 'categoryId';
+                            paramName = 'ticketCatIds';
                             break;
                         case 'Customer':
-                            paramName = 'customerId';
+                            paramName = 'customerIds';
                             break;
                         case 'Governorate':
-                            paramName = 'governorate';
+                            paramName = 'governomateIds';
                             break;
                         case 'City':
-                            paramName = 'city';
-                            break;
-                        case 'CreatedBy':
-                            paramName = 'createdBy';
+                            paramName = 'cityIds';
                             break;
                         case 'Company':
-                            paramName = 'companyName';
+                            paramName = 'companyIds';
                             break;
                         case 'Product':
-                            paramName = 'productName';
-                            break;
-                        case 'Size':
-                            paramName = 'productSize';
+                            paramName = 'productIds';
                             break;
                         case 'Reason':
-                            paramName = 'requestReasonName';
+                            paramName = 'requestReasonIds';
                             break;
                         case 'Inspected':
                             paramName = 'inspected';
                             break;
-                        case 'ClientApproval':
-                            paramName = 'clientApproval';
+                        case 'Action':
+                            paramName = 'action';
+                            break;
+                        case 'PulledStatus':
+                            paramName = 'pulledStatus';
+                            break;
+                        case 'DeliveredStatus':
+                            paramName = 'deliveredStatus';
                             break;
                         case 'CreatedDate':
-                            // Handle date range filtering
+                            // Handle date range filtering for inspection dates
                             if (values.length === 2 && values[0] && values[1]) {
-                                queryParams.append('startDate', values[0].toString());
-                                queryParams.append('endDate', values[1].toString());
+                                filters['inspectionDateFrom'] = new Date(values[0]).toISOString();
+                                filters['inspectionDateTo'] = new Date(values[1]).toISOString();
                             }
                             return; // Skip the default handling for dates
                         default:
@@ -216,65 +229,45 @@ export const TicketReport: React.FC = () => {
                     }
                     
                     // Handle multiple values for supported filters
-                    if (['status', 'governorate', 'city', 'productName', 'companyName', 'requestReasonName'].includes(paramName)) {
+                    if (['ticketStatus', 'action'].includes(paramName)) {
                         // For these filters, we need to convert IDs back to names for the API
                         const filterNames: string[] = [];
                         values.forEach(id => {
                             const filterOption = getFilterOptionByName(key, id);
                             if (filterOption) {
-                                filterNames.push(filterOption.name);
+                                filters[paramName] = filterOption.name;
                             }
                         });
-                        if (filterNames.length > 0) {
-                            queryParams.append(paramName, filterNames.join(','));
-                        }
-                    } else if (paramName === 'categoryId') {
-                        // For categoryId, convert category IDs to names
-                        const categoryNames: string[] = [];
-                        values.forEach(id => {
-                            const filterOption = getFilterOptionByName('Category', id);
-                            if (filterOption) {
-                                categoryNames.push(filterOption.name);
-                            }
-                        });
-                        if (categoryNames.length > 0) {
-                            queryParams.append(paramName, categoryNames.join(','));
-                        }
-                    } else if (paramName === 'customerId') {
-                        // For customerId, convert customer IDs to names
-                        const customerNames: string[] = [];
-                        values.forEach(id => {
-                            const filterOption = getFilterOptionByName('Customer', id);
-                            if (filterOption) {
-                                customerNames.push(filterOption.name);
-                            }
-                        });
-                        if (customerNames.length > 0) {
-                            queryParams.append(paramName, customerNames.join(','));
-                        }
-                    } else {
-                        // Single value filters
-                        values.forEach(value => {
-                            if (value) {
-                                queryParams.append(paramName, value.toString());
-                            }
-                        });
+                    } else if (['ticketCatIds', 'customerIds', 'governomateIds', 'cityIds', 'companyIds', 'productIds', 'requestReasonIds'].includes(paramName)) {
+                        // For ID-based filters, use the values directly
+                        filters[paramName] = values;
+                    } else if (['inspected', 'pulledStatus', 'deliveredStatus'].includes(paramName)) {
+                        // For boolean filters, use the first value
+                        filters[paramName] = values[0] === 1;
                     }
                 }
             });
 
+            // Build request body
+            const requestBody = {
+                filters: filters,
+                page: currentPage,
+                limit: pageSize
+            };
+
             // Store the current URL for debugging
-            const apiUrl = `http://localhost:8081/api/reports/tickets?${queryParams.toString()}`;
+            const apiUrl = `http://localhost:8081/api/reports/ticket-items`;
             setCurrentApiUrl(apiUrl);
             console.log('Final API URL:', apiUrl);
-            console.log('Query parameters:', queryParams.toString());
+            console.log('Request body:', requestBody);
             
             const response = await fetch(apiUrl, {
-                method: 'GET',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                }
+                },
+                body: JSON.stringify(requestBody)
             });
 
             if (!response.ok) {
@@ -284,8 +277,8 @@ export const TicketReport: React.FC = () => {
                     if (errorData.message) {
                         errorMessage += ` - ${errorData.message}`;
                     }
-                    if (errorData.details) {
-                        errorMessage += ` - ${JSON.stringify(errorData.details)}`;
+                    if (errorData.error) {
+                        errorMessage += ` - ${errorData.error}`;
                     }
                 } catch {
                     // If we can't parse the error response, just use the status
@@ -293,26 +286,26 @@ export const TicketReport: React.FC = () => {
                 throw new Error(errorMessage);
             }
 
-            const data: TicketsReportResponse = await response.json();
+            const data: TicketItemsReportResponse = await response.json();
 
             if (data.success && data.data) {
-                setAllData(data.data.tickets);
-                setTotalPages(data.data.pagination.totalPages);
-                setTotalItems(data.data.pagination.totalItems);
+                setAllData(data.data.report_data.ticket_items);
+                setTotalPages(data.data.report_data.pagination.total_pages);
+                setTotalItems(data.data.report_data.pagination.total);
                 setAvailableFilters(data.data.available_filters || {
                     governorates: [],
                     cities: [],
-                    categories: [],
-                    statuses: [],
-                    productNames: [],
-                    companyNames: [],
-                    requestReasonNames: []
+                    ticket_categories: [],
+                    ticket_statuses: [],
+                    products: [],
+                    request_reasons: [],
+                    actions: []
                 });
             } else {
-                setError(data.message || 'Failed to fetch tickets data');
+                setError(data.message || data.error || 'Failed to fetch ticket items data');
             }
         } catch (err) {
-            console.error('Error fetching tickets:', err);
+            console.error('Error fetching ticket items:', err);
             if (err instanceof Error) {
                 setError(err.message);
             } else {
@@ -321,29 +314,7 @@ export const TicketReport: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize, activeFilters]);
-
-    // Helper function to get filter option by name
-    const getFilterOptionByName = useCallback((filterType: string, id: number): FilterOption | null => {
-        switch (filterType) {
-            case 'Governorate':
-                return availableFilters.governorates.find(option => option.id === id) || null;
-            case 'City':
-                return availableFilters.cities.find(option => option.id === id) || null;
-            case 'Category':
-                return availableFilters.categories.find(option => option.id === id) || null;
-            case 'Status':
-                return availableFilters.statuses.find(option => option.id === id) || null;
-            case 'Product':
-                return availableFilters.productNames.find(option => option.id === id) || null;
-            case 'Company':
-                return availableFilters.companyNames.find(option => option.id === id) || null;
-            case 'Reason':
-                return availableFilters.requestReasonNames.find(option => option.id === id) || null;
-            default:
-                return null;
-        }
-    }, [availableFilters]);
+    }, [currentPage, pageSize, activeFilters, getFilterOptionByName]);
 
     // Initialize data on component mount
     useEffect(() => {
@@ -403,221 +374,22 @@ export const TicketReport: React.FC = () => {
             delete newFilters[column];
             return newFilters;
         });
-        setCurrentPage(1); // Reset to first page when clearing filters
+        setCurrentPage(1);
     };
 
     const clearAllFilters = () => {
         setActiveFilters({});
-        setCurrentPage(1); // Reset to first page when clearing all filters
-    };
-
-    // Trigger API call when filters change
-    useEffect(() => {
-        console.log('Filters changed:', activeFilters);
-        
-        // Only apply filters if we have data loaded
-        if (allData.length === 0) {
-            console.log('No data loaded yet, skipping filter application');
-            return;
-        }
-        
-        // Debounce the API call to avoid excessive requests
-        const timeoutId = setTimeout(() => {
-            if (Object.keys(activeFilters).length > 0) {
-                console.log('Triggering API call with filters');
-                fetchTicketsData();
-            }
-        }, 300); // 300ms delay
-
-        return () => clearTimeout(timeoutId);
-    }, [activeFilters, fetchTicketsData, allData.length]);
-
-    // Get available filter values from API response
-    const getAvailableFilterValues = useCallback((column: string): FilterOption[] => {
-        switch (column) {
-            case 'Governorate':
-                return availableFilters.governorates;
-            case 'City':
-                return availableFilters.cities;
-            case 'Category':
-                return availableFilters.categories;
-            case 'Status':
-                return availableFilters.statuses;
-            case 'Product':
-                return availableFilters.productNames;
-            case 'Company':
-                return availableFilters.companyNames;
-            case 'Reason':
-                return availableFilters.requestReasonNames;
-            default:
-                return [];
-        }
-    }, [availableFilters]);
-
-    // Filter dropdown component
-    const FilterDropdown: React.FC<{ column: string; isOpen: boolean; onClose: () => void }> = ({ column, isOpen, onClose }) => {
-        const [searchTerm, setSearchTerm] = useState('');
-        const [selectedValues, setSelectedValues] = useState<number[]>([]);
-        const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
-        
-        // Initialize selectedValues with current active filters for this column
-        useEffect(() => {
-            if (isOpen) {
-                console.log(`Filter dropdown opened for column: ${column}`);
-                console.log(`Current active filters:`, activeFilters);
-                console.log(`Active filters for this column:`, activeFilters[column]);
-                if (column === 'CreatedDate') {
-                    const dates = activeFilters[column] || [];
-                    setDateRange({
-                        start: dates[0] ? new Date(dates[0]).toISOString().split('T')[0] : '',
-                        end: dates[1] ? new Date(dates[1]).toISOString().split('T')[0] : ''
-                    });
-                } else {
-                    const values = activeFilters[column] || [];
-                    console.log(`Setting selected values for ${column}:`, values);
-                    setSelectedValues(values);
-                }
-            }
-        }, [isOpen, column, activeFilters]);
-        
-        // Use available filters from API
-        const availableValues = getAvailableFilterValues(column);
-
-        const handleApply = () => {
-            console.log(`Filter dropdown handleApply called for column: ${column}`);
-            if (column === 'CreatedDate') {
-                if (dateRange.start && dateRange.end) {
-                    console.log(`Applying date range filter: ${dateRange.start} to ${dateRange.end}`);
-                    // Convert dates to timestamps for storage
-                    const startTimestamp = new Date(dateRange.start).getTime();
-                    const endTimestamp = new Date(dateRange.end).getTime();
-                    applyFilter(column, [startTimestamp, endTimestamp]);
-                }
-            } else {
-                console.log(`Applying filter for ${column} with values:`, selectedValues);
-                applyFilter(column, selectedValues);
-            }
-            onClose();
-        };
-
-        const handleClear = () => {
-            clearFilter(column);
-            onClose();
-        };
-
-        const filteredOptions = availableValues.filter(option => 
-            option.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-
-        if (!isOpen) return null;
-
-        // Show message if no options available
-        if (availableValues.length === 0) {
-            return (
-                <div className={`${styles.filterDropdown} ${styles.show}`}>
-                    <div className={styles.filterHeader}>Filter {column}</div>
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                        No options available
-                    </div>
-                </div>
-            );
-        }
-
-        // Special handling for date range filter
-        if (column === 'CreatedDate') {
-            return (
-                <div className={`${styles.filterDropdown} ${styles.show}`}>
-                    <div className={styles.filterHeader}>Filter {column}</div>
-                    <div className={styles.dateRangeContainer}>
-                        <div className={styles.dateInput}>
-                            <label>Start Date:</label>
-                            <input
-                                type="date"
-                                value={dateRange.start}
-                                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                            />
-                        </div>
-                        <div className={styles.dateInput}>
-                            <label>End Date:</label>
-                            <input
-                                type="date"
-                                value={dateRange.end}
-                                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                            />
-                        </div>
-                    </div>
-                    <div className={styles.filterActions}>
-                        <button onClick={handleClear}>Clear</button>
-                        <button className={styles.apply} onClick={handleApply}>Apply</button>
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div className={`${styles.filterDropdown} ${styles.show}`}>
-                <div className={styles.filterHeader}>Filter {column}</div>
-                <input
-                    type="text"
-                    className={styles.filterSearch}
-                    placeholder="Search..."
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                />
-                <div className={styles.filterOptions}>
-                    {filteredOptions.map(option => (
-                        <div key={option.id} className={styles.filterOption}>
-                            <input
-                                type="checkbox"
-                                id={`filter-${column}-${option.id}`}
-                                checked={selectedValues.includes(option.id)}
-                                onChange={(event) => {
-                                    if (event.target.checked) {
-                                        setSelectedValues(prev => [...prev, option.id]);
-                                    } else {
-                                        setSelectedValues(prev => prev.filter(v => v !== option.id));
-                                    }
-                                }}
-                            />
-                            <label htmlFor={`filter-${column}-${option.id}`}>{option.name}</label>
-                        </div>
-                    ))}
-                </div>
-                <div className={styles.filterActions}>
-                    <button onClick={handleClear}>Clear</button>
-                    <button className={styles.apply} onClick={handleApply}>Apply</button>
-                </div>
-            </div>
-        );
-    };
-
-    // Pagination functions
-    const goToFirstPage = () => {
         setCurrentPage(1);
-    };
-    const goToPreviousPage = () => {
-        setCurrentPage(prev => Math.max(prev - 1, 1));
-    };
-    const goToNextPage = () => {
-        setCurrentPage(prev => Math.min(prev + 1, totalPages));
-    };
-    const goToLastPage = () => {
-        setCurrentPage(totalPages);
-    };
-    
-    const changePageSize = (newPageSize: number) => {
-        setPageSize(newPageSize);
-        setCurrentPage(1); // Reset to first page when changing page size
     };
 
     // Row selection functions
-    const toggleRowSelection = (rowId: number, checked: boolean) => {
+    const toggleRowSelection = (id: number, checked: boolean) => {
         setSelectedRows(prev => {
             const newSet = new Set(prev);
             if (checked) {
-                newSet.add(rowId);
+                newSet.add(id);
             } else {
-                newSet.delete(rowId);
+                newSet.delete(id);
             }
             return newSet;
         });
@@ -625,7 +397,7 @@ export const TicketReport: React.FC = () => {
 
     const toggleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedRows(new Set(currentPageData.map(row => row.id)));
+            setSelectedRows(new Set(currentPageData.map(row => row.ticket_item_id)));
         } else {
             setSelectedRows(new Set());
         }
@@ -633,36 +405,48 @@ export const TicketReport: React.FC = () => {
 
     // Export function
     const exportToCSV = () => {
-        const dataToExport = allData;
-        if (dataToExport.length === 0) return;
+        if (allData.length === 0) return;
 
         const headers = [
-            'ID', 'Company', 'Customer', 'Governorate', 'City', 'Category', 'Status', 
-            'Created By', 'Created Date', 'Product', 'Size', 'Quantity', 'Purchase Date', 
-            'Location', 'Reason', 'Inspected', 'Inspection Date', 'Client Approval'
+            'Ticket Item ID',
+            'Customer',
+            'Governorate',
+            'City',
+            'Category',
+            'Status',
+            'Product',
+            'Size',
+            'Reason',
+            'Action',
+            'Inspected',
+            'Inspection Date',
+            'Client Approval',
+            'Pulled Status',
+            'Delivered Status'
         ];
+
+        const dataToExport = selectedRows.size > 0 
+            ? allData.filter(item => selectedRows.has(item.ticket_item_id))
+            : allData;
 
         const csvContent = [
             headers.join(','),
-            ...dataToExport.map(ticket => [
-                ticket.id,
-                `"${ticket.companyName}"`,
-                `"${ticket.customerName}"`,
-                `"${ticket.governorateName}"`,
-                `"${ticket.cityName}"`,
-                `"${ticket.categoryName}"`,
-                `"${ticket.status}"`,
-                `"${ticket.createdByName}"`,
-                `"${ticket.createdAt}"`,
-                `"${ticket.items?.[0]?.productName || ''}"`,
-                `"${ticket.items?.[0]?.productSize || ''}"`,
-                ticket.items?.[0]?.quantity || 0,
-                `"${ticket.items?.[0]?.purchaseDate || ''}"`,
-                `"${ticket.items?.[0]?.purchaseLocation || ''}"`,
-                `"${ticket.items?.[0]?.requestReasonName || ''}"`,
-                ticket.items?.[0]?.inspected ? 'Yes' : 'No',
-                `"${ticket.items?.[0]?.inspectionDate || '-'}"`,
-                ticket.items?.[0]?.clientApproval ? 'Yes' : 'No'
+            ...dataToExport.map(item => [
+                item.ticket_item_id,
+                `"${item.customer_name}"`,
+                `"${item.governorate_name}"`,
+                `"${item.city_name}"`,
+                `"${item.ticket_category_name}"`,
+                `"${item.ticket_status}"`,
+                `"${item.product_name}"`,
+                `"${item.product_size}"`,
+                `"${item.request_reason_name}"`,
+                `"${item.action}"`,
+                item.inspected ? 'Yes' : 'No',
+                `"${item.inspection_date || '-'}"`,
+                item.client_approval ? 'Yes' : 'No',
+                item.pulled_status ? 'Yes' : 'No',
+                item.delivered_status ? 'Yes' : 'No'
             ].join(','))
         ].join('\n');
 
@@ -670,83 +454,161 @@ export const TicketReport: React.FC = () => {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', 'tickets_report.csv');
+        link.setAttribute('download', 'ticket_items_report.csv');
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
-    // Add new row function
-    const addNewRow = () => {
-        alert('Add new row functionality would go here');
+    // Helper function to get filter options for a column
+    const getFilterOptions = (column: string): FilterOption[] => {
+        switch (column) {
+            case 'Governorate':
+                return availableFilters.governorates;
+            case 'City':
+                return availableFilters.cities;
+            case 'Category':
+                return availableFilters.ticket_categories;
+            case 'Status':
+                return availableFilters.ticket_statuses;
+            case 'Product':
+                return availableFilters.products;
+            case 'Company':
+                return availableFilters.governorates; // Using governorates as fallback
+            case 'Reason':
+                return availableFilters.request_reasons;
+            case 'Action':
+                return availableFilters.actions;
+            default:
+                return [];
+        }
     };
 
-    // Loading state
-    if (loading && allData.length === 0) {
+    // FilterDropdown component
+    const FilterDropdown: React.FC<{
+        column: string;
+        isOpen: boolean;
+        onClose: () => void;
+    }> = ({ column, isOpen, onClose }) => {
+        const [selectedValues, setSelectedValues] = useState<number[]>([]);
+        const options = getFilterOptions(column);
+
+        useEffect(() => {
+            setSelectedValues(activeFilters[column] || []);
+        }, [column, activeFilters]);
+
+        if (!isOpen) return null;
+
         return (
-            <div className={styles.excelContainer}>
-                <div style={{ padding: '20px', textAlign: 'center' }}>
-                    <p>Loading tickets data...</p>
+            <div className={styles.filterDropdown} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.filterHeader}>
+                    <span>Filter {column}</span>
+                    <button onClick={onClose} className={styles.closeButton}>×</button>
+                </div>
+                <div className={styles.filterOptions}>
+                    {options.map(option => (
+                        <label key={option.id} className={styles.filterOption}>
+                            <input
+                                type="checkbox"
+                                id={`filter-${column}-${option.id}`}
+                                checked={selectedValues.includes(option.id as number)}
+                                onChange={(event) => {
+                                    if (event.target.checked) {
+                                        setSelectedValues(prev => [...prev, option.id as number]);
+                                    } else {
+                                        setSelectedValues(prev => prev.filter(v => v !== option.id as number));
+                                    }
+                                }}
+                            />
+                            {option.name}
+                        </label>
+                    ))}
+                </div>
+                <div className={styles.filterActions}>
+                    <button 
+                        onClick={() => applyFilter(column, selectedValues)}
+                        className={styles.applyButton}
+                    >
+                        Apply
+                    </button>
+                    <button 
+                        onClick={() => clearFilter(column)}
+                        className={styles.clearButton}
+                    >
+                        Clear
+                    </button>
                 </div>
             </div>
         );
-    }
+    };
 
-    // Error state
-    if (error && allData.length === 0) {
+    if (error) {
         return (
-            <div className={styles.excelContainer}>
-                <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
-                    <p>Error: {error}</p>
-                    {currentApiUrl && (
-                        <details style={{ margin: '10px 0', padding: '10px', background: '#f8f9fa', borderRadius: '4px', textAlign: 'left' }}>
-                            <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>API Request Details</summary>
-                            <p><strong>URL:</strong> {currentApiUrl}</p>
-                            <p><strong>Active Filters:</strong> {JSON.stringify(activeFilters, null, 2)}</p>
-                        </details>
-                    )}
-                    <button onClick={fetchTicketsData}>Retry</button>
-                </div>
+            <div className={styles.errorContainer}>
+                <h2>Error</h2>
+                <p>{error}</p>
+                <button onClick={() => fetchTicketsData()} className={styles.retryButton}>
+                    Retry
+                </button>
             </div>
         );
     }
 
     return (
-        <div className={styles.excelContainer}>
+        <div className={styles.container}>
+            <h1>Ticket Items Report</h1>
+            
             {/* Toolbar */}
-            <div className={styles.excelToolbar}>
-                <button className={styles.toolbarButton} onClick={() => alert('Open functionality')}>
-                    📁 Open
+            <div className={styles.toolbar}>
+                <div className={styles.paginationInfo}>
+                    Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} items
+                </div>
+                
+                <div className={styles.paginationControls}>
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className={styles.paginationButton}
+                    >
+                        Previous
                 </button>
-                <button className={styles.toolbarButton} onClick={() => alert('Save functionality')}>
-                    💾 Save
+                    <span className={styles.pageInfo}>
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className={styles.paginationButton}
+                    >
+                        Next
                 </button>
-                <button className={styles.toolbarButton} onClick={exportToCSV}>
-                    📤 Export
-                </button>
-                <button className={styles.toolbarButton} onClick={() => alert('Find functionality')}>
-                    🔍 Find
-                </button>
-                <button className={styles.toolbarButton} onClick={() => alert('Filter functionality')}>
-                    📊 Filter
-                </button>
-                <button className={styles.toolbarButton} onClick={() => alert('Sort functionality')}>
-                    📈 Sort
-                </button>
-                <button className={styles.toolbarButton} onClick={addNewRow}>
-                    ➕ Insert
-                </button>
-                <button className={styles.toolbarButton} onClick={() => alert('Edit functionality')}>
-                    ✏️ Edit
-                </button>
+                </div>
+
+                <div className={styles.pageSizeControl}>
+                    <label>
+                        Items per page:
+                        <select 
+                            value={pageSize} 
+                            onChange={(e) => setPageSize(Number(e.target.value))}
+                            className={styles.pageSizeSelect}
+                        >
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                    </label>
+                </div>
+
                 <button 
-                    className={styles.toolbarButton} 
-                    onClick={clearAllFilters}
-                    style={{ background: '#dc3545', color: 'white', borderColor: '#dc3545' }}
+                    onClick={exportToCSV}
+                    className={styles.exportButton}
+                    disabled={allData.length === 0}
                 >
-                    🗑️ Clear Filters
+                    📊 Export CSV
                 </button>
+
                 {Object.keys(activeFilters).length > 0 && (
                     <div style={{ 
                         display: 'flex', 
@@ -825,30 +687,16 @@ export const TicketReport: React.FC = () => {
                                 />
                             </th>
                             <th>
-                                ID 
+                                Ticket Item ID 
                                 <span 
                                     className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('ID')}
+                                    onClick={() => toggleFilter('TicketItemId')}
                                 >
                                     🔽
                                 </span>
                                 <FilterDropdown 
-                                    column="ID" 
-                                    isOpen={filterDropdowns['ID'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Company 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Company')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Company" 
-                                    isOpen={filterDropdowns['Company'] || false} 
+                                    column="TicketItemId" 
+                                    isOpen={filterDropdowns['TicketItemId'] || false} 
                                     onClose={() => closeAllFilters()}
                                 />
                             </th>
@@ -923,34 +771,6 @@ export const TicketReport: React.FC = () => {
                                 />
                             </th>
                             <th>
-                                Created By 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('CreatedBy')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="CreatedBy" 
-                                    isOpen={filterDropdowns['CreatedBy'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Created Date 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('CreatedDate')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="CreatedDate" 
-                                    isOpen={filterDropdowns['CreatedDate'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
                                 Product 
                                 <span 
                                     className={styles.filterIcon} 
@@ -979,48 +799,6 @@ export const TicketReport: React.FC = () => {
                                 />
                             </th>
                             <th>
-                                Quantity 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Quantity')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Quantity" 
-                                    isOpen={filterDropdowns['Quantity'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Purchase Date 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('PurchaseDate')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="PurchaseDate" 
-                                    isOpen={filterDropdowns['PurchaseDate'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Location 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Location')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Location" 
-                                    isOpen={filterDropdowns['Location'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
                                 Reason 
                                 <span 
                                     className={styles.filterIcon} 
@@ -1031,6 +809,20 @@ export const TicketReport: React.FC = () => {
                                 <FilterDropdown 
                                     column="Reason" 
                                     isOpen={filterDropdowns['Reason'] || false} 
+                                    onClose={() => closeAllFilters()}
+                                />
+                            </th>
+                            <th>
+                                Action 
+                                <span 
+                                    className={styles.filterIcon} 
+                                    onClick={() => toggleFilter('Action')}
+                                >
+                                    🔽
+                                </span>
+                                <FilterDropdown 
+                                    column="Action" 
+                                    isOpen={filterDropdowns['Action'] || false} 
                                     onClose={() => closeAllFilters()}
                                 />
                             </th>
@@ -1076,27 +868,70 @@ export const TicketReport: React.FC = () => {
                                     onClose={() => closeAllFilters()}
                                 />
                             </th>
+                            <th>
+                                Pulled Status 
+                                <span 
+                                    className={styles.filterIcon} 
+                                    onClick={() => toggleFilter('PulledStatus')}
+                                >
+                                    🔽
+                                </span>
+                                <FilterDropdown 
+                                    column="PulledStatus" 
+                                    isOpen={filterDropdowns['PulledStatus'] || false} 
+                                    onClose={() => closeAllFilters()}
+                                />
+                            </th>
+                            <th>
+                                Delivered Status 
+                                <span 
+                                    className={styles.filterIcon} 
+                                    onClick={() => toggleFilter('DeliveredStatus')}
+                                >
+                                    🔽
+                                </span>
+                                <FilterDropdown 
+                                    column="DeliveredStatus" 
+                                    isOpen={filterDropdowns['DeliveredStatus'] || false} 
+                                    onClose={() => closeAllFilters()}
+                                />
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {currentPageData.map((ticket) => (
-                            <tr 
-                                key={ticket.id} 
-                                className={selectedRows.has(ticket.id) ? styles.selected : ''}
+                        {loading ? (
+                            <tr>
+                                <td colSpan={16} className={styles.loadingCell}>
+                                    <div className={styles.loadingSpinner}>
+                                        🔄 Loading...
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : currentPageData.length === 0 ? (
+                            <tr>
+                                <td colSpan={16} className={styles.noDataCell}>
+                                    No data available
+                                </td>
+                            </tr>
+                        ) : (
+                            currentPageData.map((item) => (
+                                <tr 
+                                    key={item.ticket_item_id} 
+                                    className={selectedRows.has(item.ticket_item_id) ? styles.selected : ''}
                             >
                                 <td>
                                     <input
                                         type="checkbox"
                                         className={styles.rowCheckbox}
-                                        checked={selectedRows.has(ticket.id)}
-                                        onChange={(event) => toggleRowSelection(ticket.id, event.target.checked)}
+                                            checked={selectedRows.has(item.ticket_item_id)}
+                                            onChange={(event) => toggleRowSelection(item.ticket_item_id, event.target.checked)}
                                     />
                                 </td>
                                 <td>
                                     <input
                                         type="text"
                                         className={styles.cellInput}
-                                        value={ticket.id}
+                                            value={item.ticket_item_id}
                                         readOnly
                                     />
                                 </td>
@@ -1104,7 +939,7 @@ export const TicketReport: React.FC = () => {
                                     <input
                                         type="text"
                                         className={styles.cellInput}
-                                        value={ticket.companyName}
+                                            value={item.customer_name}
                                         readOnly
                                     />
                                 </td>
@@ -1112,7 +947,7 @@ export const TicketReport: React.FC = () => {
                                     <input
                                         type="text"
                                         className={styles.cellInput}
-                                        value={ticket.customerName}
+                                            value={item.governorate_name}
                                         readOnly
                                     />
                                 </td>
@@ -1120,7 +955,7 @@ export const TicketReport: React.FC = () => {
                                     <input
                                         type="text"
                                         className={styles.cellInput}
-                                        value={ticket.governorateName}
+                                            value={item.city_name}
                                         readOnly
                                     />
                                 </td>
@@ -1128,37 +963,18 @@ export const TicketReport: React.FC = () => {
                                     <input
                                         type="text"
                                         className={styles.cellInput}
-                                        value={ticket.cityName}
-                                        readOnly
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                        value={ticket.categoryName}
+                                            value={item.ticket_category_name}
                                         readOnly
                                     />
                                 </td>
                                 <td className={styles.statusCell}>
-                                    {ticket.status}
+                                        {item.ticket_status}
                                 </td>
                                 <td>
                                     <input
                                         type="text"
                                         className={styles.cellInput}
-                                        value={ticket.createdByName}
-                                        readOnly
-                                    />
-                                </td>
-                                <td className={styles.date}>
-                                    {ticket.createdAt}
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                        value={ticket.items?.[0]?.productName || ''}
+                                            value={item.product_name}
                                         readOnly
                                     />
                                 </td>
@@ -1166,21 +982,7 @@ export const TicketReport: React.FC = () => {
                                     <input
                                         type="text"
                                         className={styles.cellInput}
-                                        value={ticket.items?.[0]?.productSize || ''}
-                                        readOnly
-                                    />
-                                </td>
-                                <td>
-                                    {ticket.items?.[0]?.quantity || 0}
-                                </td>
-                                <td className={styles.date}>
-                                    {ticket.items?.[0]?.purchaseDate || ''}
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                        value={ticket.items?.[0]?.purchaseLocation || ''}
+                                            value={item.product_size}
                                         readOnly
                                     />
                                 </td>
@@ -1188,114 +990,38 @@ export const TicketReport: React.FC = () => {
                                     <input
                                         type="text"
                                         className={styles.cellInput}
-                                        value={ticket.items?.[0]?.requestReasonName || ''}
+                                            value={item.request_reason_name}
+                                        readOnly
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        className={styles.cellInput}
+                                            value={item.action}
                                         readOnly
                                     />
                                 </td>
                                 <td className={styles.statusCell}>
-                                    {ticket.items?.[0]?.inspected ? 'Yes' : 'No'}
+                                        {item.inspected ? 'Yes' : 'No'}
                                 </td>
                                 <td className={styles.date}>
-                                    {ticket.items?.[0]?.inspectionDate || '-'}
+                                        {item.inspection_date || '-'}
                                 </td>
                                 <td className={styles.statusCell}>
-                                    {ticket.items?.[0]?.clientApproval ? 'Yes' : 'No'}
+                                        {item.client_approval ? 'Yes' : 'No'}
+                                    </td>
+                                    <td className={styles.statusCell}>
+                                        {item.pulled_status ? 'Yes' : 'No'}
+                                    </td>
+                                    <td className={styles.statusCell}>
+                                        {item.delivered_status ? 'Yes' : 'No'}
                                 </td>
                             </tr>
-                        ))}
+                            ))
+                        )}
                     </tbody>
                 </table>
-            </div>
-
-            {/* Debug Info */}
-            {process.env.NODE_ENV === 'development' && (
-                <div style={{ 
-                    background: '#f8f9fa', 
-                    padding: '10px', 
-                    borderTop: '1px solid #dee2e6',
-                    fontSize: '12px',
-                    fontFamily: 'monospace'
-                }}>
-                    <strong>Debug Info:</strong> 
-                    Page: {currentPage}/{totalPages} | 
-                    Page Size: {pageSize} | 
-                    Total Items: {totalItems} | 
-                    Data Length: {allData.length} |
-                    Loading: {loading ? 'Yes' : 'No'} |
-                    Error: {error || 'None'}
-                    <br />
-                    <strong>Active Filters:</strong> {Object.keys(activeFilters).length > 0 ? 
-                        Object.entries(activeFilters).map(([k, v]) => `${k}:${v.join(',')}`).join(' | ') : 
-                        'None'
-                    }
-                    <br />
-                    <strong>Last API Call:</strong> {currentApiUrl || 'None'}
-                </div>
-            )}
-
-            {/* Footer */}
-            <div className={styles.excelFooter}>
-                <div className={styles.paginationControls}>
-                    {loading && <span style={{ marginRight: '10px', color: '#6c757d' }}>Loading...</span>}
-                    <button 
-                        className={styles.paginationBtn} 
-                        onClick={goToFirstPage}
-                        disabled={currentPage === 1 || loading}
-                        title="First Page"
-                    >
-                        ⏮️
-                    </button>
-                    <button 
-                        className={styles.paginationBtn} 
-                        onClick={goToPreviousPage}
-                        disabled={currentPage === 1 || loading}
-                        title="Previous Page"
-                    >
-                        ◀️
-                    </button>
-                    <span className={styles.pageInfo}>
-                        Page {currentPage} of {totalPages} ({totalItems} total records)
-                    </span>
-                    <button 
-                        className={styles.paginationBtn} 
-                        onClick={goToNextPage}
-                        disabled={currentPage === totalPages || loading}
-                        title="Next Page"
-                    >
-                        ▶️
-                    </button>
-                    <button 
-                        className={styles.paginationBtn} 
-                        onClick={goToLastPage}
-                        disabled={currentPage === totalPages || loading}
-                        title="Last Page"
-                    >
-                        ⏭️
-                    </button>
-                </div>
-                <div className={styles.paginationSettings}>
-                    <label htmlFor="pageSize">Show:</label>
-                    <select
-                        id="pageSize"
-                        value={pageSize}
-                        onChange={(event) => changePageSize(Number(event.target.value))}
-                        disabled={loading}
-                    >
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                        <option value={100}>100</option>
-                    </select>
-                    <span className={styles.recordsInfo}>records per page</span>
-                </div>
-                <div className={styles.statusInfo}>
-                    <span>
-                        {loading ? 'Loading...' : 'Ready'} | {allData.length} records | Tickets System
-                        {selectedRows.size > 0 && ` | ${selectedRows.size} selected`}
-                        {error && ` | Error: ${error}`}
-                        {!loading && !error && allData.length > 0 && ` | Page ${currentPage} of ${totalPages}`}
-                    </span>
-                </div>
             </div>
         </div>
     );
