@@ -1,0 +1,280 @@
+### Ticket Items Report API Testing
+### Base URL: http://localhost:8081
+### 
+### Note: The available_filters in the response include both IDs and names for each filter option.
+### This allows the frontend to use IDs for efficient filtering while displaying user-friendly names.
+### 
+### Example filter structure:
+### "governorates": [
+###   {"id": 1, "name": "الجيزة"},
+###   {"id": 2, "name": "الغربية"}
+### ]
+
+@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjAsIm5hbWUiOiJtIiwiaWF0IjoxNzU2MzU3OTMyLCJleHAiOjE3NTYzODY3MzJ9.VQ4t0znO5lVIHrz7ttqjV_bCA0nkQTqR1Iq6BqKBjug
+
+# Get Ticket Items Report with Dynamic Filtering
+# POST /api/reports/ticket-items
+# Returns: available filters, applied filters, filter summary, and report data in one response
+
+### Basic Report Request
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1
+  },
+  "page": 1,
+  "limit": 50
+}
+
+### Report with Geographic Filtering
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1,
+    "governomateIds": [1, 2],
+    "cityIds": [5, 6]
+  },
+  "page": 1,
+  "limit": 25
+}
+
+### Report with Action and Status Filtering
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1,
+    "action": "صيانه",
+    "ticketStatus": "مفتوح",
+    "inspected": true
+  },
+  "page": 1,
+  "limit": 100
+}
+
+### Report with Date Range Filtering
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1,
+    "inspectionDateFrom": "2024-01-01T00:00:00Z",
+    "inspectionDateTo": "2024-12-31T23:59:59Z",
+    "pulledStatus": false,
+    "deliveredStatus": true
+  },
+  "page": 1,
+  "limit": 50
+}
+
+### Report with Multiple Product Filters
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1,
+    "productIds": [10, 20, 30],
+    "requestReasonIds": [5, 6],
+    "ticketCatIds": [1, 2]
+  },
+  "page": 2,
+  "limit": 25
+}
+
+### Complex Filtering Example
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1,
+    "governomateIds": [1],
+    "cityIds": [5],
+    "action": "استبدال لنفس النوع",
+    "inspected": true,
+    "pulledStatus": false,
+    "deliveredStatus": true,
+    "ticketStatus": "مغلق"
+  },
+  "page": 1,
+  "limit": 100
+}
+
+### Response Structure
+# The API returns a comprehensive response with:
+# - available_filters: Dynamic filter options based on current filters
+# - applied_filters: Currently applied filter values
+# - filter_summary: Summary of active filters
+# - report_data: Paginated ticket items data
+
+# Example Response:
+# {
+#   "success": true,
+#   "data": {
+#     "available_filters": {
+#       "governorates": [{"id": 1, "name": "Governorate X"}],
+#       "cities": [{"id": 5, "name": "City E"}],
+#       "products": [{"id": 10, "name": "Product X"}],
+#       "actions": [{"id": "صيانه", "name": "صيانه"}]
+#     },
+#     "applied_filters": {
+#       "companyId": 1,
+#       "governomateIds": [1],
+#       "cityIds": [5]
+#     },
+#     "filter_summary": {
+#       "total_applied_filters": 2,
+#       "active_filters": ["governomateIds", "cityIds"]
+#     },
+#     "report_data": {
+#       "ticket_items": [...],
+#       "pagination": {
+#         "page": 1,
+#         "limit": 50,
+#         "total": 150,
+#         "total_pages": 3,
+#         "has_next": true,
+#         "has_previous": false
+#       }
+#     }
+#   }
+# }
+
+### Error Response Example
+# {
+#   "success": false,
+#   "error": "companyId is required"
+# }
+
+### Notes
+# - companyId is always required
+# - All other filters are optional
+# - Filters are applied dynamically (available options update based on current filters)
+# - Pagination is built-in with configurable page size
+# - The response includes everything needed for a complete report interface
+
+### Additional Testing Scenarios
+
+### Test pagination - page 2
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1
+  },
+  "page": 2,
+  "limit": 25
+}
+
+### Test large limit
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1
+  },
+  "page": 1,
+  "limit": 100
+}
+
+### Test available filters response (check available_filters in response)
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1
+  },
+  "page": 1,
+  "limit": 1
+}
+
+### Error Testing
+
+### Missing companyId (should return 400)
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {},
+  "page": 1,
+  "limit": 50
+}
+
+### Invalid page number (should return 400)
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1
+  },
+  "page": 0,
+  "limit": 50
+}
+
+### Invalid limit (should return 400)
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "filters": {
+    "companyId": 1
+  },
+  "page": 1,
+  "limit": 0
+}
+
+### Authentication Testing
+
+### Test without authorization header (should return 401)
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+
+{
+  "filters": {
+    "companyId": 1
+  },
+  "page": 1,
+  "limit": 50
+}
+
+### Test with invalid token (should return 401)
+POST http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json
+Authorization: Bearer invalid-token
+
+{
+  "filters": {
+    "companyId": 1
+  },
+  "page": 1,
+  "limit": 50
+}
+
+### CORS Testing
+
+### OPTIONS request (CORS preflight)
+OPTIONS http://localhost:8081/api/reports/ticket-items
+Content-Type: application/json

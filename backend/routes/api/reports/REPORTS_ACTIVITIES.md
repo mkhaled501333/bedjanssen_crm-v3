@@ -51,6 +51,31 @@ This document lists all the activities available in the reports API routes with 
 - **Description**: Exports tickets report in PDF format with all filtering options
 - **Parameters**: Same as tickets report plus `format=pdf`
 
+## Ticket Items Reports (`/api/reports/ticket-items`)
+
+### Get Ticket Items Report
+- **Route**: `POST /api/reports/ticket-items`
+- **Activity Name**: Get ticket items report
+- **Description**: Retrieves comprehensive ticket items report with dynamic filtering, available filters, and pagination
+- **Parameters** (in request body):
+  - `filters.companyId` (required): Company ID
+  - `filters.governomateIds` (optional): Filter by governorate IDs
+  - `filters.cityIds` (optional): Filter by city IDs
+  - `filters.customerIds` (optional): Filter by customer IDs
+  - `filters.ticketIds` (optional): Filter by ticket IDs
+  - `filters.ticketCatIds` (optional): Filter by ticket category IDs
+  - `filters.ticketStatus` (optional): Filter by ticket status
+  - `filters.productIds` (optional): Filter by product IDs
+  - `filters.requestReasonIds` (optional): Filter by request reason IDs
+  - `filters.action` (optional): Filter by action type
+  - `filters.inspected` (optional): Filter by inspection status
+  - `filters.inspectionDateFrom` (optional): Filter by inspection date from
+  - `filters.inspectionDateTo` (optional): Filter by inspection date to
+  - `filters.pulledStatus` (optional): Filter by pulled status
+  - `filters.deliveredStatus` (optional): Filter by delivered status
+  - `page` (optional): Page number for pagination (default: 1)
+  - `limit` (optional): Number of records per page (default: 50)
+
 ## Summary of All Activities
 
 1. Get agent calls report
@@ -58,6 +83,7 @@ This document lists all the activities available in the reports API routes with 
 3. Export tickets report as CSV
 4. Export tickets report as Excel
 5. Export tickets report as PDF
+6. Get ticket items report
 
 ---
 

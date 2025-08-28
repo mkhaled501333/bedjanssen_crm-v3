@@ -4,6 +4,8 @@
 
 The `ticket_items_report` view provides a comprehensive report of all ticket items with their associated customer, ticket, and product information. This guide focuses on **dynamic filtering** where available filter options automatically update based on currently applied filters, ensuring users only see relevant choices.
 
+**Key Feature**: The API now returns **everything in a single response** - available filters, applied filters, filter summary, AND the actual report data with pagination. This eliminates the need for multiple API calls and provides a more efficient user experience.
+
 ## Dynamic Filtering Concept
 
 Dynamic filtering means that when a user applies a filter, the available options for other filters automatically update to show only values that exist in the filtered dataset. This prevents users from selecting filter combinations that would return empty results.
@@ -59,8 +61,8 @@ The view combines data from multiple tables:
 
 ```dart
 class TicketItemsReportService {
-  /// Get available filter options AND currently applied filters
-  static Future<Map<String, dynamic>> getAvailableAndAppliedFilters({
+  /// Get available filter options, applied filters, AND report data in one response
+  static Future<Map<String, dynamic>> getTicketItemsReport({
     required int companyId,
     List<int>? customerIds,
     List<int>? governomateIds,
@@ -77,6 +79,8 @@ class TicketItemsReportService {
     String? action,
     bool? pulledStatus,
     bool? deliveredStatus,
+    int page = 1,
+    int limit = 50,
   }) async {
     try {
       // Build base WHERE clause for the current filter state
@@ -142,6 +146,29 @@ class TicketItemsReportService {
       }
 
       final whereClause = whereConditions.join(' AND ');
+
+      // Get total count for pagination
+      final countQuery = '''
+        SELECT COUNT(*) as total
+        FROM ticket_items_report
+        WHERE $whereClause
+      ''';
+      
+      final countResult = await DatabaseService.query(countQuery, parameters: parameters);
+      final total = countResult.first['total'] as int;
+
+      // Get paginated report data
+      final offset = (page - 1) * limit;
+      final dataQuery = '''
+        SELECT *
+        FROM ticket_items_report
+        WHERE $whereClause
+        ORDER BY ticket_id DESC, ticket_item_id DESC
+        LIMIT ? OFFSET ?
+      ''';
+      
+      final dataParameters = [...parameters, limit, offset];
+      final reportData = await DatabaseService.query(dataQuery, parameters: dataParameters);
 
       // Get available filter options from the filtered dataset
       final availableFilters = <String, List<Map<String, dynamic>>>{};
@@ -255,16 +282,33 @@ class TicketItemsReportService {
       );
 
       return {
-        'available_filters': availableFilters,
-        'applied_filters': appliedFilters,
-        'filter_summary': {
-          'total_applied_filters': appliedFilters.length - 1, // Exclude companyId
-          'active_filters': appliedFilters.keys.where((key) => key != 'companyId').toList(),
+        'success': true,
+        'data': {
+          'available_filters': availableFilters,
+          'applied_filters': appliedFilters,
+          'filter_summary': {
+            'total_applied_filters': appliedFilters.length - 1, // Exclude companyId
+            'active_filters': appliedFilters.keys.where((key) => key != 'companyId').toList(),
+          },
+          'report_data': {
+            'ticket_items': reportData,
+            'pagination': {
+              'page': page,
+              'limit': limit,
+              'total': total,
+              'total_pages': (total / limit).ceil(),
+              'has_next': page < (total / limit).ceil(),
+              'has_previous': page > 1,
+            }
+          }
         }
       };
     } catch (e) {
-      print('Error getting available and applied filters: $e');
-      return {};
+      print('Error getting ticket items report: $e');
+      return {
+        'success': false,
+        'error': e.toString(),
+      };
     }
   }
 
@@ -303,17 +347,19 @@ class TicketItemsReportService {
 }
 ```
 
-### 2. API Endpoint for Available and Applied Filters
+### 2. API Endpoint for Complete Ticket Items Report
 
 ```dart
-@Post('/ticket-items-report/available-filters')
-Future<Map<String, dynamic>> getAvailableAndAppliedFilters(
+@Post('/ticket-items-report')
+Future<Map<String, dynamic>> getTicketItemsReport(
   @Body() Map<String, dynamic> request,
 ) async {
   try {
     final filters = request['filters'] as Map<String, dynamic>;
+    final page = request['page'] ?? 1;
+    final limit = request['limit'] ?? 50;
     
-    final result = await TicketItemsReportService.getAvailableAndAppliedFilters(
+    final result = await TicketItemsReportService.getTicketItemsReport(
       companyId: filters['companyId'],
       customerIds: filters['customerIds']?.cast<int>(),
       governomateIds: filters['governomateIds']?.cast<int>(),
@@ -334,17 +380,73 @@ Future<Map<String, dynamic>> getAvailableAndAppliedFilters(
       action: filters['action'],
       pulledStatus: filters['pulledStatus'],
       deliveredStatus: filters['deliveredStatus'],
+      page: page,
+      limit: limit,
     );
 
-    return {
-      'success': true,
-      'data': result,
-    };
+    return result;
   } catch (e) {
     return {
       'success': false,
       'error': e.toString(),
     };
+  }
+}
+```
+
+## Complete Response Structure
+
+The API now returns everything in a single response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "available_filters": {
+      "customers": [...],
+      "governorates": [...],
+      "cities": [...],
+      "tickets": [...],
+      "ticket_categories": [...],
+      "ticket_statuses": [...],
+      "products": [...],
+      "request_reasons": [...],
+      "actions": [...]
+    },
+    "applied_filters": {
+      "companyId": 1,
+      "governomateIds": [1],
+      "cityIds": [1]
+    },
+    "filter_summary": {
+      "total_applied_filters": 2,
+      "active_filters": ["governomateIds", "cityIds"]
+    },
+    "report_data": {
+      "ticket_items": [
+        {
+          "ticket_item_id": 1,
+          "customer_name": "Customer A",
+          "governorate_name": "Governorate X",
+          "city_name": "City A",
+          "product_name": "Product X",
+          "action": "صيانه",
+          "ticket_status": "مفتوح",
+          "inspected": true,
+          "inspection_date": "2024-01-15T10:00:00Z",
+          "pulled_status": false,
+          "delivered_status": true
+        }
+      ],
+      "pagination": {
+        "page": 1,
+        "limit": 50,
+        "total": 150,
+        "total_pages": 3,
+        "has_next": true,
+        "has_previous": false
+      }
+    }
   }
 }
 ```
@@ -356,28 +458,50 @@ Future<Map<String, dynamic>> getAvailableAndAppliedFilters(
 **Initial State (No filters applied):**
 ```json
 {
-  "available_filters": {
-    "customers": [
-      {"id": 1, "name": "Customer A"},
-      {"id": 2, "name": "Customer B"},
-      {"id": 3, "name": "Customer C"}
-    ],
-    "governorates": [
-      {"id": 1, "name": "Governorate X"},
-      {"id": 2, "name": "Governorate Y"}
-    ],
-    "cities": [
-      {"id": 1, "name": "City A"},
-      {"id": 2, "name": "City B"},
-      {"id": 3, "name": "City C"}
-    ]
-  },
-  "applied_filters": {
-    "companyId": 1
-  },
-  "filter_summary": {
-    "total_applied_filters": 0,
-    "active_filters": []
+  "success": true,
+  "data": {
+    "available_filters": {
+      "customers": [
+        {"id": 1, "name": "Customer A"},
+        {"id": 2, "name": "Customer B"},
+        {"id": 3, "name": "Customer C"}
+      ],
+      "governorates": [
+        {"id": 1, "name": "Governorate X"},
+        {"id": 2, "name": "Governorate Y"}
+      ],
+      "cities": [
+        {"id": 1, "name": "City A"},
+        {"id": 2, "name": "City B"},
+        {"id": 3, "name": "City C"}
+      ]
+    },
+    "applied_filters": {
+      "companyId": 1
+    },
+    "filter_summary": {
+      "total_applied_filters": 0,
+      "active_filters": []
+    },
+    "report_data": {
+      "ticket_items": [
+        {
+          "ticket_item_id": 1,
+          "customer_name": "Customer A",
+          "product_name": "Product X",
+          "action": "صيانه",
+          "ticket_status": "مفتوح"
+        }
+      ],
+      "pagination": {
+        "page": 1,
+        "limit": 50,
+        "total": 150,
+        "total_pages": 3,
+        "has_next": true,
+        "has_previous": false
+      }
+    }
   }
 }
 ```
@@ -505,10 +629,8 @@ interface FilterOption {
 }
 
 interface AvailableFilters {
-  customers: FilterOption[];
   governorates: FilterOption[];
   cities: FilterOption[];
-  tickets: FilterOption[];
   ticket_categories: FilterOption[];
   ticket_statuses: FilterOption[];
   products: FilterOption[];
@@ -544,10 +666,8 @@ const useDynamicFilters = () => {
     companyId: 1,
   });
   const [availableFilters, setAvailableFilters] = useState<AvailableFilters>({
-    customers: [],
     governorates: [],
     cities: [],
-    tickets: [],
     ticket_categories: [],
     ticket_statuses: [],
     products: [],
@@ -559,13 +679,17 @@ const useDynamicFilters = () => {
     active_filters: [],
   });
 
-  // Fetch available filters and get current applied filter state
+  // Fetch available filters, applied filters, and report data in one call
   const updateFilters = useCallback(async () => {
     try {
-      const response = await fetch('/api/ticket-items-report/available-filters', {
+      const response = await fetch('/api/ticket-items-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filters: appliedFilters }),
+        body: JSON.stringify({ 
+          filters: appliedFilters,
+          page: 1,
+          limit: 50
+        }),
       });
       
       const data = await response.json();
@@ -573,6 +697,8 @@ const useDynamicFilters = () => {
         setAvailableFilters(data.data.available_filters);
         setAppliedFilters(data.data.applied_filters);
         setFilterSummary(data.data.filter_summary);
+        // You can also set report data here if needed
+        // setReportData(data.data.report_data);
       }
     } catch (error) {
       console.error('Error updating filters:', error);
@@ -770,14 +896,6 @@ const TicketItemsReport: React.FC = () => {
           onSelectionChange={(values) => applyFilter('cityIds', values)}
         />
 
-        {/* Customer Filter (depends on location) */}
-        <FilterDropdown
-          label="Customer"
-          options={availableFilters.customers}
-          selectedValues={appliedFilters.customerIds || []}
-          onSelectionChange={(values) => applyFilter('customerIds', values)}
-        />
-
         {/* Action Filter */}
         <FilterDropdown
           label="Action"
@@ -903,9 +1021,10 @@ The dynamic filtering system requires:
 
 1. **Database Indexes**: Automatically created during migrations
 2. **View Optimization**: The `ticket_items_report` view with proper joins
-3. **Service Layer**: `TicketItemsReportService` with filter logic
-4. **API Endpoints**: Separate endpoints for data and available filters
+3. **Service Layer**: `TicketItemsReportService` with comprehensive filter and data logic
+4. **API Endpoints**: Single endpoint `/ticket-items-report` that returns everything
 5. **Frontend State Management**: Proper filter state management and updates
+6. **Pagination Support**: Built-in pagination for large datasets
 
 ## Support
 
