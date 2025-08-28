@@ -1,342 +1,277 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+'use client';
 
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './TicketReport.module.css';
 
-// Types based on the ticket-items API response
-interface FilterOption {
-    id: number | string;
-    name: string;
-}
+// Sample Maintenance Request Data
+const sampleMaintenanceData = [
+    {
+        id: "5428",
+        company: "janssen",
+        customer: "محمد عبد الشافى ابراهيم",
+        governorate: "القاهرة",
+        city: "عين شمس",
+        category: "طلب صيانه",
+        status: "in_progress",
+        createdBy: "يوسف",
+        createdDate: "2025-08-10",
+        closedDate: "-",
+        product: "الماني",
+        size: "0*120*25",
+        quantity: "2",
+        purchaseDate: "2016-12-31",
+        location: "",
+        reason: "هبوط",
+        inspected: "No",
+        inspectionDate: "-",
+        clientApproval: "No"
+    },
+    {
+        id: "5429",
+        company: "janssen",
+        customer: "أحمد محمد علي",
+        governorate: "الإسكندرية",
+        city: "سموحة",
+        category: "طلب صيانه",
+        status: "completed",
+        createdBy: "علي",
+        createdDate: "2025-08-09",
+        closedDate: "2025-08-12",
+        product: "إيطالي",
+        size: "0*100*20",
+        quantity: "1",
+        purchaseDate: "2015-06-15",
+        location: "محل البناء",
+        reason: "كسر",
+        inspected: "Yes",
+        inspectionDate: "2025-08-11",
+        clientApproval: "Yes"
+    },
+    {
+        id: "5430",
+        company: "janssen",
+        customer: "فاطمة أحمد",
+        governorate: "الجيزة",
+        city: "الدقي",
+        category: "طلب صيانه",
+        status: "pending",
+        createdBy: "محمود",
+        createdDate: "2025-08-08",
+        closedDate: "-",
+        product: "صيني",
+        size: "0*80*15",
+        quantity: "3",
+        purchaseDate: "2017-03-22",
+        location: "سوق الخردة",
+        reason: "صدأ",
+        inspected: "No",
+        inspectionDate: "-",
+        clientApproval: "No"
+    },
+    {
+        id: "5431",
+        company: "janssen",
+        customer: "عبد الرحمن حسن",
+        governorate: "أسيوط",
+        city: "أسيوط",
+        category: "طلب صيانه",
+        status: "in_progress",
+        createdBy: "أحمد",
+        createdDate: "2025-08-07",
+        closedDate: "-",
+        product: "الماني",
+        size: "0*150*30",
+        quantity: "1",
+        purchaseDate: "2014-09-10",
+        location: "مصنع الخرسانة",
+        reason: "تآكل",
+        inspected: "Yes",
+        inspectionDate: "2025-08-08",
+        clientApproval: "No"
+    },
+    {
+        id: "5432",
+        company: "janssen",
+        customer: "سارة محمود",
+        governorate: "المنوفية",
+        city: "شبين الكوم",
+        category: "طلب صيانه",
+        status: "completed",
+        createdBy: "محمد",
+        createdDate: "2025-08-06",
+        closedDate: "2025-08-10",
+        product: "إيطالي",
+        size: "0*90*18",
+        quantity: "2",
+        purchaseDate: "2016-01-20",
+        location: "ورشة النجارة",
+        reason: "انكسار",
+        inspected: "Yes",
+        inspectionDate: "2025-08-07",
+        clientApproval: "Yes"
+    },
+    {
+        id: "5433",
+        company: "janssen",
+        customer: "خالد عبد الله",
+        governorate: "سوهاج",
+        city: "سوهاج",
+        category: "طلب صيانه",
+        status: "pending",
+        createdBy: "علي",
+        createdDate: "2025-08-05",
+        closedDate: "-",
+        product: "صيني",
+        size: "0*70*12",
+        quantity: "4",
+        purchaseDate: "2018-07-15",
+        location: "مستودع الأدوات",
+        reason: "صدأ",
+        inspected: "No",
+        inspectionDate: "-",
+        clientApproval: "No"
+    },
+    {
+        id: "5434",
+        company: "janssen",
+        customer: "نور الدين",
+        governorate: "قنا",
+        city: "قنا",
+        category: "طلب صيانه",
+        status: "in_progress",
+        createdBy: "يوسف",
+        createdDate: "2025-08-04",
+        closedDate: "-",
+        product: "الماني",
+        size: "0*110*22",
+        quantity: "1",
+        purchaseDate: "2015-11-30",
+        location: "مشروع السد",
+        reason: "هبوط",
+        inspected: "Yes",
+        inspectionDate: "2025-08-05",
+        clientApproval: "No"
+    },
+    {
+        id: "5435",
+        company: "janssen",
+        customer: "مريم أحمد",
+        governorate: "الأقصر",
+        city: "الأقصر",
+        category: "طلب صيانه",
+        status: "completed",
+        createdBy: "محمود",
+        createdDate: "2025-08-03",
+        closedDate: "2025-08-07",
+        product: "إيطالي",
+        size: "0*95*19",
+        quantity: "3",
+        purchaseDate: "2016-04-12",
+        location: "مشروع السياحة",
+        reason: "كسر",
+        inspected: "Yes",
+        inspectionDate: "2025-08-04",
+        clientApproval: "Yes"
+    },
+    {
+        id: "5436",
+        company: "janssen",
+        customer: "عمر حسن",
+        governorate: "أسوان",
+        city: "أسوان",
+        category: "طلب صيانه",
+        status: "pending",
+        createdBy: "أحمد",
+        createdDate: "2025-08-02",
+        closedDate: "-",
+        product: "صيني",
+        size: "0*85*16",
+        quantity: "2",
+        purchaseDate: "2017-08-25",
+        location: "مشروع الطاقة",
+        reason: "تآكل",
+        inspected: "No",
+        inspectionDate: "-",
+        clientApproval: "No"
+    },
+    {
+        id: "5437",
+        company: "janssen",
+        customer: "فاطمة علي",
+        governorate: "بني سويف",
+        city: "بني سويف",
+        category: "طلب صيانه",
+        status: "in_progress",
+        createdBy: "محمد",
+        createdDate: "2025-08-01",
+        closedDate: "-",
+        product: "الماني",
+        size: "0*130*28",
+        quantity: "1",
+        purchaseDate: "2014-12-05",
+        location: "مصنع الأسمنت",
+        reason: "هبوط",
+        inspected: "Yes",
+        inspectionDate: "2025-08-02",
+        clientApproval: "No"
+    }
+];
 
-interface TicketItem {
-    ticket_item_id: number;
-    customer_id: number;
-    customer_name: string;
-    governomate_id: number;
-    governorate_name: string;
-    city_id: number;
-    city_name: string;
-    ticket_id: number;
-    company_id: number;
-    ticket_cat_id: number;
-    ticket_category_name: string;
-    ticket_status: string;
-    product_id: number;
-    product_name: string;
-    product_size: string;
-    request_reason_id: number;
-    request_reason_name: string;
-    inspected: boolean;
-    inspection_date: string | null;
-    client_approval: boolean;
-    action: string;
-    pulled_status: boolean;
-    delivered_status: boolean;
-}
-
-interface TicketItemsReportResponse {
-    success: boolean;
-    data: {
-        available_filters: {
-            governorates: FilterOption[];
-            cities: FilterOption[];
-            ticket_categories: FilterOption[];
-            ticket_statuses: FilterOption[];
-            products: FilterOption[];
-            request_reasons: FilterOption[];
-            actions: FilterOption[];
-        };
-        applied_filters: Record<string, any>;
-        filter_summary: {
-            total_applied_filters: number;
-            active_filters: string[];
-        };
-        report_data: {
-            ticket_items: TicketItem[];
-            pagination: {
-                page: number;
-                limit: number;
-                total: number;
-                total_pages: number;
-                has_next: boolean;
-                has_previous: boolean;
-            };
-        };
-    };
-    message?: string;
-    error?: string;
-}
-
-export const TicketReport: React.FC = () => {
-    // State variables
+const TicketReport: React.FC = () => {
+    const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+    const [filteredData, setFilteredData] = useState<any[]>([]);
+    const [originalData, setOriginalData] = useState<any[]>([]);
+    const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
-    const [allData, setAllData] = useState<TicketItem[]>([]);
-    const [activeFilters, setActiveFilters] = useState<Record<string, number[]>>({});
-    const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+    const [allData, setAllData] = useState<any[]>([]);
     const [filterDropdowns, setFilterDropdowns] = useState<Record<string, boolean>>({});
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
-    const [availableFilters, setAvailableFilters] = useState<{
-        governorates: FilterOption[];
-        cities: FilterOption[];
-        ticket_categories: FilterOption[];
-        ticket_statuses: FilterOption[];
-        products: FilterOption[];
-        request_reasons: FilterOption[];
-        actions: FilterOption[];
-    }>({
-        governorates: [],
-        cities: [],
-        ticket_categories: [],
-        ticket_statuses: [],
-        products: [],
-        request_reasons: [],
-        actions: []
-    });
-    const [currentApiUrl, setCurrentApiUrl] = useState<string>('');
+    const [filterSelections, setFilterSelections] = useState<Record<string, string[]>>({});
 
-    // Refs
-    const tableRef = useRef<HTMLTableElement>(null);
-    const selectAllCheckboxRef = useRef<HTMLInputElement>(null);
-
-    // Use API pagination directly
-    const currentPageData = allData;
-
-    // Update select all checkbox indeterminate state
     useEffect(() => {
-        if (selectAllCheckboxRef.current) {
-            selectAllCheckboxRef.current.indeterminate = selectedRows.size > 0 && selectedRows.size < currentPageData.length;
-        }
-    }, [selectedRows.size, currentPageData.length]);
+        setAllData(sampleMaintenanceData);
+        setOriginalData(sampleMaintenanceData);
+        setFilteredData(sampleMaintenanceData);
+    }, []);
 
-    // Helper function to get filter option by name - defined before fetchTicketsData
-    const getFilterOptionByName = useCallback((filterType: string, id: number): FilterOption | null => {
-        switch (filterType) {
-            case 'Governorate':
-                return availableFilters.governorates.find(option => option.id === id) || null;
-            case 'City':
-                return availableFilters.cities.find(option => option.id === id) || null;
-            case 'Category':
-                return availableFilters.ticket_categories.find(option => option.id === id) || null;
-            case 'Status':
-                return availableFilters.ticket_statuses.find(option => option.id === id) || null;
-            case 'Product':
-                return availableFilters.products.find(option => option.id === id) || null;
-            case 'Company':
-                return availableFilters.governorates.find(option => option.id === id) || null; // Using governorates as fallback
-            case 'Reason':
-                return availableFilters.request_reasons.find(option => option.id === id) || null;
-            case 'Action':
-                return availableFilters.actions.find(option => option.id === id) || null;
-            default:
-                return null;
-        }
-    }, [availableFilters]);
-
-    // Fetch data from API
-    const fetchTicketsData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            // Get auth token from localStorage
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('No authentication token found');
-            }
-
-            // Get company ID from localStorage or use default
-            const user = localStorage.getItem('user');
-            let companyId = 1; // Default fallback
-            
-            if (user) {
-                try {
-                    const userData = JSON.parse(user);
-                    if (userData.company_id && typeof userData.company_id === 'number' && userData.company_id > 0) {
-                        companyId = userData.company_id;
-                    } else if (userData.company_id && !isNaN(Number(userData.company_id)) && Number(userData.company_id) > 0) {
-                        companyId = Number(userData.company_id);
-                    } else {
-                        console.warn('Invalid company_id in user data, using default:', userData.company_id);
-                    }
-                } catch (parseError) {
-                    console.error('Error parsing user data:', parseError);
-                    console.warn('Using default companyId: 1');
-                }
-            }
-
-            console.log('Using companyId:', companyId);
-
-            // Build filters object for the new API
-            const filters: Record<string, any> = {
-                companyId: companyId
-            };
-
-            // Add filters to the filters object using IDs
-            Object.entries(activeFilters).forEach(([key, values]) => {
-                if (values.length > 0) {
-                    // Map frontend filter names to backend parameter names
-                    let paramName = key.toLowerCase();
-                    switch (key) {
-                        case 'Status':
-                            paramName = 'ticketStatus';
-                            break;
-                        case 'Category':
-                            paramName = 'ticketCatIds';
-                            break;
-                        case 'Customer':
-                            paramName = 'customerIds';
-                            break;
-                        case 'Governorate':
-                            paramName = 'governomateIds';
-                            break;
-                        case 'City':
-                            paramName = 'cityIds';
-                            break;
-                        case 'Company':
-                            paramName = 'companyIds';
-                            break;
-                        case 'Product':
-                            paramName = 'productIds';
-                            break;
-                        case 'Reason':
-                            paramName = 'requestReasonIds';
-                            break;
-                        case 'Inspected':
-                            paramName = 'inspected';
-                            break;
-                        case 'Action':
-                            paramName = 'action';
-                            break;
-                        case 'PulledStatus':
-                            paramName = 'pulledStatus';
-                            break;
-                        case 'DeliveredStatus':
-                            paramName = 'deliveredStatus';
-                            break;
-                        case 'CreatedDate':
-                            // Handle date range filtering for inspection dates
-                            if (values.length === 2 && values[0] && values[1]) {
-                                filters['inspectionDateFrom'] = new Date(values[0]).toISOString();
-                                filters['inspectionDateTo'] = new Date(values[1]).toISOString();
-                            }
-                            return; // Skip the default handling for dates
-                        default:
-                            paramName = key.toLowerCase();
-                    }
-                    
-                    // Handle multiple values for supported filters
-                    if (['ticketStatus', 'action'].includes(paramName)) {
-                        // For these filters, we need to convert IDs back to names for the API
-                        const filterNames: string[] = [];
-                        values.forEach(id => {
-                            const filterOption = getFilterOptionByName(key, id);
-                            if (filterOption) {
-                                filters[paramName] = filterOption.name;
-                            }
-                        });
-                    } else if (['ticketCatIds', 'customerIds', 'governomateIds', 'cityIds', 'companyIds', 'productIds', 'requestReasonIds'].includes(paramName)) {
-                        // For ID-based filters, use the values directly
-                        filters[paramName] = values;
-                    } else if (['inspected', 'pulledStatus', 'deliveredStatus'].includes(paramName)) {
-                        // For boolean filters, use the first value
-                        filters[paramName] = values[0] === 1;
-                    }
-                }
-            });
-
-            // Build request body
-            const requestBody = {
-                filters: filters,
-                page: currentPage,
-                limit: pageSize
-            };
-
-            // Store the current URL for debugging
-            const apiUrl = `http://localhost:8081/api/reports/ticket-items`;
-            setCurrentApiUrl(apiUrl);
-            console.log('Final API URL:', apiUrl);
-            console.log('Request body:', requestBody);
-            
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            if (!response.ok) {
-                let errorMessage = `HTTP error! status: ${response.status}`;
-                try {
-                    const errorData = await response.json();
-                    if (errorData.message) {
-                        errorMessage += ` - ${errorData.message}`;
-                    }
-                    if (errorData.error) {
-                        errorMessage += ` - ${errorData.error}`;
-                    }
-                } catch {
-                    // If we can't parse the error response, just use the status
-                }
-                throw new Error(errorMessage);
-            }
-
-            const data: TicketItemsReportResponse = await response.json();
-
-            if (data.success && data.data) {
-                setAllData(data.data.report_data.ticket_items);
-                setTotalPages(data.data.report_data.pagination.total_pages);
-                setTotalItems(data.data.report_data.pagination.total);
-                setAvailableFilters(data.data.available_filters || {
-                    governorates: [],
-                    cities: [],
-                    ticket_categories: [],
-                    ticket_statuses: [],
-                    products: [],
-                    request_reasons: [],
-                    actions: []
-                });
-            } else {
-                setError(data.message || data.error || 'Failed to fetch ticket items data');
-            }
-        } catch (err) {
-            console.error('Error fetching ticket items:', err);
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('An error occurred while fetching data');
-            }
-        } finally {
-            setLoading(false);
-        }
-    }, [currentPage, pageSize, activeFilters, getFilterOptionByName]);
-
-    // Initialize data on component mount
     useEffect(() => {
-        console.log('Component mounted, fetching initial data...');
-        fetchTicketsData();
-    }, [fetchTicketsData]);
+        applyFilters();
+    }, [activeFilters]);
 
-    // Fetch data when pagination changes
+    // Click outside handler to close dropdowns
     useEffect(() => {
-        if (allData.length > 0) { // Only fetch if we already have some data
-            fetchTicketsData();
-        }
-    }, [currentPage, pageSize, allData.length, fetchTicketsData]);
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            if (!target.closest(`.${styles.filterIcon}`) && !target.closest(`.${styles.filterDropdown}`)) {
+                setFilterDropdowns({});
+            }
+        };
 
-    // Update pagination when data changes
-    useEffect(() => {
-        if (currentPage > totalPages && totalPages > 0) {
-            setCurrentPage(1);
-        }
-    }, [totalPages, currentPage]);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
-    // Filter functions
+    const toggleSelectAll = (checked: boolean) => {
+        if (checked) {
+            const allIds = new Set(allData.map(item => item.id));
+            setSelectedRows(allIds);
+        } else {
+            setSelectedRows(new Set());
+        }
+    };
+
+    const toggleRowSelection = (id: string, checked: boolean) => {
+        const newSelectedRows = new Set(selectedRows);
+        if (checked) {
+            newSelectedRows.add(id);
+        } else {
+            newSelectedRows.delete(id);
+        }
+        setSelectedRows(newSelectedRows);
+    };
+
     const toggleFilter = (column: string) => {
         setFilterDropdowns(prev => ({
             ...prev,
@@ -344,28 +279,77 @@ export const TicketReport: React.FC = () => {
         }));
     };
 
-    const closeAllFilters = () => {
-        setFilterDropdowns({});
+    const getColumnKey = (columnName: string) => {
+        const columnMap: Record<string, string> = {
+            'ID': 'id',
+            'Company': 'company',
+            'Customer': 'customer',
+            'Governorate': 'governorate',
+            'City': 'city',
+            'Category': 'category',
+            'Status': 'status',
+            'CreatedBy': 'createdBy',
+            'CreatedDate': 'createdDate',
+            'ClosedDate': 'closedDate',
+            'Product': 'product',
+            'Size': 'size',
+            'Quantity': 'quantity',
+            'PurchaseDate': 'purchaseDate',
+            'Location': 'location',
+            'Reason': 'reason',
+            'Inspected': 'inspected',
+            'InspectionDate': 'inspectionDate',
+            'ClientApproval': 'clientApproval'
+        };
+        return columnMap[columnName] || columnName.toLowerCase();
     };
 
-    const applyFilter = (column: string, selectedValues: number[]) => {
-        console.log('Applying filter:', { column, selectedValues });
+    const getUniqueValues = (columnKey: string) => {
+        const values = new Set<string>();
+        originalData.forEach(row => {
+            if (row[columnKey] && row[columnKey] !== '-') {
+                values.add(row[columnKey]);
+            }
+        });
+        return Array.from(values).sort();
+    };
+
+    const handleFilterSelection = (column: string, value: string, checked: boolean) => {
+        setFilterSelections(prev => {
+            const current = prev[column] || [];
+            if (checked) {
+                return { ...prev, [column]: [...current, value] };
+            } else {
+                return { ...prev, [column]: current.filter(v => v !== value) };
+            }
+        });
+    };
+
+    const handleSelectAllFilter = (column: string, checked: boolean) => {
+        const columnKey = getColumnKey(column);
+        const uniqueValues = getUniqueValues(columnKey);
+        if (checked) {
+            setFilterSelections(prev => ({ ...prev, [column]: uniqueValues }));
+        } else {
+            setFilterSelections(prev => ({ ...prev, [column]: [] }));
+        }
+    };
+
+    const applyFilter = (column: string) => {
+        const selectedValues = filterSelections[column] || [];
         if (selectedValues.length > 0) {
-            setActiveFilters(prev => {
-                const newFilters = { ...prev, [column]: selectedValues };
-                console.log('Updated active filters:', newFilters);
-                return newFilters;
-            });
+            setActiveFilters(prev => ({
+                ...prev,
+                [column]: selectedValues
+            }));
         } else {
             setActiveFilters(prev => {
                 const newFilters = { ...prev };
                 delete newFilters[column];
-                console.log('Updated active filters (removed):', newFilters);
                 return newFilters;
             });
         }
-        setFilterDropdowns({});
-        setCurrentPage(1); // Reset to first page when applying filters
+        setFilterDropdowns(prev => ({ ...prev, [column]: false }));
     };
 
     const clearFilter = (column: string) => {
@@ -374,79 +358,53 @@ export const TicketReport: React.FC = () => {
             delete newFilters[column];
             return newFilters;
         });
+        setFilterSelections(prev => {
+            const newSelections = { ...prev };
+            delete newSelections[column];
+            return newSelections;
+        });
+        setFilterDropdowns(prev => ({ ...prev, [column]: false }));
+    };
+
+    const applyFilters = () => {
+        if (Object.keys(activeFilters).length === 0) {
+            setFilteredData(originalData);
+            return;
+        }
+
+        const filtered = originalData.filter(row => {
+            return Object.entries(activeFilters).every(([column, allowedValues]) => {
+                const columnKey = getColumnKey(column);
+                const cellValue = row[columnKey];
+                return allowedValues.includes(cellValue);
+            });
+        });
+
+        setFilteredData(filtered);
         setCurrentPage(1);
     };
 
     const clearAllFilters = () => {
         setActiveFilters({});
+        setFilterSelections({});
+        setFilteredData(originalData);
         setCurrentPage(1);
     };
 
-    // Row selection functions
-    const toggleRowSelection = (id: number, checked: boolean) => {
-        setSelectedRows(prev => {
-            const newSet = new Set(prev);
-            if (checked) {
-                newSet.add(id);
-            } else {
-                newSet.delete(id);
-            }
-            return newSet;
-        });
-    };
-
-    const toggleSelectAll = (checked: boolean) => {
-        if (checked) {
-            setSelectedRows(new Set(currentPageData.map(row => row.ticket_item_id)));
-        } else {
-            setSelectedRows(new Set());
-        }
-    };
-
-    // Export function
     const exportToCSV = () => {
-        if (allData.length === 0) return;
-
         const headers = [
-            'Ticket Item ID',
-            'Customer',
-            'Governorate',
-            'City',
-            'Category',
-            'Status',
-            'Product',
-            'Size',
-            'Reason',
-            'Action',
-            'Inspected',
-            'Inspection Date',
-            'Client Approval',
-            'Pulled Status',
-            'Delivered Status'
+            'ID', 'Company', 'Customer', 'Governorate', 'City', 'Category', 'Status',
+            'Created By', 'Created Date', 'Closed Date', 'Product', 'Size', 'Quantity',
+            'Purchase Date', 'Location', 'Reason', 'Inspected', 'Inspection Date', 'Client Approval'
         ];
-
-        const dataToExport = selectedRows.size > 0 
-            ? allData.filter(item => selectedRows.has(item.ticket_item_id))
-            : allData;
 
         const csvContent = [
             headers.join(','),
-            ...dataToExport.map(item => [
-                item.ticket_item_id,
-                `"${item.customer_name}"`,
-                `"${item.governorate_name}"`,
-                `"${item.city_name}"`,
-                `"${item.ticket_category_name}"`,
-                `"${item.ticket_status}"`,
-                `"${item.product_name}"`,
-                `"${item.product_size}"`,
-                `"${item.request_reason_name}"`,
-                `"${item.action}"`,
-                item.inspected ? 'Yes' : 'No',
-                `"${item.inspection_date || '-'}"`,
-                item.client_approval ? 'Yes' : 'No',
-                item.pulled_status ? 'Yes' : 'No',
-                item.delivered_status ? 'Yes' : 'No'
+            ...filteredData.map(row => [
+                row.id, row.company, row.customer, row.governorate, row.city, row.category,
+                row.status, row.createdBy, row.createdDate, row.closedDate, row.product,
+                row.size, row.quantity, row.purchaseDate, row.location, row.reason,
+                row.inspected, row.inspectionDate, row.clientApproval
             ].join(','))
         ].join('\n');
 
@@ -454,575 +412,234 @@ export const TicketReport: React.FC = () => {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', 'ticket_items_report.csv');
+        link.setAttribute('download', 'ticket-report-export.csv');
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
-    // Helper function to get filter options for a column
-    const getFilterOptions = (column: string): FilterOption[] => {
-        switch (column) {
-            case 'Governorate':
-                return availableFilters.governorates;
-            case 'City':
-                return availableFilters.cities;
-            case 'Category':
-                return availableFilters.ticket_categories;
-            case 'Status':
-                return availableFilters.ticket_statuses;
-            case 'Product':
-                return availableFilters.products;
-            case 'Company':
-                return availableFilters.governorates; // Using governorates as fallback
-            case 'Reason':
-                return availableFilters.request_reasons;
-            case 'Action':
-                return availableFilters.actions;
-            default:
-                return [];
-        }
+    const addNewRow = () => {
+        const newRow = {
+            id: `new-${Date.now()}`,
+            company: "",
+            customer: "",
+            governorate: "",
+            city: "",
+            category: "",
+            status: "",
+            createdBy: "",
+            createdDate: "",
+            closedDate: "",
+            product: "",
+            size: "",
+            quantity: "",
+            purchaseDate: "",
+            location: "",
+            reason: "",
+            inspected: "",
+            inspectionDate: "",
+            clientApproval: ""
+        };
+        setAllData(prev => [...prev, newRow]);
+        setOriginalData(prev => [...prev, newRow]);
+        setFilteredData(prev => [...prev, newRow]);
     };
 
-    // FilterDropdown component
-    const FilterDropdown: React.FC<{
-        column: string;
-        isOpen: boolean;
-        onClose: () => void;
-    }> = ({ column, isOpen, onClose }) => {
-        const [selectedValues, setSelectedValues] = useState<number[]>([]);
-        const options = getFilterOptions(column);
+    const goToFirstPage = () => setCurrentPage(1);
+    const goToPreviousPage = () => setCurrentPage(prev => Math.max(1, prev - 1));
+    const goToNextPage = () => setCurrentPage(prev => Math.min(Math.ceil(filteredData.length / pageSize), prev + 1));
+    const goToLastPage = () => setCurrentPage(Math.ceil(filteredData.length / pageSize));
 
-        useEffect(() => {
-            setSelectedValues(activeFilters[column] || []);
-        }, [column, activeFilters]);
+    const changePageSize = (newSize: number) => {
+        setPageSize(newSize);
+        setCurrentPage(1);
+    };
 
+    const totalPages = Math.ceil(filteredData.length / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const currentPageData = filteredData.slice(startIndex, endIndex);
+
+    const FilterDropdown: React.FC<{ column: string; isOpen: boolean }> = ({ column, isOpen }) => {
         if (!isOpen) return null;
 
+        const columnKey = getColumnKey(column);
+        const uniqueValues = getUniqueValues(columnKey);
+        const selectedValues = filterSelections[column] || [];
+        const allSelected = uniqueValues.length > 0 && selectedValues.length === uniqueValues.length;
+
         return (
-            <div className={styles.filterDropdown} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.filterDropdown}>
                 <div className={styles.filterHeader}>
-                    <span>Filter {column}</span>
-                    <button onClick={onClose} className={styles.closeButton}>×</button>
+                    Filter {column}
                 </div>
                 <div className={styles.filterOptions}>
-                    {options.map(option => (
-                        <label key={option.id} className={styles.filterOption}>
+                    <div className={styles.filterOption}>
+                        <input
+                            type="checkbox"
+                            checked={allSelected}
+                            onChange={(e) => handleSelectAllFilter(column, e.target.checked)}
+                        />
+                        <label>Select All</label>
+                    </div>
+                    {uniqueValues.map((value) => (
+                        <div key={value} className={styles.filterOption}>
                             <input
                                 type="checkbox"
-                                id={`filter-${column}-${option.id}`}
-                                checked={selectedValues.includes(option.id as number)}
-                                onChange={(event) => {
-                                    if (event.target.checked) {
-                                        setSelectedValues(prev => [...prev, option.id as number]);
-                                    } else {
-                                        setSelectedValues(prev => prev.filter(v => v !== option.id as number));
-                                    }
-                                }}
+                                checked={selectedValues.includes(value)}
+                                onChange={(e) => handleFilterSelection(column, value, e.target.checked)}
                             />
-                            {option.name}
-                        </label>
+                            <label>{value}</label>
+                        </div>
                     ))}
                 </div>
                 <div className={styles.filterActions}>
                     <button 
-                        onClick={() => applyFilter(column, selectedValues)}
-                        className={styles.applyButton}
-                    >
-                        Apply
-                    </button>
-                    <button 
+                        className={styles.clear} 
                         onClick={() => clearFilter(column)}
-                        className={styles.clearButton}
                     >
                         Clear
+                    </button>
+                    <button 
+                        className={styles.apply} 
+                        onClick={() => applyFilter(column)}
+                    >
+                        Apply
                     </button>
                 </div>
             </div>
         );
     };
 
-    if (error) {
+    const FilterHeader: React.FC<{ column: string; displayName: string }> = ({ column, displayName }) => {
+        const isFiltered = activeFilters[column] && activeFilters[column].length > 0;
+        const filterCount = activeFilters[column] ? activeFilters[column].length : 0;
+
         return (
-            <div className={styles.errorContainer}>
-                <h2>Error</h2>
-                <p>{error}</p>
-                <button onClick={() => fetchTicketsData()} className={styles.retryButton}>
-                    Retry
-                </button>
-            </div>
+            <th className={isFiltered ? styles.columnFiltered : ''}>
+                {displayName} 
+                <span className={styles.filterIcon} onClick={() => toggleFilter(column)}>
+                    {isFiltered ? '🔽' : '🔽'}
+                </span>
+                {isFiltered && (
+                    <span className={styles.filterCount}>{filterCount}</span>
+                )}
+                <FilterDropdown column={column} isOpen={filterDropdowns[column] || false} />
+            </th>
         );
-    }
+    };
 
     return (
-        <div className={styles.container}>
-            <h1>Ticket Items Report</h1>
-            
-            {/* Toolbar */}
-            <div className={styles.toolbar}>
-                <div className={styles.paginationInfo}>
-                    Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} items
-                </div>
-                
-                <div className={styles.paginationControls}>
-                    <button 
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                        className={styles.paginationButton}
-                    >
-                        Previous
-                </button>
-                    <span className={styles.pageInfo}>
-                        Page {currentPage} of {totalPages}
-                    </span>
-                    <button 
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                        disabled={currentPage === totalPages}
-                        className={styles.paginationButton}
-                    >
-                        Next
-                </button>
-                </div>
-
-                <div className={styles.pageSizeControl}>
-                    <label>
-                        Items per page:
-                        <select 
-                            value={pageSize} 
-                            onChange={(e) => setPageSize(Number(e.target.value))}
-                            className={styles.pageSizeSelect}
-                        >
-                            <option value={10}>10</option>
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
-                    </label>
-                </div>
-
-                <button 
-                    onClick={exportToCSV}
-                    className={styles.exportButton}
-                    disabled={allData.length === 0}
-                >
-                    📊 Export CSV
-                </button>
-
-                {Object.keys(activeFilters).length > 0 && (
-                    <div style={{ 
-                        display: 'flex', 
-                        gap: '10px', 
-                        alignItems: 'center',
-                        padding: '5px 10px',
-                        background: '#e3f2fd',
-                        borderRadius: '4px',
-                        fontSize: '12px'
-                    }}>
-                        <strong>Active Filters:</strong>
-                        {Object.entries(activeFilters).map(([key, values]) => (
-                            <span key={key} style={{ 
-                                background: '#2196f3', 
-                                color: 'white', 
-                                padding: '2px 8px', 
-                                borderRadius: '12px',
-                                fontSize: '11px'
-                            }}>
-                                {key}: {key === 'CreatedDate' ? 
-                                    `${new Date(values[0]).toLocaleDateString()} to ${new Date(values[1]).toLocaleDateString()}` : 
-                                    values.map(id => {
-                                        const option = getFilterOptionByName(key, id);
-                                        return option ? option.name : id;
-                                    }).join(', ')
-                                }
-                            </span>
-                        ))}
-                        {loading && (
-                            <span style={{ 
-                                background: '#ff9800', 
-                                color: 'white', 
-                                padding: '2px 8px', 
-                                borderRadius: '12px',
-                                fontSize: '11px'
-                            }}>
-                                🔄 Applying...
-                            </span>
-                        )}
-                    </div>
-                )}
-                <button 
-                    className={styles.toolbarButton} 
-                    onClick={() => fetchTicketsData()}
-                    style={{ background: '#28a745', color: 'white', borderColor: '#28a745' }}
-                >
-                    🔄 Refresh
-                </button>
-                {process.env.NODE_ENV === 'development' && (
-                    <button 
-                        className={styles.toolbarButton} 
-                        onClick={() => {
-                            console.log('Current API URL:', currentApiUrl);
-                            console.log('Active Filters:', activeFilters);
-                            console.log('All Data:', allData);
-                        }}
-                        style={{ background: '#6c757d', color: 'white', borderColor: '#6c757d', fontSize: '11px' }}
-                    >
-                        🐛 Debug
-                    </button>
-                )}
+        <div className={styles.excelContainer}>
+            <div className={styles.excelToolbar}>
+                <button className={styles.toolbarButton} onClick={() => alert('Find functionality')}>🔍 Find</button>
+                <button className={styles.toolbarButton} onClick={clearAllFilters} style={{ background: '#dc3545', color: 'white', borderColor: '#dc3545' }}>🗑️ Clear Filters</button>
             </div>
 
-            {/* Table */}
             <div className={styles.excelTableWrapper}>
-                <table ref={tableRef} className={styles.excelTable}>
+                <table className={styles.excelTable}>
                     <thead>
                         <tr>
                             <th>
-                                <input
-                                    ref={selectAllCheckboxRef}
-                                    type="checkbox"
-                                    className={styles.selectAll}
-                                    onChange={(event) => toggleSelectAll(event.target.checked)}
-                                    checked={selectedRows.size === currentPageData.length && currentPageData.length > 0}
+                                <input 
+                                    type="checkbox" 
+                                    id="selectAll" 
+                                    onChange={(e) => toggleSelectAll(e.target.checked)}
+                                    checked={selectedRows.size === allData.length && allData.length > 0}
+                                    ref={(input) => {
+                                        if (input) {
+                                            input.indeterminate = selectedRows.size > 0 && selectedRows.size < allData.length;
+                                        }
+                                    }}
                                 />
                             </th>
-                            <th>
-                                Ticket Item ID 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('TicketItemId')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="TicketItemId" 
-                                    isOpen={filterDropdowns['TicketItemId'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Customer 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Customer')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Customer" 
-                                    isOpen={filterDropdowns['Customer'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Governorate 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Governorate')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Governorate" 
-                                    isOpen={filterDropdowns['Governorate'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                City 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('City')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="City" 
-                                    isOpen={filterDropdowns['City'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Category 
-                                <span 
-                                    className={`${styles.filterIcon} ${activeFilters['Category'] ? styles.active : ''}`}
-                                    onClick={() => toggleFilter('Category')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Category" 
-                                    isOpen={filterDropdowns['Category'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Status 
-                                <span 
-                                    className={`${styles.filterIcon} ${activeFilters['Status'] ? styles.active : ''}`}
-                                    onClick={() => toggleFilter('Status')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Status" 
-                                    isOpen={filterDropdowns['Status'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Product 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Product')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Product" 
-                                    isOpen={filterDropdowns['Product'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Size 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Size')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Size" 
-                                    isOpen={filterDropdowns['Size'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Reason 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Reason')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Reason" 
-                                    isOpen={filterDropdowns['Reason'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Action 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Action')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Action" 
-                                    isOpen={filterDropdowns['Action'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Inspected 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('Inspected')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="Inspected" 
-                                    isOpen={filterDropdowns['Inspected'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Inspection Date 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('InspectionDate')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="InspectionDate" 
-                                    isOpen={filterDropdowns['InspectionDate'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Client Approval 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('ClientApproval')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="ClientApproval" 
-                                    isOpen={filterDropdowns['ClientApproval'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Pulled Status 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('PulledStatus')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="PulledStatus" 
-                                    isOpen={filterDropdowns['PulledStatus'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
-                            <th>
-                                Delivered Status 
-                                <span 
-                                    className={styles.filterIcon} 
-                                    onClick={() => toggleFilter('DeliveredStatus')}
-                                >
-                                    🔽
-                                </span>
-                                <FilterDropdown 
-                                    column="DeliveredStatus" 
-                                    isOpen={filterDropdowns['DeliveredStatus'] || false} 
-                                    onClose={() => closeAllFilters()}
-                                />
-                            </th>
+                            <FilterHeader column="ID" displayName="ID" />
+                            <FilterHeader column="Company" displayName="Company" />
+                            <FilterHeader column="Customer" displayName="Customer" />
+                            <FilterHeader column="Governorate" displayName="Governorate" />
+                            <FilterHeader column="City" displayName="City" />
+                            <FilterHeader column="Category" displayName="Category" />
+                            <FilterHeader column="Status" displayName="Status" />
+                            <FilterHeader column="CreatedBy" displayName="Created By" />
+                            <FilterHeader column="CreatedDate" displayName="Created Date" />
+                            <FilterHeader column="ClosedDate" displayName="Closed Date" />
+                            <FilterHeader column="Product" displayName="Product" />
+                            <FilterHeader column="Size" displayName="Size" />
+                            <FilterHeader column="Quantity" displayName="Quantity" />
+                            <FilterHeader column="PurchaseDate" displayName="Purchase Date" />
+                            <FilterHeader column="Location" displayName="Location" />
+                            <FilterHeader column="Reason" displayName="Reason" />
+                            <FilterHeader column="Inspected" displayName="Inspected" />
+                            <FilterHeader column="InspectionDate" displayName="Inspection Date" />
+                            <FilterHeader column="ClientApproval" displayName="Client Approval" />
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
-                            <tr>
-                                <td colSpan={16} className={styles.loadingCell}>
-                                    <div className={styles.loadingSpinner}>
-                                        🔄 Loading...
-                                    </div>
-                                </td>
-                            </tr>
-                        ) : currentPageData.length === 0 ? (
-                            <tr>
-                                <td colSpan={16} className={styles.noDataCell}>
-                                    No data available
-                                </td>
-                            </tr>
-                        ) : (
-                            currentPageData.map((item) => (
-                                <tr 
-                                    key={item.ticket_item_id} 
-                                    className={selectedRows.has(item.ticket_item_id) ? styles.selected : ''}
-                            >
+                        {currentPageData.map((row, index) => (
+                            <tr key={row.id} className={selectedRows.has(row.id) ? styles.selected : ''}>
                                 <td>
-                                    <input
-                                        type="checkbox"
+                                    <input 
+                                        type="checkbox" 
                                         className={styles.rowCheckbox}
-                                            checked={selectedRows.has(item.ticket_item_id)}
-                                            onChange={(event) => toggleRowSelection(item.ticket_item_id, event.target.checked)}
+                                        value={row.id}
+                                        checked={selectedRows.has(row.id)}
+                                        onChange={(e) => toggleRowSelection(row.id, e.target.checked)}
                                     />
                                 </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                            value={item.ticket_item_id}
-                                        readOnly
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                            value={item.customer_name}
-                                        readOnly
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                            value={item.governorate_name}
-                                        readOnly
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                            value={item.city_name}
-                                        readOnly
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                            value={item.ticket_category_name}
-                                        readOnly
-                                    />
-                                </td>
-                                <td className={styles.statusCell}>
-                                        {item.ticket_status}
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                            value={item.product_name}
-                                        readOnly
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                            value={item.product_size}
-                                        readOnly
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                            value={item.request_reason_name}
-                                        readOnly
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        className={styles.cellInput}
-                                            value={item.action}
-                                        readOnly
-                                    />
-                                </td>
-                                <td className={styles.statusCell}>
-                                        {item.inspected ? 'Yes' : 'No'}
-                                </td>
-                                <td className={styles.date}>
-                                        {item.inspection_date || '-'}
-                                </td>
-                                <td className={styles.statusCell}>
-                                        {item.client_approval ? 'Yes' : 'No'}
-                                    </td>
-                                    <td className={styles.statusCell}>
-                                        {item.pulled_status ? 'Yes' : 'No'}
-                                    </td>
-                                    <td className={styles.statusCell}>
-                                        {item.delivered_status ? 'Yes' : 'No'}
-                                </td>
+                                <td><input type="text" className={styles.cellInput} value={row.id} readOnly /></td>
+                                <td><input type="text" className={styles.cellInput} value={row.company} readOnly /></td>
+                                <td><input type="text" className={styles.cellInput} value={row.customer} readOnly /></td>
+                                <td><input type="text" className={styles.cellInput} value={row.governorate} readOnly /></td>
+                                <td><input type="text" className={styles.cellInput} value={row.city} readOnly /></td>
+                                <td><input type="text" className={styles.cellInput} value={row.category} readOnly /></td>
+                                <td className={styles.statusCell}>{row.status}</td>
+                                <td><input type="text" className={styles.cellInput} value={row.createdBy} readOnly /></td>
+                                <td className={styles.date}>{row.createdDate}</td>
+                                <td className={styles.date}>{row.closedDate}</td>
+                                <td><input type="text" className={styles.cellInput} value={row.product} readOnly /></td>
+                                <td><input type="text" className={styles.cellInput} value={row.size} readOnly /></td>
+                                <td className={styles.currency}>{row.quantity}</td>
+                                <td className={styles.date}>{row.purchaseDate}</td>
+                                <td><input type="text" className={styles.cellInput} value={row.location} readOnly /></td>
+                                <td><input type="text" className={styles.cellInput} value={row.reason} readOnly /></td>
+                                <td className={styles.statusCell}>{row.inspected}</td>
+                                <td className={styles.date}>{row.inspectionDate}</td>
+                                <td className={styles.statusCell}>{row.clientApproval}</td>
                             </tr>
-                            ))
-                        )}
+                        ))}
                     </tbody>
                 </table>
+            </div>
+
+            <div className={styles.excelFooter}>
+                <div className={styles.paginationControls}>
+                    <button className={styles.paginationBtn} onClick={goToFirstPage} disabled={currentPage === 1} title="First Page">⏮️</button>
+                    <button className={styles.paginationBtn} onClick={goToPreviousPage} disabled={currentPage === 1} title="Previous Page">◀️</button>
+                    <span className={styles.pageInfo}>Page {currentPage} of {totalPages}</span>
+                    <button className={styles.paginationBtn} onClick={goToNextPage} disabled={currentPage === totalPages} title="Next Page">▶️</button>
+                    <button className={styles.paginationBtn} onClick={goToLastPage} disabled={currentPage === totalPages} title="Last Page">⏭️</button>
+                </div>
+                <div className={styles.paginationSettings}>
+                    <label htmlFor="pageSize">Show:</label>
+                    <select 
+                        id="pageSize" 
+                        value={pageSize}
+                        onChange={(e) => changePageSize(parseInt(e.target.value))}
+                    >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                    </select>
+                    <span className={styles.recordsInfo}>records per page</span>
+                </div>
+                <div className={styles.statusInfo}>
+                    <span>Ready | {filteredData.length} records | Maintenance System</span>
+                </div>
             </div>
         </div>
     );
 };
+
+export default TicketReport;

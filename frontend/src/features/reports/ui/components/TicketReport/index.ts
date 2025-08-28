@@ -1,1 +1,1 @@
-export { TicketReport } from './TicketReport';
+export { default as TicketReport } from './TicketReport';
