@@ -13,6 +13,7 @@ export const columnMapping: ColumnMapping = {
   'Request Reason': 'request_reason_name',
   'Inspected': 'inspected',
   'Inspection Date': 'inspection_date',
+  'Ticket Creation Date': 'ticket_created_at',
   'Client Approval': 'client_approval',
   'Action': 'action',
   'Pulled Status': 'pulled_status',
@@ -73,7 +74,7 @@ export const formatStatus = (value: string | number | null): string => {
 
 export const exportToCSV = (data: TicketItem[], filename: string = 'ticket-report-export.csv') => {
   const headers = [
-    'Ticket ID', 'Status', 'Customer', 'Governorate', 'City', 'Category', 'Product',
+    'Ticket ID', 'Status', 'Ticket Creation Date', 'Customer', 'Governorate', 'City', 'Category', 'Product',
     'Size', 'Request Reason', 'Inspected', 'Inspection Date',
     'Client Approval', 'Action', 'Pulled Status', 'Delivered Status'
   ];
@@ -83,6 +84,7 @@ export const exportToCSV = (data: TicketItem[], filename: string = 'ticket-repor
     ...data.map(row => [
       row.ticket_id,
       `"${formatStatus(row.ticket_status)}"`,
+      formatDate(row.ticket_created_at),
       `"${row.customer_name}"`,
       `"${row.governorate_name}"`,
       `"${row.city_name}"`,

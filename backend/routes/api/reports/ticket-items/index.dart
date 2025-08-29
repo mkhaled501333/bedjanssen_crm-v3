@@ -76,6 +76,12 @@ Future<Response> _handlePost(RequestContext context) async {
       inspectionDateTo: filters['inspectionDateTo'] != null 
         ? DateTime.parse(filters['inspectionDateTo'] as String) 
         : null,
+      ticketCreatedDateFrom: filters['ticketCreatedDateFrom'] != null 
+        ? DateTime.parse(filters['ticketCreatedDateFrom'] as String) 
+        : null,
+      ticketCreatedDateTo: filters['ticketCreatedDateTo'] != null 
+        ? DateTime.parse(filters['ticketCreatedDateTo'] as String) 
+        : null,
       action: filters['action'] as String?,
       pulledStatus: filters['pulledStatus'] as bool?,
       deliveredStatus: filters['deliveredStatus'] as bool?,

@@ -18,6 +18,7 @@ export interface TicketItem {
   request_reason_name: string;
   inspected: boolean;
   inspection_date: string | null;
+  ticket_created_at: string | null;
   client_approval: boolean;
   action: string;
   pulled_status: boolean;
@@ -32,8 +33,6 @@ export interface FilterOption {
 export interface AvailableFilters {
   governorates: FilterOption[];
   cities: FilterOption[];
-  customers: FilterOption[];
-  tickets: FilterOption[];
   ticket_categories: FilterOption[];
   ticket_statuses: FilterOption[];
   products: FilterOption[];
@@ -43,11 +42,8 @@ export interface AvailableFilters {
 
 export interface AppliedFilters {
   companyId: number;
-  customerIds?: number[];
   governomateIds?: number[];
   cityIds?: number[];
-  ticketIds?: number[];
-  companyIds?: number[];
   ticketCatIds?: number[];
   ticketStatus?: string;
   productIds?: number[];
@@ -55,6 +51,8 @@ export interface AppliedFilters {
   inspected?: boolean;
   inspectionDateFrom?: string;
   inspectionDateTo?: string;
+  ticketCreatedDateFrom?: string;
+  ticketCreatedDateTo?: string;
   action?: string;
   pulledStatus?: boolean;
   deliveredStatus?: boolean;
@@ -129,9 +127,7 @@ export interface FilterConfig {
 }
 
 export const COLUMN_FILTER_CONFIG: FilterConfig[] = [
-  { column: 'Ticket ID', filterType: 'multiSelect', backendKey: 'ticketIds', dataType: 'number' },
   { column: 'Status', filterType: 'radio', backendKey: 'ticketStatus', dataType: 'string' },
-  { column: 'Customer', filterType: 'multiSelect', backendKey: 'customerIds', dataType: 'number' },
   { column: 'Governorate', filterType: 'multiSelect', backendKey: 'governomateIds', dataType: 'number' },
   { column: 'City', filterType: 'multiSelect', backendKey: 'cityIds', dataType: 'number' },
   { column: 'Category', filterType: 'multiSelect', backendKey: 'ticketCatIds', dataType: 'number' },
@@ -140,6 +136,7 @@ export const COLUMN_FILTER_CONFIG: FilterConfig[] = [
   { column: 'Request Reason', filterType: 'multiSelect', backendKey: 'requestReasonIds', dataType: 'number' },
   { column: 'Inspected', filterType: 'boolean', backendKey: 'inspected', dataType: 'boolean' },
   { column: 'Inspection Date', filterType: 'dateRange', backendKey: 'inspectionDate', dataType: 'date' },
+  { column: 'Ticket Creation Date', filterType: 'dateRange', backendKey: 'ticketCreatedDate', dataType: 'date' },
   { column: 'Client Approval', filterType: 'boolean', backendKey: 'clientApproval', dataType: 'boolean' },
   { column: 'Action', filterType: 'text', backendKey: 'action', dataType: 'string' },
   { column: 'Pulled Status', filterType: 'radio', backendKey: 'pulledStatus', dataType: 'boolean' },

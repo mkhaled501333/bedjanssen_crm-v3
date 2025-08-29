@@ -33,6 +33,8 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
     "inspected": true,
     "inspectionDateFrom": "2024-01-01T00:00:00Z",
     "inspectionDateTo": "2024-12-31T23:59:59Z",
+    "ticketCreatedDateFrom": "2024-01-01T00:00:00Z",
+    "ticketCreatedDateTo": "2024-12-31T23:59:59Z",
     "action": "صيانه",
     "pulledStatus": false,
     "deliveredStatus": true,
@@ -78,6 +80,8 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
 #### Date Filters
 - **inspectionDateFrom** (string): Filter by inspection date from (ISO 8601)
 - **inspectionDateTo** (string): Filter by inspection date to (ISO 8601)
+- **ticketCreatedDateFrom** (string): Filter by ticket creation date from (ISO 8601)
+- **ticketCreatedDateTo** (string): Filter by ticket creation date to (ISO 8601)
 
 #### Pagination
 - **page** (int): Page number (default: 1)
@@ -132,6 +136,7 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
           "inspected": true,
           "inspection_date": "2024-01-15T10:00:00Z",
           "client_approval": true,
+          "ticket_created_at": "2024-01-10T08:30:00Z",
           "action": "صيانه",
           "pulled_status": false,
           "delivered_status": true
@@ -148,6 +153,40 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
     }
   }
 }
+
+## Response Fields
+
+The API returns comprehensive ticket item data including:
+
+### Core Ticket Item Fields
+- **ticket_item_id**: Unique identifier for the ticket item
+- **product_id**: Product identifier
+- **product_name**: Name of the product
+- **product_size**: Size specification of the product
+- **request_reason_id**: Reason for the request
+- **request_reason_name**: Description of the request reason
+- **inspected**: Whether the item was inspected
+- **inspection_date**: Date of inspection (ISO 8601 format)
+- **client_approval**: Client approval status
+
+### Ticket Information
+- **ticket_id**: Unique identifier for the ticket
+- **ticket_status**: Current status of the ticket
+- **ticket_category_name**: Category of the ticket
+- **ticket_created_at**: Date when the ticket was created (ISO 8601 format)
+
+### Customer & Location Information
+- **customer_id**: Customer identifier
+- **customer_name**: Name of the customer
+- **governomate_id**: Governorate identifier
+- **governorate_name**: Name of the governorate
+- **city_id**: City identifier
+- **city_name**: Name of the city
+
+### Action & Status Fields
+- **action**: Type of action performed ('استبدال لنفس النوع', 'استبدال لنوع اخر', 'صيانه')
+- **pulled_status**: Whether the item was pulled
+- **delivered_status**: Whether the item was delivered
 ```
 
 ## Dynamic Filtering Examples
@@ -268,6 +307,23 @@ curl -X POST http://localhost:8081/api/reports/ticket-items \
     },
     "page": 1,
     "limit": 100
+  }'
+```
+
+### Report with Ticket Creation Date Range
+```bash
+curl -X POST http://localhost:8081/api/reports/ticket-items \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "filters": {
+      "companyId": 1,
+      "ticketCreatedDateFrom": "2024-01-01T00:00:00Z",
+      "ticketCreatedDateTo": "2024-03-31T23:59:59Z",
+      "ticketStatus": "مفتوح"
+    },
+    "page": 1,
+    "limit": 50
   }'
 ```
 

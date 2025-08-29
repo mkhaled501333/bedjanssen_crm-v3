@@ -475,6 +475,7 @@ Future<void> _createTicketItemsReportView(MySqlConnection conn) async {
           ti.inspected,
           ti.inspection_date,
           ti.client_approval,
+          t.created_at AS ticket_created_at,
           
           CASE 
               WHEN tica.ticket_item_id IS NOT NULL THEN 'استبدال لنفس النوع'
@@ -868,6 +869,7 @@ Future<void> runMigrations(MySqlConnection conn) async {
 
     // Create ticket items report view
     await _createTicketItemsReportView(conn);
+
 
     // Insert activities data
     await _insertActivitiesData(conn);

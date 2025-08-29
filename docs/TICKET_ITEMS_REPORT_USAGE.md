@@ -51,6 +51,7 @@ The view combines data from multiple tables:
 | `inspected` | BOOLEAN | Whether item was inspected |
 | `inspection_date` | DATETIME | Date of inspection |
 | `client_approval` | BOOLEAN | Client approval status |
+| `ticket_created_at` | DATETIME | Date when the ticket was created |
 | `action` | VARCHAR | Action type: 'استبدال لنفس النوع', 'استبدال لنوع اخر', 'صيانه' |
 | `pulled_status` | BOOLEAN | Whether item was pulled |
 | `delivered_status` | BOOLEAN | Whether item was delivered |
@@ -76,6 +77,8 @@ class TicketItemsReportService {
     bool? inspected,
     DateTime? inspectionDateFrom,
     DateTime? inspectionDateTo,
+    DateTime? ticketCreatedDateFrom,
+    DateTime? ticketCreatedDateTo,
     String? action,
     bool? pulledStatus,
     bool? deliveredStatus,
@@ -132,6 +135,14 @@ class TicketItemsReportService {
       if (inspectionDateTo != null) {
         whereConditions.add('inspection_date <= ?');
         parameters.add(inspectionDateTo);
+      }
+      if (ticketCreatedDateFrom != null) {
+        whereConditions.add('ticket_created_at >= ?');
+        parameters.add(ticketCreatedDateFrom);
+      }
+      if (ticketCreatedDateTo != null) {
+        whereConditions.add('ticket_created_at <= ?');
+        parameters.add(ticketCreatedDateTo);
       }
       if (action != null) {
         whereConditions.add('action = ?');
@@ -274,6 +285,8 @@ class TicketItemsReportService {
         'inspected': inspected,
         'inspectionDateFrom': inspectionDateFrom?.toIso8601String(),
         'inspectionDateTo': inspectionDateTo?.toIso8601String(),
+        'ticketCreatedDateFrom': ticketCreatedDateFrom?.toIso8601String(),
+        'ticketCreatedDateTo': ticketCreatedDateTo?.toIso8601String(),
         'action': action,
         'pulledStatus': pulledStatus,
         'deliveredStatus': deliveredStatus,
@@ -439,6 +452,7 @@ The API now returns everything in a single response:
           "product_name": "Product X",
           "action": "صيانه",
           "ticket_status": "مفتوح",
+          "ticket_created_at": "2024-01-10T08:30:00Z",
           "inspected": true,
           "inspection_date": "2024-01-15T10:00:00Z",
           "pulled_status": false,
@@ -626,6 +640,60 @@ The API now returns everything in a single response:
 }
 ```
 
+### Example 4: Date Range Filtering
+
+**After applying Ticket Creation Date Range filter:**
+```json
+{
+  "available_filters": {
+    "customers": [
+      {"id": 1, "name": "Customer A"},
+      {"id": 2, "name": "Customer B"}
+    ],
+    "ticket_statuses": [
+      {"id": "مفتوح", "name": "مفتوح"},
+      {"id": "قيد المعالجة", "name": "قيد المعالجة"}
+    ],
+    "actions": [
+      {"id": "صيانه", "name": "صيانه"},
+      {"id": "استبدال لنفس النوع", "name": "استبدال لنفس النوع"}
+    ]
+  },
+  "applied_filters": {
+    "companyId": 1,
+    "ticketCreatedDateFrom": "2024-01-01T00:00:00Z",
+    "ticketCreatedDateTo": "2024-03-31T23:59:59Z"
+  },
+  "filter_summary": {
+    "total_applied_filters": 2,
+    "active_filters": ["ticketCreatedDateFrom", "ticketCreatedDateTo"]
+  }
+}
+```
+
+**After applying Inspection Date Range filter:**
+```json
+{
+  "available_filters": {
+    "customers": [
+      {"id": 1, "name": "Customer A"}
+    ],
+    "products": [
+      {"id": 10, "name": "Product X"}
+    ]
+  },
+  "applied_filters": {
+    "companyId": 1,
+    "inspectionDateFrom": "2024-02-01T00:00:00Z",
+    "inspectionDateTo": "2024-02-29T23:59:59Z"
+  },
+  "filter_summary": {
+    "total_applied_filters": 2,
+    "active_filters": ["inspectionDateFrom", "inspectionDateTo"]
+  }
+}
+```
+
 ## Frontend Implementation
 
 ### React/TypeScript Hook
@@ -659,6 +727,8 @@ interface AppliedFilters {
   inspected?: boolean;
   inspectionDateFrom?: string;
   inspectionDateTo?: string;
+  ticketCreatedDateFrom?: string;
+  ticketCreatedDateTo?: string;
   action?: string;
   pulledStatus?: boolean;
   deliveredStatus?: boolean;

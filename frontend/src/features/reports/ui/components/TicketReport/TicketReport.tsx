@@ -102,10 +102,8 @@ const TicketReport: React.FC = () => {
     if (!availableFilters || selectedNames.length === 0) return [];
 
     const columnToFilterMap: Record<string, keyof AvailableFilters> = {
-      'Customer': 'customers',
       'Governorate': 'governorates',
       'City': 'cities',
-      'Ticket ID': 'tickets',
       'Category': 'ticket_categories',
       'Status': 'ticket_statuses',
       'Product': 'products',
@@ -137,10 +135,8 @@ const TicketReport: React.FC = () => {
     if (!availableFilters) return [];
 
     const columnToFilterMap: Record<string, keyof AvailableFilters> = {
-      'Customer': 'customers',
       'Governorate': 'governorates',
       'City': 'cities',
-      'Ticket ID': 'tickets',
       'Category': 'ticket_categories',
       'Status': 'ticket_statuses',
       'Product': 'products',
@@ -207,14 +203,24 @@ const TicketReport: React.FC = () => {
                   // Ensure from is a Date object before calling toISOString
                   const fromDate = dateRange.from instanceof Date ? dateRange.from : new Date(dateRange.from);
                   if (!isNaN(fromDate.getTime())) {
-                    acc.inspectionDateFrom = fromDate.toISOString();
+                    // Determine which date filter this is based on the column
+                    if (column === 'Ticket Creation Date') {
+                      acc.ticketCreatedDateFrom = fromDate.toISOString();
+                    } else {
+                      acc.inspectionDateFrom = fromDate.toISOString();
+                    }
                   }
                 }
                 if (dateRange.to) {
                   // Ensure to is a Date object before calling toISOString
                   const toDate = dateRange.to instanceof Date ? dateRange.to : new Date(dateRange.to);
                   if (!isNaN(toDate.getTime())) {
-                    acc.inspectionDateTo = toDate.toISOString();
+                    // Determine which date filter this is based on the column
+                    if (column === 'Ticket Creation Date') {
+                      acc.ticketCreatedDateTo = toDate.toISOString();
+                    } else {
+                      acc.inspectionDateTo = toDate.toISOString();
+                    }
                   }
                 }
               } catch (error) {
@@ -300,6 +306,7 @@ const TicketReport: React.FC = () => {
   const tableColumns = [
     { key: 'Ticket ID', displayName: 'Ticket ID' },
     { key: 'Status', displayName: 'Status' },
+    { key: 'Ticket Creation Date', displayName: 'Ticket Creation Date' },
     { key: 'Customer', displayName: 'Customer' },
     { key: 'Governorate', displayName: 'Governorate' },
     { key: 'City', displayName: 'City' },
@@ -433,6 +440,7 @@ const TicketReport: React.FC = () => {
                 </td>
                 <td><input type="text" className={styles.cellInput} value={row.ticket_id} readOnly /></td>
                 <td className={getStatusCellClass(row.ticket_status)}>{getDisplayValue(row, 'ticket_status')}</td>
+                <td className={styles.date}>{getDisplayValue(row, 'ticket_created_at')}</td>
                 <td><input type="text" className={styles.cellInput} value={row.customer_name} readOnly /></td>
                 <td><input type="text" className={styles.cellInput} value={row.governorate_name} readOnly /></td>
                 <td><input type="text" className={styles.cellInput} value={row.city_name} readOnly /></td>

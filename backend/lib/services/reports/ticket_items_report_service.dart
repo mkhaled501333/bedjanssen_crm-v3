@@ -18,6 +18,8 @@ class TicketItemsReportService {
     bool? inspected,
     DateTime? inspectionDateFrom,
     DateTime? inspectionDateTo,
+    DateTime? ticketCreatedDateFrom,
+    DateTime? ticketCreatedDateTo,
     String? action,
     bool? pulledStatus,
     bool? deliveredStatus,
@@ -158,6 +160,14 @@ class TicketItemsReportService {
       if (inspectionDateTo != null) {
         whereConditions.add('inspection_date <= ?');
         parameters.add(inspectionDateTo);
+      }
+      if (ticketCreatedDateFrom != null) {
+        whereConditions.add('ticket_created_at >= ?');
+        parameters.add(ticketCreatedDateFrom);
+      }
+      if (ticketCreatedDateTo != null) {
+        whereConditions.add('ticket_created_at <= ?');
+        parameters.add(ticketCreatedDateTo);
       }
       if (action != null) {
         whereConditions.add('action = ?');
@@ -313,6 +323,8 @@ class TicketItemsReportService {
         'inspected': inspected,
         'inspectionDateFrom': inspectionDateFrom?.toIso8601String(),
         'inspectionDateTo': inspectionDateTo?.toIso8601String(),
+        'ticketCreatedDateFrom': ticketCreatedDateFrom?.toIso8601String(),
+        'ticketCreatedDateTo': ticketCreatedDateTo?.toIso8601String(),
         'action': action,
         'pulledStatus': pulledStatus,
         'deliveredStatus': deliveredStatus,
