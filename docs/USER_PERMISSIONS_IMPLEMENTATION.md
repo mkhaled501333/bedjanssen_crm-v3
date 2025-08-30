@@ -31,51 +31,50 @@ The CRM system implements a role-based access control (RBAC) system using numeri
 
 ### Permission Categories
 
-The system organizes permissions into logical categories:
+The system now uses a simplified permission model with only two core permissions:
 
 | Category | Permission IDs | Description |
 |----------|----------------|-------------|
-| User Management | 1-9 | User account operations |
-| Ticket Management | 10-19 | Support ticket operations |
-| Customer Management | 20-29 | Customer record operations |
-| Reporting | 30-39 | Report viewing and export |
-| Master Data | 40-49 | System configuration data |
-| System Administration | 50-69 | Administrative functions |
+| User Management | 1 | User account operations |
+| Master Data | 40 | System configuration data |
+
+### Permission Combinations
+
+Users can have any combination of these permissions:
+- **No permissions** (`[]`): Basic system access only
+- **Permission 1 only** (`[1]`): Can view users
+- **Permission 40 only** (`[40]`): Can view master data
+- **Both permissions** (`[1, 40]`): Full read access to core features
 
 ### Standard Permission Sets
 
-#### Basic User
+#### No Permissions
 ```json
-[1, 10, 20, 30, 40]
+[]
 ```
-- View users, tickets, customers, reports, and master data
-- Read-only access to most system features
+- Cannot access user management or master data
+- Basic system access only
 
-#### Customer Service Representative
+#### View Users Only
 ```json
-[1, 10, 11, 12, 14, 20, 21, 22, 30, 40]
+[1]
 ```
-- Can manage tickets and customers
-- Can create, edit, and close tickets
-- Can create and edit customers
-- Can view reports
+- Can view user information and user lists
+- Cannot access master data
 
-#### Manager
+#### View Master Data Only
 ```json
-[1, 10, 11, 12, 13, 14, 20, 21, 22, 23, 30, 31, 40, 50]
+[40]
 ```
-- Full access to tickets and customers
-- Can delete tickets and customers
-- Can export reports
-- Can view activity logs
+- Can view master data (categories, products, etc.)
+- Cannot access user management
 
-#### System Administrator
+#### Full Access
 ```json
-[1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 20, 21, 22, 23, 30, 31, 40, 41, 50, 60]
+[1, 40]
 ```
-- Full access to all system features
-- Can perform all operations
-- Complete system administration rights
+- Can view both users and master data
+- Complete read access to core system features
 
 ## Backend Implementation
 
@@ -289,16 +288,16 @@ export async function updateUserPermissions(id: number, permissions: number[]): 
 The frontend conditionally renders UI elements based on user permissions:
 
 ```typescript
-// Example: Show delete button only if user has permission
-{hasPermission(23) && (
-  <button onClick={handleDeleteCustomer}>
-    Delete Customer
+// Example: Show user management only if user has permission
+{hasPermission(1) && (
+  <button onClick={handleManageUsers}>
+    Manage Users
   </button>
 )}
 
-// Example: Show admin panel only for system administrators
-{hasPermission(60) && (
-  <AdminPanel />
+// Example: Show master data only if user has permission
+{hasPermission(40) && (
+  <MasterDataPanel />
 )}
 ```
 
@@ -309,9 +308,9 @@ The frontend conditionally renders UI elements based on user permissions:
 | Method | Endpoint | Description | Permission Required |
 |--------|----------|-------------|-------------------|
 | GET | `/api/users-management` | List all users | 1 (View Users) |
-| POST | `/api/users-management` | Create new user | 2 (Create Users) |
+| POST | `/api/users-management` | Create new user | 1 (View Users) |
 | GET | `/api/users-management/{id}` | Get user by ID | 1 (View Users) |
-| PUT | `/api/users-management/{id}` | Update user | 3 (Edit Users) |
+| PUT | `/api/users-management/{id}` | Update user | 1 (View Users) |
 | DELETE | `/api/users-management/{id}` | Delete user | **DISABLED** |
 
 ### Permission Management Endpoints
@@ -319,8 +318,8 @@ The frontend conditionally renders UI elements based on user permissions:
 | Method | Endpoint | Description | Permission Required |
 |--------|----------|-------------|-------------------|
 | GET | `/api/users-management/{id}/permissions` | Get user permissions | 1 (View Users) |
-| PUT | `/api/users-management/{id}/permissions` | Replace all permissions | 5 (Manage User Permissions) |
-| POST | `/api/users-management/{id}/permissions` | Add permissions | 5 (Manage User Permissions) |
+| PUT | `/api/users-management/{id}/permissions` | Replace all permissions | 1 (View Users) |
+| POST | `/api/users-management/{id}/permissions` | Add permissions | 1 (View Users) |
 
 ### Response Formats
 
@@ -330,7 +329,7 @@ The frontend conditionally renders UI elements based on user permissions:
   "userId": 1,
   "username": "john.doe",
   "name": "John Doe",
-  "permissions": [1, 2, 3, 10, 20],
+  "permissions": [1, 40],
   "permissionDetails": [
     {
       "id": 1,
@@ -338,8 +337,8 @@ The frontend conditionally renders UI elements based on user permissions:
       "valid": true
     },
     {
-      "id": 2,
-      "name": "Create Users",
+      "id": 40,
+      "name": "View Master Data",
       "valid": true
     }
   ]

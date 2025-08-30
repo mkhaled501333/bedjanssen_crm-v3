@@ -8,106 +8,48 @@ The permission system uses numeric IDs to represent different access levels and 
 
 ## Permission Categories
 
-### User Management (1-9)
+### Simplified Permission System
+
+The system now uses a simplified permission model with only two core permissions:
 
 | ID | Permission Name | Description | Typical Users |
 |----|-----------------|-------------|---------------|
 | 1 | View Users | Can view user information and user lists | All users, HR, Managers |
-| 2 | Create Users | Can create new user accounts | HR, System Admins |
-| 3 | Edit Users | Can modify user information | HR, System Admins |
-| 4 | Delete Users | Can delete user accounts | System Admins only |
-| 5 | Manage User Permissions | Can modify user permissions | System Admins, HR Managers |
-
-### Ticket Management (10-19)
-
-| ID | Permission Name | Description | Typical Users |
-|----|-----------------|-------------|---------------|
-| 10 | View Tickets | Can view ticket information | All users |
-| 11 | Create Tickets | Can create new tickets | Customer Service, Sales |
-| 12 | Edit Tickets | Can modify ticket information | Customer Service, Managers |
-| 13 | Delete Tickets | Can delete tickets | Managers, System Admins |
-| 14 | Close Tickets | Can close/resolve tickets | Customer Service, Managers |
-
-### Customer Management (20-29)
-
-| ID | Permission Name | Description | Typical Users |
-|----|-----------------|-------------|---------------|
-| 20 | View Customers | Can view customer information | All users |
-| 21 | Create Customers | Can create new customer records | Sales, Customer Service |
-| 22 | Edit Customers | Can modify customer information | Sales, Customer Service |
-| 23 | Delete Customers | Can delete customer records | Managers, System Admins |
-
-### Reporting (30-39)
-
-| ID | Permission Name | Description | Typical Users |
-|----|-----------------|-------------|---------------|
-| 30 | View Reports | Can view reports and analytics | Managers, Analysts |
-| 31 | Export Reports | Can export reports to files | Managers, Analysts |
-
-### Master Data Management (40-49)
-
-| ID | Permission Name | Description | Typical Users |
-|----|-----------------|-------------|---------------|
 | 40 | View Master Data | Can view master data (categories, products, etc.) | All users |
-| 41 | Edit Master Data | Can modify master data | System Admins, Data Managers |
-
-### System Administration (50-69)
-
-| ID | Permission Name | Description | Typical Users |
-|----|-----------------|-------------|---------------|
-| 50 | View Activity Logs | Can view system activity logs | Managers, System Admins |
-| 60 | System Administration | Full system administration access | System Admins only |
 
 ## Permission Hierarchies
 
-### Basic User
-```json
-[1, 10, 20, 30, 40]
-```
-- Can view users, tickets, customers, reports, and master data
-- Read-only access to most system features
+### Simplified Permission System
 
-### Customer Service Representative
-```json
-[1, 10, 11, 12, 14, 20, 21, 22, 30, 40]
-```
-- Can manage tickets and customers
-- Can create, edit, and close tickets
-- Can create and edit customers
-- Can view reports
+The system now uses a simplified permission model with only two core permissions:
 
-### Sales Representative
+#### No Permissions
 ```json
-[1, 10, 11, 20, 21, 22, 30, 40]
+[]
 ```
-- Can create tickets for customer issues
-- Can manage customer information
-- Can view reports for sales analytics
+- Cannot access user management or master data
+- Basic system access only
 
-### Manager
+#### View Users Only
 ```json
-[1, 10, 11, 12, 13, 14, 20, 21, 22, 23, 30, 31, 40, 50]
+[1]
 ```
-- Full access to tickets and customers
-- Can delete tickets and customers
-- Can export reports
-- Can view activity logs
+- Can view user information and user lists
+- Cannot access master data
 
-### HR Manager
+#### View Master Data Only
 ```json
-[1, 2, 3, 5, 10, 20, 30, 31, 40, 50]
+[40]
 ```
-- Can manage users and their permissions
-- Can view system activity
-- Limited access to operational data
+- Can view master data (categories, products, etc.)
+- Cannot access user management
 
-### System Administrator
+#### Full Access
 ```json
-[1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 20, 21, 22, 23, 30, 31, 40, 41, 50, 60]
+[1, 40]
 ```
-- Full access to all system features
-- Can perform all operations
-- Complete system administration rights
+- Can view both users and master data
+- Complete read access to core system features
 
 ## Permission Validation
 
@@ -168,24 +110,35 @@ if (!user.permissions.contains(12)) {
 GET /api/users-management/123/permissions
 ```
 
-### Setting Basic User Permissions
+### Setting User Permissions
 ```http
 PUT /api/users-management/123/permissions
 Content-Type: application/json
 
 {
-  "permissions": [1, 10, 20, 30, 40],
+  "permissions": [1, 40],
   "updatedBy": 1
 }
 ```
 
-### Adding Manager Permissions
+### Setting No Permissions
+```http
+PUT /api/users-management/123/permissions
+Content-Type: application/json
+
+{
+  "permissions": [],
+  "updatedBy": 1
+}
+```
+
+### Adding Specific Permissions
 ```http
 POST /api/users-management/123/permissions
 Content-Type: application/json
 
 {
-  "permissions": [13, 23, 31, 50],
+  "permissions": [1],
   "updatedBy": 1
 }
 ```
@@ -214,6 +167,7 @@ Content-Type: application/json
 1. **User can't access feature**: Check if user has required permission ID
 2. **Permission not working**: Verify permission ID is in the valid permissions list
 3. **Changes not reflected**: Check if frontend is using cached permission data
+4. **User has no permissions**: This is valid - users can have an empty permission array `[]`
 
 ### Debugging
 

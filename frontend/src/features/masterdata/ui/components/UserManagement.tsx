@@ -10,8 +10,8 @@ interface UserManagementProps {
 }
 
 const PERMISSIONS = {
-  1: 'show user managment',
-  2: 'show master data',
+  1: 'View Users',
+  40: 'View Master Data',
 };
 
 export function UserManagement({ onClose }: UserManagementProps) {
@@ -24,8 +24,6 @@ export function UserManagement({ onClose }: UserManagementProps) {
   const [showPermissions, setShowPermissions] = useState<number | null>(null);
   const [userPermissions, setUserPermissions] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [newUserData, setNewUserData] = useState<UserCreateRequest>({
     name: '',
     username: '',
@@ -39,20 +37,20 @@ export function UserManagement({ onClose }: UserManagementProps) {
     setLoading(true);
     setError(null);
     try {
-      const result = await api.getUsers(currentPage, 10, searchTerm);
+      // Fetch all users by using a very large limit
+      const result = await api.getUsers(1, 1000, searchTerm);
       setUsers(result.users);
-      setTotalPages(Math.ceil(result.total / result.limit));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchTerm]);
+  }, [searchTerm]);
 
   useEffect(() => {
     loadUsers();
     loadCompanies();
-  }, [currentPage, searchTerm, loadUsers]);
+  }, [searchTerm, loadUsers]);
 
   const loadCompanies = async () => {
     try {
@@ -125,10 +123,12 @@ export function UserManagement({ onClose }: UserManagementProps) {
   const handleUpdatePermissions = async (userId: number, permissions: number[]) => {
     try {
       setError(null);
+      console.log('handleUpdatePermissions called with:', { userId, permissions });
       await api.updateUserPermissions(userId, permissions);
       setUserPermissions(permissions);
       await loadUsers();
     } catch (err) {
+      console.error('Error updating permissions:', err);
       setError(err instanceof Error ? err.message : 'Failed to update permissions');
     }
   };
@@ -176,6 +176,9 @@ export function UserManagement({ onClose }: UserManagementProps) {
           width: '90%'
         }}>
           <h3>Manage User Permissions</h3>
+          <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
+            Select permissions for this user. Users can have no permissions, individual permissions, or both.
+          </div>
           <div style={{ marginBottom: '20px' }}>
             {Object.entries(PERMISSIONS).map(([id, name]) => (
               <label key={id} style={{ display: 'block', marginBottom: '8px' }}>
@@ -193,6 +196,7 @@ export function UserManagement({ onClose }: UserManagementProps) {
             <button
               className={`${styles.masterBtn} ${styles.masterBtnEdit}`}
               onClick={() => {
+                console.log('Save button clicked, current permissions:', userPermissions);
                 handleUpdatePermissions(showPermissions, userPermissions);
                 setShowPermissions(null);
               }}
@@ -347,7 +351,6 @@ export function UserManagement({ onClose }: UserManagementProps) {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setCurrentPage(1);
                 }}
                 style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
               />
@@ -499,30 +502,12 @@ export function UserManagement({ onClose }: UserManagementProps) {
               </table>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                <button
-                  className={`${styles.masterBtn} ${styles.masterBtnEdit}`}
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  style={{ marginRight: '10px' }}
-                >
-                  Previous
-                </button>
-                <span style={{ margin: '0 10px' }}>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  className={`${styles.masterBtn} ${styles.masterBtnEdit}`}
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  style={{ marginLeft: '10px' }}
-                >
-                  Next
-                </button>
-              </div>
-            )}
+            {/* Show total count instead of pagination */}
+            <div style={{ marginTop: '20px', textAlign: 'center' }}>
+              <span style={{ fontSize: '14px', color: '#666' }}>
+                Total Users: {users.length}
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -380,8 +380,11 @@ export async function getUsers(page?: number, limit?: number, search?: string): 
   try {
     let url = `${getApiBaseURL()}/api/users-management`;
     const params = new URLSearchParams();
-    if (page) params.append('page', page.toString());
     if (limit) params.append('limit', limit.toString());
+    if (page && limit) {
+      const offset = (page - 1) * limit;
+      params.append('offset', offset.toString());
+    }
     if (search) params.append('search', search);
     if (params.toString()) url += `?${params.toString()}`;
     
@@ -451,12 +454,21 @@ export async function getUserPermissions(id: number): Promise<{ permissions: num
 }
 
 export async function updateUserPermissions(id: number, permissions: number[]): Promise<{ permissions: number[] }> {
+  console.log('Updating user permissions:', { id, permissions });
+  const requestBody = { permissions };
+  console.log('Request body:', requestBody);
+  
   const response = await authFetch(`${getApiBaseURL()}/api/users-management/${id}/permissions`, {
     method: 'PUT',
-    body: JSON.stringify({ permissions }),
+    body: JSON.stringify(requestBody),
   });
+  
+  console.log('Response status:', response.status);
+  
   if (!response.ok) {
-    throw new Error('Failed to update user permissions');
+    const errorData = await response.json().catch(() => ({}));
+    console.error('Error response:', errorData);
+    throw new Error(errorData.error || 'Failed to update user permissions');
   }
   return await response.json();
 }

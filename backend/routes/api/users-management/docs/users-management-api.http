@@ -61,7 +61,7 @@ Authorization: Bearer {{authToken}}
   "companyId": 1,
   "createdBy": 1,
   "isActive": true,
-  "permissions": [1, 2, 3, 10, 20]
+  "permissions": [1, 40]
 }
 
 ### Create user with permissions
@@ -76,7 +76,7 @@ Authorization: Bearer {{authToken}}
   "companyId": 1,
   "createdBy": 1,
   "isActive": true,
-  "permissions": [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 20, 21, 22, 23, 30, 31, 40, 41, 50, 60]
+  "permissions": [1, 40]
 }
 
 ### ===========================================
@@ -123,7 +123,7 @@ Authorization: Bearer {{authToken}}
   "password": "new_secure_password",
   "companyId": 1,
   "isActive": true,
-  "permissions": [1, 2, 3, 4, 10, 11, 20]
+  "permissions": [1, 40]
 }
 
 ### Update user status (deactivate)
@@ -159,7 +159,7 @@ Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 {
-  "permissions": [1, 2, 3, 10, 11, 20, 21],
+  "permissions": [1, 40],
   "updatedBy": 1
 }
 
@@ -169,7 +169,7 @@ Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 {
-  "permissions": [4, 5, 12, 13],
+  "permissions": [1, 40],
   "updatedBy": 1
 }
 
@@ -179,7 +179,7 @@ Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 {
-  "permissions": [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 20, 21, 22, 23, 30, 31, 40, 41, 50, 60],
+  "permissions": [1, 40],
   "updatedBy": 1
 }
 
@@ -189,7 +189,7 @@ Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 {
-  "permissions": [1, 10, 20, 30],
+  "permissions": [1, 40],
   "updatedBy": 1
 }
 

@@ -1,5 +1,6 @@
 import 'package:dart_frog/dart_frog.dart';
 import 'package:janssencrm_backend/database/database_service.dart';
+import 'package:janssencrm_backend/services/activity_log_service.dart';
 import 'dart:convert';
 
 Future<Response> onRequest(RequestContext context) async {
@@ -55,6 +56,24 @@ Future<Response> _handlePost(RequestContext context) async {
     
     final List<int> ids = ticketIds.map((id) => id as int).toList();
     final tickets = await _getTicketsByIds(ids);
+    
+    // Log activity for getting ticket items by IDs
+    try {
+      final jwtPayload = context.read<dynamic>();
+      int userId = 1; // Default fallback
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+      
+      await ActivityLogService.log(
+        entityId: 4, // ticket_items entity
+        recordId: 0, // General report, no specific record
+        activityId: 306, // Get ticket items by IDs
+        userId: userId,
+      );
+    } catch (e) {
+      print('Failed to log get ticket items by IDs activity: $e');
+    }
     
     return Response(
       statusCode: 200,

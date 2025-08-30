@@ -57,7 +57,7 @@ PUT /api/users-management/123/permissions
 Content-Type: application/json
 
 {
-  "permissions": [1, 2, 3, 10, 11, 20, 21],
+  "permissions": [1, 40],
   "updatedBy": 1
 }
 ```

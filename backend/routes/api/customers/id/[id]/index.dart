@@ -53,6 +53,24 @@ Future<Response> _handleGet(RequestContext context, String id) async {
       );
     }
     
+    // Log activity for getting customer details
+    try {
+      final jwtPayload = context.read<dynamic>();
+      int userId = 1; // Default fallback
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+      
+      await ActivityLogService.log(
+        entityId: 2, // customers entity
+        recordId: customerId,
+        activityId: 100, // Get customer details
+        userId: userId,
+      );
+    } catch (e) {
+      print('Failed to log get customer details activity: $e');
+    }
+    
     return Response.json(
       body: {
         'success': true,

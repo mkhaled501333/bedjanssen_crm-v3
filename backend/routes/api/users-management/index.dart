@@ -66,6 +66,10 @@ Future<Response> _handleGet(RequestContext context) async {
       // Search users
       users = await User.search(searchParam);
       totalCount = users.length;
+    } else if (limit >= 1000) {
+      // If limit is very large, return all users without pagination
+      users = await User.findAll();
+      totalCount = users.length;
     } else {
       // Get users with pagination
       users = await User.findWithPagination(limit: limit, offset: offset);
@@ -90,12 +94,9 @@ Future<Response> _handleGet(RequestContext context) async {
         statusCode: 200,
         body: {
           'users': safeUsers,
-          'pagination': {
-            'total': totalCount,
-            'limit': limit,
-            'offset': offset,
-            'hasMore': offset + limit < totalCount,
-          },
+          'total': totalCount,
+          'page': offset ~/ limit + 1,
+          'limit': limit,
         },
       ),
     );

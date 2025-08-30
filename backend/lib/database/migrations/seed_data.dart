@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars, avoid_print, always_use_package_imports
+
 import 'package:mysql1/mysql1.dart';
 import '../database_service.dart';
 
@@ -8,6 +10,9 @@ Future<void> insertActivitiesData(MySqlConnection conn) async {
   try {
     // Insert entities data
     await insertEntitiesData(conn);
+    
+    // Insert permissions data
+    await insertPermissionsData(conn);
     
     // Insert activities data
     await insertActivitiesTableData(conn);
@@ -59,6 +64,33 @@ Future<void> insertEntitiesData(MySqlConnection conn) async {
   }
 }
 
+/// Insert permissions data
+Future<void> insertPermissionsData(MySqlConnection conn) async {
+  print('Inserting permissions data...');
+
+  final permissions = [
+    {'id': 1, 'title': 'View Users', 'description': 'Can view user information and user lists'},
+    {'id': 40, 'title': 'View Master Data', 'description': 'Can view master data (categories, products, etc.)'},
+  ];
+
+  for (final permission in permissions) {
+    try {
+      await DatabaseService.query(
+        'INSERT IGNORE INTO permissions (id, title, description) VALUES (?, ?, ?)',
+        parameters: [permission['id'], permission['title'], permission['description']],
+        userId: 1, // System user for seeding
+      );
+    } catch (e) {
+      // Ignore duplicate key errors
+      if (!e.toString().contains('Duplicate entry')) {
+        print('⚠ Error inserting permission ${permission['title']}: $e');
+      }
+    }
+  }
+  
+  print('✓ Permissions data inserted successfully.');
+}
+
 /// Insert activities data
 Future<void> insertActivitiesTableData(MySqlConnection conn) async {
   final activities = [
@@ -70,14 +102,10 @@ Future<void> insertActivitiesTableData(MySqlConnection conn) async {
 
     // Customer Activities (ID Range: 100-199)
     {'id': 100, 'name': 'Get customer details', 'description': 'استرداد معلومات مفصلة عن عميل محدد بما في ذلك التفاصيل الشخصية وأرقام الهواتف والبيانات المرتبطة'},
-    {'id': 101, 'name': 'Update customer details', 'description': 'تحديث معلومات العميل بما في ذلك الاسم والعنوان والملاحظات والمحافظة والمدينة'},
-    {'id': 102, 'name': 'Get customer phones', 'description': 'استرداد جميع أرقام الهواتف المرتبطة بعميل محدد'},
     {'id': 103, 'name': 'Add customer phone', 'description': 'إضافة رقم هاتف جديد للعميل'},
     {'id': 104, 'name': 'Update customer phone', 'description': 'تحديث رقم هاتف موجود للعميل'},
     {'id': 105, 'name': 'Delete customer phone', 'description': 'حذف رقم هاتف من العميل'},
-    {'id': 106, 'name': 'Get customer calls', 'description': 'استرداد جميع المكالمات المرتبطة بعميل محدد'},
     {'id': 107, 'name': 'Create customer call', 'description': 'إنشاء سجل مكالمة جديد للعميل'},
-    {'id': 108, 'name': 'Get customer tickets', 'description': 'استرداد جميع التذاكر المرتبطة بعميل محدد'},
     {'id': 109, 'name': 'Create customer ticket', 'description': 'إنشاء تذكرة جديدة للعميل'},
     {'id': 110, 'name': 'Create customer with call', 'description': 'إنشاء عميل جديد مع سجل مكالمة أولي في معاملة واحدة'},
     {'id': 111, 'name': 'Create customer with ticket', 'description': 'إنشاء عميل جديد مع تذكرة أولية في معاملة واحدة'},
@@ -122,11 +150,8 @@ Future<void> insertActivitiesTableData(MySqlConnection conn) async {
     {'id': 231, 'name': 'Delete ticket category', 'description': 'حذف فئة تذكرة من النظام'},
 
     // Reports Activities (ID Range: 300-399)
-    {'id': 300, 'name': 'Get agent calls report', 'description': 'استرداد جميع المكالمات (مكالمات العملاء ومكالمات التذاكر) التي أنشأها مستخدم محدد خلال نطاق زمني'},
-    {'id': 301, 'name': 'Get tickets report', 'description': 'استرداد تقرير التذاكر المقسم إلى صفحات للشركة مع خيارات التصفية الاختيارية'},
-    {'id': 302, 'name': 'Export tickets report as CSV', 'description': 'تصدير تقرير التذاكر بتنسيق CSV مع جميع خيارات التصفية'},
-    {'id': 303, 'name': 'Export tickets report as Excel', 'description': 'تصدير تقرير التذاكر بتنسيق Excel مع جميع خيارات التصفية'},
-    {'id': 304, 'name': 'Export tickets report as PDF', 'description': 'تصدير تقرير التذاكر بتنسيق PDF مع جميع خيارات التصفية'},
+    {'id': 305, 'name': 'Get ticket items report', 'description': 'استرداد تقرير عناصر التذاكر مع التصفية الديناميكية والتصفح'},
+    {'id': 306, 'name': 'print data as pdf', 'description': 'طباعه البيانات بصيغه pdf'},
 
     // Search Activities (ID Range: 400-499)
     {'id': 400, 'name': 'Search customers by name', 'description': 'البحث عن العملاء بالاسم باستخدام المطابقة الجزئية'},

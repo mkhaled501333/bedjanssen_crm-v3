@@ -1,5 +1,6 @@
 import 'package:dart_frog/dart_frog.dart';
 import 'package:janssencrm_backend/services/reports/ticket_items_report_service.dart';
+import 'package:janssencrm_backend/services/activity_log_service.dart';
 import 'dart:convert';
 
 /// Ticket Items Reports API
@@ -95,6 +96,24 @@ Future<Response> _handlePost(RequestContext context) async {
       page: page,
       limit: limit,
     );
+
+    // Log activity for getting ticket items report
+    try {
+      final jwtPayload = context.read<dynamic>();
+      int userId = 1; // Default fallback
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+      
+      await ActivityLogService.log(
+        entityId: 4, // ticket_items entity
+        recordId: 0, // General report, no specific record
+        activityId: 305, // Get ticket items report
+        userId: userId,
+      );
+    } catch (e) {
+      print('Failed to log get ticket items report activity: $e');
+    }
 
     return Response(
       statusCode: result['success'] == true ? 200 : 500,

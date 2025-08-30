@@ -1,8 +1,6 @@
 import 'package:dart_frog/dart_frog.dart';
-import 'package:janssencrm_backend/database/database_service.dart';
 import 'package:janssencrm_backend/models/user.dart';
 import 'package:janssencrm_backend/services/activity_log_service.dart';
-import 'package:janssencrm_backend/services/reports/tickets_utils/data_transformer.dart';
 
 Response _addCorsHeaders(Response response) => response.copyWith(
   headers: {
@@ -105,6 +103,11 @@ Future<Response> _handlePut(RequestContext context, int userId) async {
     final request = context.request;
     final data = await request.json() as Map<String, dynamic>;
     
+    // Debug logging
+    print('Received PUT request for user $userId');
+    print('Request data: $data');
+    print('Permissions field: ${data['permissions']}');
+    
     // Find existing user
     final existingUser = await User.findById(userId);
     if (existingUser == null) {
@@ -121,8 +124,12 @@ Future<Response> _handlePut(RequestContext context, int userId) async {
         ? List<int>.from(data['permissions'] as List)
         : <int>[];
     
+    print('Parsed permissions: $newPermissions');
+    
     // Validate permissions
     final validationResult = await _validatePermissions(newPermissions);
+    print('Validation result: $validationResult');
+    
     if (!(validationResult['valid'] as bool)) {
       return _addCorsHeaders(
         Response.json(
@@ -294,8 +301,13 @@ Future<Response> _handlePost(RequestContext context, int userId) async {
 Future<Map<String, dynamic>> _validatePermissions(List<int> permissions) async {
   final validPermissions = await _getValidPermissions();
   
+  print('Validating permissions: $permissions');
+  print('Available valid permissions: ${validPermissions.keys.toList()}');
+  
   for (final permission in permissions) {
+    print('Checking permission $permission: ${validPermissions.containsKey(permission)}');
     if (!validPermissions.containsKey(permission)) {
+      print('Invalid permission found: $permission');
       return {
         'valid': false,
         'message': 'Invalid permission ID: $permission',
@@ -303,48 +315,20 @@ Future<Map<String, dynamic>> _validatePermissions(List<int> permissions) async {
     }
   }
   
+  print('All permissions are valid');
   return {'valid': true};
 }
 
 /// Get valid permissions mapping from database
 Future<Map<int, String>> _getValidPermissions() async {
-  try {
-    final results = await DatabaseService.query('SELECT id, title FROM permissions ORDER BY id');
-    final Map<int, String> permissions = {};
-    
-    for (final row in results) {
-      final id = row['id'] as int;
-      final title = DataTransformer.convertFromBlob(row['title']) as String?;
-      permissions[id] = title ?? 'Unknown Permission';
-    }
-    
-    return permissions;
-  } catch (e) {
-    print('Error fetching permissions from database: $e');
-    // Fallback to hardcoded permissions if database query fails
-    return {
-      1: 'View Users',
-      2: 'Create Users',
-      3: 'Edit Users',
-      4: 'Delete Users',
-      5: 'Manage User Permissions',
-      10: 'View Tickets',
-      11: 'Create Tickets',
-      12: 'Edit Tickets',
-      13: 'Delete Tickets',
-      14: 'Close Tickets',
-      20: 'View Customers',
-      21: 'Create Customers',
-      22: 'Edit Customers',
-      23: 'Delete Customers',
-      30: 'View Reports',
-      31: 'Export Reports',
-      40: 'View Master Data',
-      41: 'Edit Master Data',
-      50: 'View Activity Logs',
-      60: 'System Administration',
-    };
-  }
+  // Only allow permissions 1 and 40 for the simplified system
+  final permissions = {
+    1: 'View Users',
+    40: 'View Master Data',
+  };
+  
+  print('Returning simplified permissions: ${permissions.keys.toList()}');
+  return permissions;
 }
 
 /// Get permission details

@@ -54,7 +54,7 @@ Retrieve a list of all users with pagination support.
       "username": "john.doe",
       "createdBy": 1,
       "isActive": true,
-      "permissions": [1, 2, 3],
+      "permissions": [1, 40],
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z"
     }
@@ -84,7 +84,7 @@ Create a new user.
   "companyId": 1,
   "createdBy": 1,
   "isActive": true,
-  "permissions": [1, 2, 3],
+  "permissions": [1, 40],
 }
 ```
 
@@ -143,7 +143,7 @@ Retrieve a specific user by their ID.
     "username": "john.doe",
     "createdBy": 1,
     "isActive": true,
-    "permissions": [1, 2, 3],
+    "permissions": [1, 40],
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
   }
@@ -171,7 +171,7 @@ Update an existing user's information.
   "password": "new_password",
   "companyId": 1,
   "isActive": true,
-  "permissions": [1, 2, 3, 4]
+  "permissions": [1, 40]
 }
 ```
 
@@ -189,7 +189,7 @@ Update an existing user's information.
     "username": "john.smith",
     "createdBy": 1,
     "isActive": true,
-    "permissions": [1, 2, 3, 4],
+    "permissions": [1, 40],
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T12:00:00.000Z"
   }
@@ -268,7 +268,7 @@ Replace all user permissions with new ones.
 
 ```json
 {
-  "permissions": [1, 2, 3, 4, 5],
+  "permissions": [1, 40],
   "updatedBy": 1
 }
 ```
@@ -280,14 +280,18 @@ Replace all user permissions with new ones.
   "message": "User permissions updated successfully",
   "userId": 1,
   "username": "john.doe",
-  "permissions": [1, 2, 3, 4, 5],
+  "permissions": [1, 40],
   "permissionDetails": [
     {
       "id": 1,
       "name": "View Users",
       "valid": true
+    },
+    {
+      "id": 40,
+      "name": "View Master Data",
+      "valid": true
     }
-    // ... more permissions
   ]
 }
 ```
@@ -308,7 +312,7 @@ Add new permissions to a user (keeps existing permissions).
 
 ```json
 {
-  "permissions": [4, 5],
+  "permissions": [1, 40],
   "updatedBy": 1
 }
 ```
@@ -320,11 +324,20 @@ Add new permissions to a user (keeps existing permissions).
   "message": "Permissions added successfully",
   "userId": 1,
   "username": "john.doe",
-  "permissions": [1, 2, 3, 4, 5],
+  "permissions": [1, 40],
   "permissionDetails": [
-    // ... permission details
+    {
+      "id": 1,
+      "name": "View Users",
+      "valid": true
+    },
+    {
+      "id": 40,
+      "name": "View Master Data",
+      "valid": true
+    }
   ],
-  "addedPermissions": [4, 5]
+  "addedPermissions": [1, 40]
 }
 ```
 
@@ -335,25 +348,7 @@ Add new permissions to a user (keeps existing permissions).
 | ID | Permission Name | Description |
 |----|-----------------|-------------|
 | 1 | View Users | Can view user information |
-| 2 | Create Users | Can create new users |
-| 3 | Edit Users | Can edit user information |
-| 4 | Delete Users | Can delete users |
-| 5 | Manage User Permissions | Can modify user permissions |
-| 10 | View Tickets | Can view tickets |
-| 11 | Create Tickets | Can create new tickets |
-| 12 | Edit Tickets | Can edit tickets |
-| 13 | Delete Tickets | Can delete tickets |
-| 14 | Close Tickets | Can close tickets |
-| 20 | View Customers | Can view customer information |
-| 21 | Create Customers | Can create new customers |
-| 22 | Edit Customers | Can edit customer information |
-| 23 | Delete Customers | Can delete customers |
-| 30 | View Reports | Can view reports |
-| 31 | Export Reports | Can export reports |
 | 40 | View Master Data | Can view master data |
-| 41 | Edit Master Data | Can edit master data |
-| 50 | View Activity Logs | Can view activity logs |
-| 60 | System Administration | Full system administration access |
 
 ## Error Responses
 
