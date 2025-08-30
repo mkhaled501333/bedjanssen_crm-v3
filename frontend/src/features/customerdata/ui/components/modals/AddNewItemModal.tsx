@@ -110,7 +110,7 @@ export function AddNewItemModal({ onClose, onSave, ticketId, editMode = false, i
     form.validateFields().then(values => {
       const userId = getCurrentUserId();
       
-      if (!userId) {
+      if (userId === null) {
         api.error({
           message: 'خطأ في المصادقة',
           description: 'يرجى تسجيل الدخول مرة أخرى.',

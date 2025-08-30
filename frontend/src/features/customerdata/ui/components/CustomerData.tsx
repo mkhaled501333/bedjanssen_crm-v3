@@ -204,7 +204,7 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     const companyId = getCurrentUserCompanyId();
     const userId = getCurrentUserId();
     
-    if (!companyId || !userId) {
+    if (companyId === null || userId === null) {
       console.error('User not authenticated or missing company/user information');
       return;
     }
@@ -246,7 +246,7 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     const companyId = getCurrentUserCompanyId();
     const userId = getCurrentUserId();
     
-    if (!companyId || !userId) {
+    if (companyId === null || userId === null) {
       console.error('User not authenticated or missing company/user information');
       return;
     }
@@ -277,7 +277,7 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     const companyId = getCurrentUserCompanyId();
     const userId = getCurrentUserId();
     
-    if (!companyId || !userId) {
+    if (companyId === null || userId === null) {
       console.error('User not authenticated or missing company/user information');
       return;
     }
@@ -370,7 +370,7 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     // Get current user ID from authentication
     const userId = getCurrentUserId();
     
-    if (!userId) {
+    if (userId === null) {
       console.error('User not authenticated');
       return;
     }
@@ -432,7 +432,7 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     const companyId = getCurrentUserCompanyId();
     const userId = getCurrentUserId();
     
-    if (!companyId || !userId) {
+    if (companyId === null || userId === null) {
       console.error('User not authenticated or missing company/user information');
       return;
     }

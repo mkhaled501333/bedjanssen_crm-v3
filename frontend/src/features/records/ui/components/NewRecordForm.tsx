@@ -253,7 +253,7 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
       const companyId = getCurrentUserCompanyId();
       const userId = getCurrentUserId();
       
-      if (!companyId || !userId) {
+      if (companyId === null || userId === null) {
         setToast('خطأ في المصادقة. يرجى تسجيل الدخول مرة أخرى.');
         return;
       }

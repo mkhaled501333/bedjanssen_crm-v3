@@ -24,7 +24,8 @@ export function getCurrentUser(): User | null {
  */
 export function getCurrentUserCompanyId(): number | null {
   const user = getCurrentUser();
-  return user?.company_id || null;
+  // Handle the case where company_id is 0 (valid company ID) vs undefined/null
+  return user?.company_id !== undefined ? user.company_id : null;
 }
 
 /**
@@ -33,7 +34,8 @@ export function getCurrentUserCompanyId(): number | null {
  */
 export function getCurrentUserId(): number | null {
   const user = getCurrentUser();
-  return user?.id || null;
+  // Handle the case where id is 0 (valid user ID) vs undefined/null
+  return user?.id !== undefined ? user.id : null;
 }
 
 /**
@@ -43,7 +45,8 @@ export function getCurrentUserId(): number | null {
 export function isAuthenticated(): boolean {
   const token = storage.get<string>('token');
   const user = getCurrentUser();
-  return !!(token && user);
+  // Check if both token and user exist, and user has required properties
+  return !!(token && user && user.id !== undefined && user.username && user.name);
 }
 
 /**
