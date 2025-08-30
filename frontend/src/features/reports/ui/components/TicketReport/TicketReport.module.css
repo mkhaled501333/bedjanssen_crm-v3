@@ -43,6 +43,25 @@
     border-color: #ced4da;
 }
 
+.printToolbarButton {
+    background: #217346 !important;
+    color: white !important;
+    border-color: #217346 !important;
+}
+
+.printToolbarButton:hover:not(:disabled) {
+    background: #1e6b3d !important;
+    border-color: #1e6b3d !important;
+}
+
+.printToolbarButton:disabled {
+    background: #6c757d !important;
+    border-color: #6c757d !important;
+    color: white !important;
+}
+
+
+
 .toolbarLoading {
     display: flex;
     align-items: center;
@@ -550,6 +569,8 @@
     text-align: center;
     padding: 8px 1px;
 }
+
+
 
 .loadingMessage {
   display: flex;

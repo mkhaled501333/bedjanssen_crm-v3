@@ -9,6 +9,7 @@ import { TicketItem, FilterValue, DateRange, COLUMN_FILTER_CONFIG, AvailableFilt
 import LoadingSpinner from './components/LoadingSpinner';
 import TableLoadingOverlay from './components/TableLoadingOverlay';
 import LoadingRow from './components/LoadingRow';
+import { PrintService } from './services/printService';
 
 // Custom hook for responsive width calculation
 const useResponsiveWidth = () => {
@@ -153,6 +154,58 @@ const TicketReport: React.FC = () => {
 
     // Extract the name values from FilterOption objects
     return filterData.map(option => option.name);
+  };
+
+  // Function to handle printing selected tickets
+  const handlePrintSelectedTickets = async () => {
+    if (selectedRows.size === 0) {
+      alert('يرجى تحديد التذاكر للطباعة');
+      return;
+    }
+
+    // Convert ticket item IDs to ticket IDs
+    const ticketIds = Array.from(selectedRows).map(ticketItemId => {
+      const ticketItem = data.find(item => item.ticket_item_id === ticketItemId);
+      return ticketItem?.ticket_id;
+    }).filter((id): id is number => id !== undefined);
+
+    if (ticketIds.length === 0) {
+      alert('لم يتم العثور على بيانات التذاكر المحددة');
+      return;
+    }
+
+    try {
+      await PrintService.printSelectedTickets(ticketIds);
+    } catch (error) {
+      console.error('Error printing tickets:', error);
+      alert('حدث خطأ أثناء الطباعة. يرجى المحاولة مرة أخرى.');
+    }
+  };
+
+  // Function to handle printing Englander format
+  const handlePrintEnglanderFormat = async () => {
+    if (selectedRows.size === 0) {
+      alert('يرجى تحديد التذاكر للطباعة');
+      return;
+    }
+
+    // Convert ticket item IDs to ticket IDs
+    const ticketIds = Array.from(selectedRows).map(ticketItemId => {
+      const ticketItem = data.find(item => item.ticket_item_id === ticketItemId);
+      return ticketItem?.ticket_id;
+    }).filter((id): id is number => id !== undefined);
+
+    if (ticketIds.length === 0) {
+      alert('لم يتم العثور على بيانات التذاكر المحددة');
+      return;
+    }
+
+    try {
+      await PrintService.printEnglanderFormat(ticketIds);
+    } catch (error) {
+      console.error('Error printing Englander format:', error);
+      alert('حدث خطأ أثناء الطباعة. يرجى المحاولة مرة أخرى.');
+    }
   };
 
   // Apply filters when they change
@@ -346,6 +399,22 @@ const TicketReport: React.FC = () => {
           🗑️ Clear Filters
         </button>
         <button className={styles.toolbarButton} onClick={handleExportToCSV}>📊 Export CSV</button>
+        <button 
+          className={`${styles.toolbarButton} ${styles.printToolbarButton}`}
+          onClick={handlePrintSelectedTickets}
+          disabled={selectedRows.size === 0}
+          title="طباعة نموذج يانسن"
+        >
+          🖨️ نموذج يانسن
+        </button>
+        <button 
+          className={`${styles.toolbarButton} ${styles.printToolbarButton}`}
+          onClick={handlePrintEnglanderFormat}
+          disabled={selectedRows.size === 0}
+          title="طباعة نموذج انجلندر"
+        >
+          🖨️ نموذج انجلندر
+        </button>
         {loading && data && data.length > 0 && (
           <div className={styles.toolbarLoading}>
             <LoadingSpinner size="small" color="#217346" text="Updating..." />
@@ -419,6 +488,7 @@ const TicketReport: React.FC = () => {
                 );
               })}
             </tr>
+
           </thead>
           <tbody>
             {loading && data && data.length > 0 ? (

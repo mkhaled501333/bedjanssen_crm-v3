@@ -20,7 +20,7 @@ class TicketItemsReportService {
     DateTime? inspectionDateTo,
     DateTime? ticketCreatedDateFrom,
     DateTime? ticketCreatedDateTo,
-    String? action,
+    List<String>? actions,
     bool? pulledStatus,
     bool? deliveredStatus,
     bool? clientApproval,
@@ -169,9 +169,10 @@ class TicketItemsReportService {
         whereConditions.add('ticket_created_at <= ?');
         parameters.add(ticketCreatedDateTo);
       }
-      if (action != null) {
-        whereConditions.add('action = ?');
-        parameters.add(action);
+      if (actions != null && actions.isNotEmpty) {
+        final placeholders = List.filled(actions.length, '?').join(', ');
+        whereConditions.add('action IN ($placeholders)');
+        parameters.addAll(actions);
       }
       if (pulledStatus != null) {
         whereConditions.add('pulled_status = ?');
@@ -325,7 +326,7 @@ class TicketItemsReportService {
         'inspectionDateTo': inspectionDateTo?.toIso8601String(),
         'ticketCreatedDateFrom': ticketCreatedDateFrom?.toIso8601String(),
         'ticketCreatedDateTo': ticketCreatedDateTo?.toIso8601String(),
-        'action': action,
+        'actions': actions,
         'pulledStatus': pulledStatus,
         'deliveredStatus': deliveredStatus,
         'clientApproval': clientApproval,

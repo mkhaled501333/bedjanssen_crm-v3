@@ -53,7 +53,7 @@ export interface AppliedFilters {
   inspectionDateTo?: string;
   ticketCreatedDateFrom?: string;
   ticketCreatedDateTo?: string;
-  action?: string;
+  actions?: string[];
   pulledStatus?: boolean;
   deliveredStatus?: boolean;
   clientApproval?: boolean;
@@ -138,7 +138,7 @@ export const COLUMN_FILTER_CONFIG: FilterConfig[] = [
   { column: 'Inspection Date', filterType: 'dateRange', backendKey: 'inspectionDate', dataType: 'date' },
   { column: 'Ticket Creation Date', filterType: 'dateRange', backendKey: 'ticketCreatedDate', dataType: 'date' },
   { column: 'Client Approval', filterType: 'boolean', backendKey: 'clientApproval', dataType: 'boolean' },
-  { column: 'Action', filterType: 'text', backendKey: 'action', dataType: 'string' },
+  { column: 'Action', filterType: 'multiSelect', backendKey: 'actions', dataType: 'string' },
   { column: 'Pulled Status', filterType: 'radio', backendKey: 'pulledStatus', dataType: 'boolean' },
   { column: 'Delivered Status', filterType: 'radio', backendKey: 'deliveredStatus', dataType: 'boolean' },
 ];

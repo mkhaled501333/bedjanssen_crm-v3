@@ -20,7 +20,7 @@ The backend API endpoint at `/api/reports/ticket-items` accepts a `POST` request
 - `inspected`: `bool`
 - `inspectionDateFrom`: `DateTime` (as `String`)
 - `inspectionDateTo`: `DateTime` (as `String`)
-- `action`: `String`
+- `actions`: `List<String>`
 - `pulledStatus`: `bool`
 - `deliveredStatus`: `bool`
 - `clientApproval`: `bool`
@@ -47,7 +47,7 @@ The following mapping will be used to connect frontend columns to backend filter
 | Inspected           | `inspected`           | `bool`           | Dropdown (Yes/No)   |
 | Inspection Date     | `inspectionDateFrom` / `inspectionDateTo` | `DateTime` range | Date range picker   |
 | Client Approval     | `clientApproval`      | `bool`           | Dropdown (Yes/No)   |
-| Action              | `action`              | `String`         | Text input          |
+| Action              | `actions`              | `List<String>`         | Multi-select list          |
 | Pulled Status       | `pulledStatus`        | `bool`           | Dropdown (Yes/No)   |
 | Delivered Status    | `deliveredStatus`     | `bool`           | Dropdown (Yes/No)   |
 

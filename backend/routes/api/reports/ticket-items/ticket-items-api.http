@@ -17,7 +17,7 @@
 ### - inspected: Boolean for inspection status
 ### - inspectionDateFrom/To: Date range for inspection
 ### - ticketCreatedDateFrom/To: Date range for ticket creation date
-### - action: Action type string (صيانه, استبدال لنفس النوع, etc.)
+### - actions: Action type strings array (صيانه, استبدال لنفس النوع, etc.)
 ### - pulledStatus: Boolean for pulled status
 ### - deliveredStatus: Boolean for delivered status
 ### - clientApproval: Boolean for client approval status
@@ -30,7 +30,7 @@
 ###   {"id": 2, "name": "الغربية"}
 ### ]
 
-@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjAsIm5hbWUiOiJtIiwiaWF0IjoxNzU2NDEwMDU5LCJleHAiOjE3NTY0Mzg4NTl9.IWnD6UMJsL5bjgoDGm461cl1SX89jG14gP-4kbwpg64
+@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjAsIm5hbWUiOiJtIiwiaWF0IjoxNzU2NTMwMjYzLCJleHAiOjE3NTY1NTkwNjN9.psiOOwJwBNDVyksQBhpYVTHmMXQ833JM5fudG1JIrjQ
 
 # Get Ticket Items Report with Dynamic Filtering
 # POST /api/reports/ticket-items
@@ -72,7 +72,7 @@ Authorization: Bearer {{authToken}}
 {
   "filters": {
     "companyId": 1,
-    "action": "صيانه",
+    "actions": ["صيانه"],
     "ticketStatus": "مفتوح",
     "inspected": true
   },
@@ -272,7 +272,7 @@ Authorization: Bearer {{authToken}}
     "clientApproval": true,
     "pulledStatus": false,
     "deliveredStatus": false,
-    "action": "صيانه"
+    "actions": ["صيانه"]
   },
   "page": 1,
   "limit": 25

@@ -78,7 +78,7 @@ This document summarizes the implementation of the filter functionality for the 
 | Inspected           | boolean          | inspected           | boolean   |
 | Inspection Date     | dateRange        | inspectionDate      | DateRange |
 | Client Approval     | boolean          | clientApproval      | boolean   |
-| Action              | text             | action              | string    |
+| Action              | multiSelect       | actions              | string[]  |
 | Pulled Status       | boolean          | pulledStatus        | boolean   |
 | Delivered Status    | boolean          | deliveredStatus     | boolean   |
 

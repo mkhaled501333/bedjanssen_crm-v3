@@ -2,6 +2,12 @@ import 'package:dart_frog/dart_frog.dart';
 import 'package:janssencrm_backend/services/reports/ticket_items_report_service.dart';
 import 'dart:convert';
 
+/// Ticket Items Reports API
+/// 
+/// Available endpoints:
+/// - POST /api/reports/ticket-items - Get ticket items report with dynamic filtering
+/// - POST /api/reports/ticket-items/by-ids - Get detailed ticket information by IDs
+
 Future<Response> onRequest(RequestContext context) async {
   return switch (context.request.method) {
     HttpMethod.post => await _handlePost(context),
@@ -82,7 +88,7 @@ Future<Response> _handlePost(RequestContext context) async {
       ticketCreatedDateTo: filters['ticketCreatedDateTo'] != null 
         ? DateTime.parse(filters['ticketCreatedDateTo'] as String) 
         : null,
-      action: filters['action'] as String?,
+      actions: _safeCastToStringList(filters['actions']),
       pulledStatus: filters['pulledStatus'] as bool?,
       deliveredStatus: filters['deliveredStatus'] as bool?,
       clientApproval: filters['clientApproval'] as bool?,
@@ -122,6 +128,19 @@ List<int>? _safeCastToList<T>(dynamic value) {
   if (value is List) {
     try {
       return value.cast<int>();
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+/// Helper method to safely cast dynamic values to List<String>
+List<String>? _safeCastToStringList(dynamic value) {
+  if (value == null) return null;
+  if (value is List) {
+    try {
+      return value.cast<String>();
     } catch (e) {
       return null;
     }

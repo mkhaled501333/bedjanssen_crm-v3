@@ -729,7 +729,7 @@ interface AppliedFilters {
   inspectionDateTo?: string;
   ticketCreatedDateFrom?: string;
   ticketCreatedDateTo?: string;
-  action?: string;
+  actions?: string[];
   pulledStatus?: boolean;
   deliveredStatus?: boolean;
   clientApproval?: boolean;

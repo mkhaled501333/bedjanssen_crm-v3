@@ -1,0 +1,52 @@
+
+
+@authToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsInVzZXJuYW1lIjoibSIsImNvbXBhbnlfaWQiOjAsIm5hbWUiOiJtIiwiaWF0IjoxNzU2NDUzOTgzLCJleHAiOjE3NTY0ODI3ODN9.o1m5TMVtTAGFXxOST4iU04do7H0Jy1ilHQr9hoA0vRo
+
+### Get Tickets by IDs
+POST http://localhost:8081/api/reports/ticket-items/by-ids
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "ticketIds": [5427]
+}
+
+### Get Multiple Tickets by IDs
+POST http://localhost:8081/api/reports/ticket-items/by-ids
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+{
+  "ticketIds": [5428, 5429, 5430]
+}
+
+### Get Single Ticket by ID
+POST http://localhost:8081/api/reports/ticket-items/by-ids
+Content-Type: application/json
+
+{
+  "ticketIds": [5428]
+}
+
+### Get Multiple Tickets by IDs (Empty Response Example)
+POST http://localhost:8081/api/reports/ticket-items/by-ids
+Content-Type: application/json
+
+{
+  "ticketIds": [9999, 9998]
+}
+
+### Error: Missing ticketIds
+POST http://localhost:8081/api/reports/ticket-items/by-ids
+Content-Type: application/json
+
+{
+  "otherField": "value"
+}
+
+### Error: Empty ticketIds
+POST http://localhost:8081/api/reports/ticket-items/by-ids
+Content-Type: application/json
+
+{
+  "ticketIds": []
+}

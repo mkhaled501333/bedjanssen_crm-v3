@@ -35,7 +35,7 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
     "inspectionDateTo": "2024-12-31T23:59:59Z",
     "ticketCreatedDateFrom": "2024-01-01T00:00:00Z",
     "ticketCreatedDateTo": "2024-12-31T23:59:59Z",
-    "action": "صيانه",
+    "actions": ["صيانه"],
     "pulledStatus": false,
     "deliveredStatus": true,
     "clientApproval": true
@@ -68,7 +68,7 @@ The Ticket Items Report API provides comprehensive reporting capabilities for ti
 - **requestReasonIds** (List<int>): Filter by request reason IDs
 
 #### Action & Status Filters
-- **action** (string): Filter by action type:
+- **actions** (List<string>): Filter by action types (can select multiple):
   - `استبدال لنفس النوع` (Replacement - Same Type)
   - `استبدال لنوع اخر` (Replacement - Different Type)
   - `صيانه` (Maintenance)
