@@ -3,6 +3,10 @@
 -- =====================================================
 -- This file contains triggers to automatically log all
 -- INSERT, UPDATE, and DELETE operations to audit_logs table
+-- 
+-- IMPORTANT: These triggers use @current_user_id session variable
+-- which should be set by your backend application before each operation
+-- Example: SET @current_user_id = '123';
 -- =====================================================
 
 -- Drop existing triggers if they exist
@@ -46,6 +50,10 @@ DROP TRIGGER IF EXISTS ticket_items_insert_audit;
 DROP TRIGGER IF EXISTS ticket_items_update_audit;
 DROP TRIGGER IF EXISTS ticket_items_delete_audit;
 
+DROP TRIGGER IF EXISTS customer_phones_insert_audit;
+DROP TRIGGER IF EXISTS customer_phones_update_audit;
+DROP TRIGGER IF EXISTS customer_phones_delete_audit;
+
 -- =====================================================
 -- USERS TABLE AUDIT TRIGGERS
 -- =====================================================
@@ -58,7 +66,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'users',
         CAST(NEW.id AS CHAR),
@@ -67,9 +75,10 @@ BEGIN
             'id', NEW.id,
             'company_id', NEW.company_id,
             'name', NEW.name,
-            'username', NEW.username,
-            'created_by', NEW.created_by,
+            'email', NEW.email,
+            'phone', NEW.phone,
             'is_active', NEW.is_active,
+            'created_by', NEW.created_by,
             'created_at', NEW.created_at,
             'updated_at', NEW.updated_at
         ),
@@ -83,7 +92,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'users',
         CAST(NEW.id AS CHAR),
@@ -91,9 +100,10 @@ BEGIN
             'id', OLD.id,
             'company_id', OLD.company_id,
             'name', OLD.name,
-            'username', OLD.username,
-            'created_by', OLD.created_by,
+            'email', OLD.email,
+            'phone', OLD.phone,
             'is_active', OLD.is_active,
+            'created_by', OLD.created_by,
             'created_at', OLD.created_at,
             'updated_at', OLD.updated_at
         ),
@@ -101,9 +111,10 @@ BEGIN
             'id', NEW.id,
             'company_id', NEW.company_id,
             'name', NEW.name,
-            'username', NEW.username,
-            'created_by', NEW.created_by,
+            'email', NEW.email,
+            'phone', NEW.phone,
             'is_active', NEW.is_active,
+            'created_by', NEW.created_by,
             'created_at', NEW.created_at,
             'updated_at', NEW.updated_at
         ),
@@ -117,7 +128,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'users',
         CAST(OLD.id AS CHAR),
@@ -125,9 +136,10 @@ BEGIN
             'id', OLD.id,
             'company_id', OLD.company_id,
             'name', OLD.name,
-            'username', OLD.username,
-            'created_by', OLD.created_by,
+            'email', OLD.email,
+            'phone', OLD.phone,
             'is_active', OLD.is_active,
+            'created_by', OLD.created_by,
             'created_at', OLD.created_at,
             'updated_at', OLD.updated_at
         ),
@@ -146,7 +158,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'customers',
         CAST(NEW.id AS CHAR),
@@ -173,7 +185,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'customers',
         CAST(NEW.id AS CHAR),
@@ -211,7 +223,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'customers',
         CAST(OLD.id AS CHAR),
@@ -242,7 +254,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'tickets',
         CAST(NEW.id AS CHAR),
@@ -272,7 +284,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(COALESCE(NEW.closed_by, NEW.created_by) AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'tickets',
         CAST(NEW.id AS CHAR),
@@ -316,7 +328,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'tickets',
         CAST(OLD.id AS CHAR),
@@ -418,7 +430,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'roles',
         CAST(NEW.id AS CHAR),
@@ -426,11 +438,7 @@ BEGIN
         JSON_OBJECT(
             'id', NEW.id,
             'name', NEW.name,
-            'description', NEW.description,
-            'created_by', NEW.created_by,
-            'is_active', NEW.is_active,
-            'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'description', NEW.description
         ),
         NOW()
     );
@@ -442,27 +450,19 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'roles',
         CAST(NEW.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
             'name', OLD.name,
-            'description', OLD.description,
-            'created_by', OLD.created_by,
-            'is_active', OLD.is_active,
-            'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'description', OLD.description
         ),
         JSON_OBJECT(
             'id', NEW.id,
             'name', NEW.name,
-            'description', NEW.description,
-            'created_by', NEW.created_by,
-            'is_active', NEW.is_active,
-            'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'description', NEW.description
         ),
         NOW()
     );
@@ -474,18 +474,14 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'roles',
         CAST(OLD.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
             'name', OLD.name,
-            'description', OLD.description,
-            'created_by', OLD.created_by,
-            'is_active', OLD.is_active,
-            'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'description', OLD.description
         ),
         NULL,
         NOW()
@@ -504,7 +500,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'permissions',
         CAST(NEW.id AS CHAR),
@@ -512,11 +508,7 @@ BEGIN
         JSON_OBJECT(
             'id', NEW.id,
             'title', NEW.title,
-            'default_conditions', NEW.default_conditions,
-            'key', NEW.key,
-            'description', NEW.description,
-            'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'description', NEW.description
         ),
         NOW()
     );
@@ -528,27 +520,19 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'permissions',
         CAST(NEW.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
             'title', OLD.title,
-            'default_conditions', OLD.default_conditions,
-            'key', OLD.key,
-            'description', OLD.description,
-            'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'description', OLD.description
         ),
         JSON_OBJECT(
             'id', NEW.id,
             'title', NEW.title,
-            'default_conditions', NEW.default_conditions,
-            'key', NEW.key,
-            'description', NEW.description,
-            'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'description', NEW.description
         ),
         NOW()
     );
@@ -560,18 +544,14 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'permissions',
         CAST(OLD.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
             'title', OLD.title,
-            'default_conditions', OLD.default_conditions,
-            'key', OLD.key,
-            'description', OLD.description,
-            'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'description', OLD.description
         ),
         NULL,
         NOW()
@@ -588,7 +568,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.assigned_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'user_roles',
         CONCAT(NEW.user_id, '-', NEW.role_id),
@@ -610,7 +590,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.assigned_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'user_roles',
         CONCAT(NEW.user_id, '-', NEW.role_id),
@@ -638,10 +618,11 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.assigned_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'user_roles',
         CONCAT(OLD.user_id, '-', OLD.role_id),
+        NULL,
         JSON_OBJECT(
             'user_id', OLD.user_id,
             'role_id', OLD.role_id,
@@ -664,7 +645,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'role_permissions',
         CONCAT(NEW.role_id, '-', NEW.permission_id),
@@ -687,7 +668,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'role_permissions',
         CONCAT(NEW.role_id, '-', NEW.permission_id),
@@ -717,7 +698,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'role_permissions',
         CONCAT(OLD.role_id, '-', OLD.permission_id),
@@ -744,7 +725,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'user_permissions',
         CONCAT(NEW.user_id, '-', NEW.permission_id),
@@ -767,7 +748,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'user_permissions',
         CONCAT(NEW.user_id, '-', NEW.permission_id),
@@ -797,7 +778,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'user_permissions',
         CONCAT(OLD.user_id, '-', OLD.permission_id),
@@ -824,14 +805,18 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'call_categories',
         CAST(NEW.id AS CHAR),
         NULL,
         JSON_OBJECT(
             'id', NEW.id,
-            'name', NEW.name
+            'name', NEW.name,
+            'created_by', NEW.created_by,
+            'created_at', NEW.created_at,
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -843,17 +828,25 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'call_categories',
         CAST(NEW.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
-            'name', OLD.name
+            'name', OLD.name,
+            'created_by', OLD.created_by,
+            'created_at', OLD.created_at,
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         JSON_OBJECT(
             'id', NEW.id,
-            'name', NEW.name
+            'name', NEW.name,
+            'created_by', NEW.created_by,
+            'created_at', NEW.created_at,
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -865,13 +858,17 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'call_categories',
         CAST(OLD.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
-            'name', OLD.name
+            'name', OLD.name,
+            'created_by', OLD.created_by,
+            'created_at', OLD.created_at,
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         NULL,
         NOW()
@@ -888,7 +885,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'cities',
         CAST(NEW.id AS CHAR),
@@ -908,7 +905,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'cities',
         CAST(NEW.id AS CHAR),
@@ -932,7 +929,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'cities',
         CAST(OLD.id AS CHAR),
@@ -956,7 +953,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'governorates',
         CAST(NEW.id AS CHAR),
@@ -975,7 +972,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'governorates',
         CAST(NEW.id AS CHAR),
@@ -997,13 +994,101 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'governorates',
         CAST(OLD.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
             'name', OLD.name
+        ),
+        NULL,
+        NOW()
+    );
+END//
+
+-- =====================================================
+-- CUSTOMER_PHONES TABLE AUDIT TRIGGERS
+-- =====================================================
+
+CREATE TRIGGER customer_phones_insert_audit
+AFTER INSERT ON customer_phones
+FOR EACH ROW
+BEGIN
+    INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
+    VALUES (
+        COALESCE(@current_user_id, 'SYSTEM'),
+        'INSERT',
+        'customer_phones',
+        CAST(NEW.id AS CHAR),
+        NULL,
+        JSON_OBJECT(
+            'id', NEW.id,
+            'company_id', NEW.company_id,
+            'customer_id', NEW.customer_id,
+            'phone', NEW.phone,
+            'phone_type', NEW.phone_type,
+            'created_by', NEW.created_by,
+            'created_at', NEW.created_at,
+            'updated_at', NEW.updated_at
+        ),
+        NOW()
+    );
+END//
+
+CREATE TRIGGER customer_phones_update_audit
+AFTER UPDATE ON customer_phones
+FOR EACH ROW
+BEGIN
+    INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
+    VALUES (
+        COALESCE(@current_user_id, 'SYSTEM'),
+        'UPDATE',
+        'customer_phones',
+        CAST(NEW.id AS CHAR),
+        JSON_OBJECT(
+            'id', OLD.id,
+            'company_id', OLD.company_id,
+            'customer_id', OLD.customer_id,
+            'phone', OLD.phone,
+            'phone_type', OLD.phone_type,
+            'created_by', OLD.created_by,
+            'created_at', OLD.created_at,
+            'updated_at', OLD.updated_at
+        ),
+        JSON_OBJECT(
+            'id', NEW.id,
+            'company_id', NEW.company_id,
+            'customer_id', NEW.customer_id,
+            'phone', NEW.phone,
+            'phone_type', NEW.phone_type,
+            'created_by', NEW.created_by,
+            'created_at', NEW.created_at,
+            'updated_at', NEW.updated_at
+        ),
+        NOW()
+    );
+END//
+
+CREATE TRIGGER customer_phones_delete_audit
+AFTER DELETE ON customer_phones
+FOR EACH ROW
+BEGIN
+    INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
+    VALUES (
+        COALESCE(@current_user_id, 'SYSTEM'),
+        'DELETE',
+        'customer_phones',
+        CAST(OLD.id AS CHAR),
+        JSON_OBJECT(
+            'id', OLD.id,
+            'company_id', OLD.company_id,
+            'customer_id', OLD.customer_id,
+            'phone', OLD.phone,
+            'phone_type', OLD.phone_type,
+            'created_by', OLD.created_by,
+            'created_at', OLD.created_at,
+            'updated_at', OLD.updated_at
         ),
         NULL,
         NOW()
@@ -1020,7 +1105,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'ticket_items',
         CAST(NEW.id AS CHAR),
@@ -1054,7 +1139,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'ticket_items',
         CAST(NEW.id AS CHAR),
@@ -1106,7 +1191,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'ticket_items',
         CAST(OLD.id AS CHAR),
@@ -1144,7 +1229,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'customercall',
         CAST(NEW.id AS CHAR),
@@ -1153,8 +1238,11 @@ BEGIN
             'id', NEW.id,
             'company_id', NEW.company_id,
             'customer_id', NEW.customer_id,
-            'call_category_id', NEW.call_category_id,
-            'notes', NEW.notes,
+            'call_type', NEW.call_type,
+            'category_id', NEW.category_id,
+            'description', NEW.description,
+            'call_notes', NEW.call_notes,
+            'call_duration', NEW.call_duration,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
             'updated_at', NEW.updated_at
@@ -1169,7 +1257,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'customercall',
         CAST(NEW.id AS CHAR),
@@ -1177,8 +1265,11 @@ BEGIN
             'id', OLD.id,
             'company_id', OLD.company_id,
             'customer_id', OLD.customer_id,
-            'call_category_id', OLD.call_category_id,
-            'notes', OLD.notes,
+            'call_type', OLD.call_type,
+            'category_id', OLD.category_id,
+            'description', OLD.description,
+            'call_notes', OLD.call_notes,
+            'call_duration', OLD.call_duration,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
             'updated_at', OLD.updated_at
@@ -1187,8 +1278,11 @@ BEGIN
             'id', NEW.id,
             'company_id', NEW.company_id,
             'customer_id', NEW.customer_id,
-            'call_category_id', NEW.call_category_id,
-            'notes', NEW.notes,
+            'call_type', NEW.call_type,
+            'category_id', NEW.category_id,
+            'description', NEW.description,
+            'call_notes', NEW.call_notes,
+            'call_duration', NEW.call_duration,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
             'updated_at', NEW.updated_at
@@ -1203,7 +1297,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'customercall',
         CAST(OLD.id AS CHAR),
@@ -1211,8 +1305,11 @@ BEGIN
             'id', OLD.id,
             'company_id', OLD.company_id,
             'customer_id', OLD.customer_id,
-            'call_category_id', OLD.call_category_id,
-            'notes', OLD.notes,
+            'call_type', OLD.call_type,
+            'category_id', OLD.category_id,
+            'description', OLD.description,
+            'call_notes', OLD.call_notes,
+            'call_duration', OLD.call_duration,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
             'updated_at', OLD.updated_at
@@ -1232,15 +1329,16 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'product_info',
         CAST(NEW.id AS CHAR),
         NULL,
         JSON_OBJECT(
             'id', NEW.id,
-            'name', NEW.name,
-            'description', NEW.description,
+            'company_id', NEW.company_id,
+            'product_name', NEW.product_name,
+            'created_by', NEW.created_by,
             'created_at', NEW.created_at,
             'updated_at', NEW.updated_at
         ),
@@ -1254,21 +1352,23 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'product_info',
         CAST(NEW.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
-            'name', OLD.name,
-            'description', OLD.description,
+            'company_id', OLD.company_id,
+            'product_name', OLD.product_name,
+            'created_by', OLD.created_by,
             'created_at', OLD.created_at,
             'updated_at', OLD.updated_at
         ),
         JSON_OBJECT(
             'id', NEW.id,
-            'name', NEW.name,
-            'description', NEW.description,
+            'company_id', NEW.company_id,
+            'product_name', NEW.product_name,
+            'created_by', NEW.created_by,
             'created_at', NEW.created_at,
             'updated_at', NEW.updated_at
         ),
@@ -1282,14 +1382,15 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'product_info',
         CAST(OLD.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
-            'name', OLD.name,
-            'description', OLD.description,
+            'company_id', OLD.company_id,
+            'product_name', OLD.product_name,
+            'created_by', OLD.created_by,
             'created_at', OLD.created_at,
             'updated_at', OLD.updated_at
         ),
@@ -1308,7 +1409,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'request_reasons',
         CAST(NEW.id AS CHAR),
@@ -1316,7 +1417,10 @@ BEGIN
         JSON_OBJECT(
             'id', NEW.id,
             'name', NEW.name,
-            'description', NEW.description
+            'created_by', NEW.created_by,
+            'created_at', NEW.created_at,
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1328,19 +1432,25 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'request_reasons',
         CAST(NEW.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
             'name', OLD.name,
-            'description', OLD.description
+            'created_by', OLD.created_by,
+            'created_at', OLD.created_at,
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         JSON_OBJECT(
             'id', NEW.id,
             'name', NEW.name,
-            'description', NEW.description
+            'created_by', NEW.created_by,
+            'created_at', NEW.created_at,
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1352,14 +1462,17 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'request_reasons',
         CAST(OLD.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
             'name', OLD.name,
-            'description', OLD.description
+            'created_by', OLD.created_by,
+            'created_at', OLD.created_at,
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         NULL,
         NOW()
@@ -1376,7 +1489,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'ticket_categories',
         CAST(NEW.id AS CHAR),
@@ -1384,7 +1497,10 @@ BEGIN
         JSON_OBJECT(
             'id', NEW.id,
             'name', NEW.name,
-            'description', NEW.description
+            'created_by', NEW.created_by,
+            'created_at', NEW.created_at,
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1396,19 +1512,25 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'ticket_categories',
         CAST(NEW.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
             'name', OLD.name,
-            'description', OLD.description
+            'created_by', OLD.created_by,
+            'created_at', OLD.created_at,
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         JSON_OBJECT(
             'id', NEW.id,
             'name', NEW.name,
-            'description', NEW.description
+            'created_by', NEW.created_by,
+            'created_at', NEW.created_at,
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1420,14 +1542,17 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        'SYSTEM',
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'ticket_categories',
         CAST(OLD.id AS CHAR),
         JSON_OBJECT(
             'id', OLD.id,
             'name', OLD.name,
-            'description', OLD.description
+            'created_by', OLD.created_by,
+            'created_at', OLD.created_at,
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         NULL,
         NOW()
@@ -1444,20 +1569,26 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'ticket_item_change_another',
-        CAST(NEW.id AS CHAR),
+        CAST(NEW.ticket_item_id AS CHAR),
         NULL,
         JSON_OBJECT(
-            'id', NEW.id,
             'ticket_item_id', NEW.ticket_item_id,
             'product_id', NEW.product_id,
             'product_size', NEW.product_size,
-            'quantity', NEW.quantity,
+            'cost', NEW.cost,
+            'client_approval', NEW.client_approval,
+            'refusal_reason', NEW.refusal_reason,
+            'pulled', NEW.pulled,
+            'pull_date', NEW.pull_date,
+            'delivered', NEW.delivered,
+            'delivery_date', NEW.delivery_date,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1469,29 +1600,41 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'ticket_item_change_another',
-        CAST(NEW.id AS CHAR),
+        CAST(NEW.ticket_item_id AS CHAR),
         JSON_OBJECT(
-            'id', OLD.id,
             'ticket_item_id', OLD.ticket_item_id,
             'product_id', OLD.product_id,
             'product_size', OLD.product_size,
-            'quantity', OLD.quantity,
+            'cost', OLD.cost,
+            'client_approval', OLD.client_approval,
+            'refusal_reason', OLD.refusal_reason,
+            'pulled', OLD.pulled,
+            'pull_date', OLD.pull_date,
+            'delivered', OLD.delivered,
+            'delivery_date', OLD.delivery_date,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         JSON_OBJECT(
-            'id', NEW.id,
             'ticket_item_id', NEW.ticket_item_id,
             'product_id', NEW.product_id,
             'product_size', NEW.product_size,
-            'quantity', NEW.quantity,
+            'cost', NEW.cost,
+            'client_approval', NEW.client_approval,
+            'refusal_reason', NEW.refusal_reason,
+            'pulled', NEW.pulled,
+            'pull_date', NEW.pull_date,
+            'delivered', NEW.delivered,
+            'delivery_date', NEW.delivery_date,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1503,19 +1646,25 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'ticket_item_change_another',
-        CAST(OLD.id AS CHAR),
+        CAST(OLD.ticket_item_id AS CHAR),
         JSON_OBJECT(
-            'id', OLD.id,
             'ticket_item_id', OLD.ticket_item_id,
             'product_id', OLD.product_id,
             'product_size', OLD.product_size,
-            'quantity', OLD.quantity,
+            'cost', OLD.cost,
+            'client_approval', OLD.client_approval,
+            'refusal_reason', OLD.refusal_reason,
+            'pulled', OLD.pulled,
+            'pull_date', OLD.pull_date,
+            'delivered', OLD.delivered,
+            'delivery_date', OLD.delivery_date,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         NULL,
         NOW()
@@ -1532,18 +1681,26 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'ticket_item_change_same',
-        CAST(NEW.id AS CHAR),
+        CAST(NEW.ticket_item_id AS CHAR),
         NULL,
         JSON_OBJECT(
-            'id', NEW.id,
             'ticket_item_id', NEW.ticket_item_id,
-            'quantity', NEW.quantity,
+            'product_id', NEW.product_id,
+            'product_size', NEW.product_size,
+            'cost', NEW.cost,
+            'client_approval', NEW.client_approval,
+            'refusal_reason', NEW.refusal_reason,
+            'pulled', NEW.pulled,
+            'pull_date', NEW.pull_date,
+            'delivered', NEW.delivered,
+            'delivery_date', NEW.delivery_date,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1555,25 +1712,41 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'ticket_item_change_same',
-        CAST(NEW.id AS CHAR),
+        CAST(NEW.ticket_item_id AS CHAR),
         JSON_OBJECT(
-            'id', OLD.id,
             'ticket_item_id', OLD.ticket_item_id,
-            'quantity', OLD.quantity,
+            'product_id', OLD.product_id,
+            'product_size', OLD.product_size,
+            'cost', OLD.cost,
+            'client_approval', OLD.client_approval,
+            'refusal_reason', OLD.refusal_reason,
+            'pulled', OLD.pulled,
+            'pull_date', OLD.pull_date,
+            'delivered', OLD.delivered,
+            'delivery_date', OLD.delivery_date,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         JSON_OBJECT(
-            'id', NEW.id,
             'ticket_item_id', NEW.ticket_item_id,
-            'quantity', NEW.quantity,
+            'product_id', NEW.product_id,
+            'product_size', NEW.product_size,
+            'cost', NEW.cost,
+            'client_approval', NEW.client_approval,
+            'refusal_reason', NEW.refusal_reason,
+            'pulled', NEW.pulled,
+            'pull_date', NEW.pull_date,
+            'delivered', NEW.delivered,
+            'delivery_date', NEW.delivery_date,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1585,17 +1758,25 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'ticket_item_change_same',
-        CAST(OLD.id AS CHAR),
+        CAST(OLD.ticket_item_id AS CHAR),
         JSON_OBJECT(
-            'id', OLD.id,
             'ticket_item_id', OLD.ticket_item_id,
-            'quantity', OLD.quantity,
+            'product_id', OLD.product_id,
+            'product_size', OLD.product_size,
+            'cost', OLD.cost,
+            'client_approval', OLD.client_approval,
+            'refusal_reason', OLD.refusal_reason,
+            'pulled', OLD.pulled,
+            'pull_date', OLD.pull_date,
+            'delivered', OLD.delivered,
+            'delivery_date', OLD.delivery_date,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         NULL,
         NOW()
@@ -1612,19 +1793,25 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'ticket_item_maintenance',
-        CAST(NEW.id AS CHAR),
+        CAST(NEW.ticket_item_id AS CHAR),
         NULL,
         JSON_OBJECT(
-            'id', NEW.id,
             'ticket_item_id', NEW.ticket_item_id,
-            'maintenance_type', NEW.maintenance_type,
-            'description', NEW.description,
+            'maintenance_steps', NEW.maintenance_steps,
+            'maintenance_cost', NEW.maintenance_cost,
+            'client_approval', NEW.client_approval,
+            'refusal_reason', NEW.refusal_reason,
+            'pulled', NEW.pulled,
+            'pull_date', NEW.pull_date,
+            'delivered', NEW.delivered,
+            'delivery_date', NEW.delivery_date,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1636,27 +1823,39 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'ticket_item_maintenance',
-        CAST(NEW.id AS CHAR),
+        CAST(NEW.ticket_item_id AS CHAR),
         JSON_OBJECT(
-            'id', OLD.id,
             'ticket_item_id', OLD.ticket_item_id,
-            'maintenance_type', OLD.maintenance_type,
-            'description', OLD.description,
+            'maintenance_steps', OLD.maintenance_steps,
+            'maintenance_cost', OLD.maintenance_cost,
+            'client_approval', OLD.client_approval,
+            'refusal_reason', OLD.refusal_reason,
+            'pulled', OLD.pulled,
+            'pull_date', OLD.pull_date,
+            'delivered', OLD.delivered,
+            'delivery_date', OLD.delivery_date,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         JSON_OBJECT(
-            'id', NEW.id,
             'ticket_item_id', NEW.ticket_item_id,
-            'maintenance_type', NEW.maintenance_type,
-            'description', NEW.description,
+            'maintenance_steps', NEW.maintenance_steps,
+            'maintenance_cost', NEW.maintenance_cost,
+            'client_approval', NEW.client_approval,
+            'refusal_reason', NEW.refusal_reason,
+            'pulled', NEW.pulled,
+            'pull_date', NEW.pull_date,
+            'delivered', NEW.delivered,
+            'delivery_date', NEW.delivery_date,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
-            'updated_at', NEW.updated_at
+            'updated_at', NEW.updated_at,
+            'company_id', NEW.company_id
         ),
         NOW()
     );
@@ -1668,18 +1867,24 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'ticket_item_maintenance',
-        CAST(OLD.id AS CHAR),
+        CAST(OLD.ticket_item_id AS CHAR),
         JSON_OBJECT(
-            'id', OLD.id,
             'ticket_item_id', OLD.ticket_item_id,
-            'maintenance_type', OLD.maintenance_type,
-            'description', OLD.description,
+            'maintenance_steps', OLD.maintenance_steps,
+            'maintenance_cost', OLD.maintenance_cost,
+            'client_approval', OLD.client_approval,
+            'refusal_reason', OLD.refusal_reason,
+            'pulled', OLD.pulled,
+            'pull_date', OLD.pull_date,
+            'delivered', OLD.delivered,
+            'delivery_date', OLD.delivery_date,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
-            'updated_at', OLD.updated_at
+            'updated_at', OLD.updated_at,
+            'company_id', OLD.company_id
         ),
         NULL,
         NOW()
@@ -1696,7 +1901,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'INSERT',
         'ticketcall',
         CAST(NEW.id AS CHAR),
@@ -1705,8 +1910,11 @@ BEGIN
             'id', NEW.id,
             'company_id', NEW.company_id,
             'ticket_id', NEW.ticket_id,
-            'call_category_id', NEW.call_category_id,
-            'notes', NEW.notes,
+            'call_type', NEW.call_type,
+            'call_cat_id', NEW.call_cat_id,
+            'description', NEW.description,
+            'call_notes', NEW.call_notes,
+            'call_duration', NEW.call_duration,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
             'updated_at', NEW.updated_at
@@ -1721,7 +1929,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(NEW.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'UPDATE',
         'ticketcall',
         CAST(NEW.id AS CHAR),
@@ -1729,8 +1937,11 @@ BEGIN
             'id', OLD.id,
             'company_id', OLD.company_id,
             'ticket_id', OLD.ticket_id,
-            'call_category_id', OLD.call_category_id,
-            'notes', OLD.notes,
+            'call_type', OLD.call_type,
+            'call_cat_id', OLD.call_cat_id,
+            'description', OLD.description,
+            'call_notes', OLD.call_notes,
+            'call_duration', OLD.call_duration,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
             'updated_at', OLD.updated_at
@@ -1739,8 +1950,11 @@ BEGIN
             'id', NEW.id,
             'company_id', NEW.company_id,
             'ticket_id', NEW.ticket_id,
-            'call_category_id', NEW.call_category_id,
-            'notes', NEW.notes,
+            'call_type', NEW.call_type,
+            'call_cat_id', NEW.call_cat_id,
+            'description', NEW.description,
+            'call_notes', NEW.call_notes,
+            'call_duration', NEW.call_duration,
             'created_by', NEW.created_by,
             'created_at', NEW.created_at,
             'updated_at', NEW.updated_at
@@ -1755,7 +1969,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
     VALUES (
-        CAST(OLD.created_by AS CHAR),
+        COALESCE(@current_user_id, 'SYSTEM'),
         'DELETE',
         'ticketcall',
         CAST(OLD.id AS CHAR),
@@ -1763,8 +1977,11 @@ BEGIN
             'id', OLD.id,
             'company_id', OLD.company_id,
             'ticket_id', OLD.ticket_id,
-            'call_category_id', OLD.call_category_id,
-            'notes', OLD.notes,
+            'call_type', OLD.call_type,
+            'call_cat_id', OLD.call_cat_id,
+            'description', OLD.description,
+            'call_notes', OLD.call_notes,
+            'call_duration', OLD.call_duration,
             'created_by', OLD.created_by,
             'created_at', OLD.created_at,
             'updated_at', OLD.updated_at
@@ -1785,8 +2002,13 @@ DELIMITER ;
 --
 -- IMPORTANT NOTES:
 -- 1. These triggers will automatically log all changes to the audit_logs table
--- 2. Make sure your application has proper user context for accurate user_id logging
--- 3. Consider the performance impact of these triggers on high-volume operations
--- 4. Test thoroughly in a development environment before applying to production
--- 5. You may need to adjust the JSON_OBJECT fields based on your specific requirements
+-- 2. IMPORTANT: Before each database operation, your backend must set the current user:
+--    SET @current_user_id = 'USER_ID_HERE';
+-- 3. Example usage in your backend:
+--    - Set user context: SET @current_user_id = '123';
+--    - Perform operation: INSERT/UPDATE/DELETE
+--    - Clear context: SET @current_user_id = NULL;
+-- 4. Consider the performance impact of these triggers on high-volume operations
+-- 5. Test thoroughly in a development environment before applying to production
+-- 6. You may need to adjust the JSON_OBJECT fields based on your specific requirements
 -- =====================================================

@@ -112,7 +112,7 @@ Future<List<Map<String, dynamic>>> _getTicketsByIds(List<int> ticketIds) async {
   ''';
   
   print('Executing query for ticket IDs: $ticketIds');
-  final results = await DatabaseService.query(query, parameters: ticketIds);
+  final results = await DatabaseService.query(query, parameters: ticketIds, userId: 1);
   print('Query returned ${results.length} results');
   
      // Debug: Print first row to see what we're getting
@@ -179,7 +179,7 @@ Future<List<String>> _getCustomerPhones(int? customerId) async {
     AND cp.phone != ''
   ''';
   
-  final results = await DatabaseService.query(query, parameters: [customerId]);
+  final results = await DatabaseService.query(query, parameters: [customerId], userId: 1);
   return results.map((row) => row['phone']?.toString() ?? '').where((phone) => phone.isNotEmpty).toList();
 }
 
@@ -201,7 +201,7 @@ Future<List<Map<String, dynamic>>> _getTicketItems(int ticketId) async {
   ''';
   
   print('Getting ticket items for ticket ID: $ticketId');
-  final results = await DatabaseService.query(query, parameters: [ticketId]);
+  final results = await DatabaseService.query(query, parameters: [ticketId], userId: 1);
   print('Found ${results.length} ticket items for ticket $ticketId');
   
   final List<Map<String, dynamic>> items = [];

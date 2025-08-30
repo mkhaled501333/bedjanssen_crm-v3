@@ -78,6 +78,7 @@ Future<Response> _put(RequestContext context, String customerId, String phoneId)
     await DatabaseService.query(
       'UPDATE customer_phones SET phone = ? WHERE id = ? AND customer_id = ?',
       parameters: [phone, phoneIdInt, customerIdInt],
+      userId: userId,
     );
 
     // Log activity for phone update (Activity ID: 104)
@@ -124,6 +125,7 @@ Future<Response> _delete(RequestContext context, String customerId, String phone
     await DatabaseService.query(
       'DELETE FROM customer_phones WHERE id = ? AND customer_id = ?',
       parameters: [phoneIdInt, customerIdInt],
+      userId: userId,
     );
 
     // Log activity for phone deletion (Activity ID: 105)

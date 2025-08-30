@@ -11,6 +11,7 @@ class DatabaseService {
     String sql, {
     List<Object?>? parameters,
     int maxRetries = 2,
+    int? userId,
   }) async {
     int retryCount = 0;
     
@@ -25,9 +26,30 @@ class DatabaseService {
           await DatabaseConfig.reconnect();
         }
         
-        return await _connection.query(sql, sanitizedParams);
+        // Set user context for audit triggers if userId is provided
+        if (userId != null) {
+          await _connection.query('SET @current_user_id = ?', [userId.toString()]);
+        }
+        
+        final result = await _connection.query(sql, sanitizedParams);
+        
+        // Clear user context after query
+        if (userId != null) {
+          await _connection.query('SET @current_user_id = NULL');
+        }
+        
+        return result;
       } catch (e) {
         print('Database query error (attempt ${retryCount + 1}): $e');
+        
+        // Clear user context on error
+        if (userId != null) {
+          try {
+            await _connection.query('SET @current_user_id = NULL');
+          } catch (clearError) {
+            print('Failed to clear user context: $clearError');
+          }
+        }
         
         // Check for connection-related errors
         if (_isConnectionError(e) && retryCount < maxRetries) {
@@ -102,8 +124,9 @@ class DatabaseService {
   static Future<ResultRow?> queryOne(
     String sql, {
     List<Object?>? parameters,
+    int? userId,
   }) async {
-    final result = await query(sql, parameters: parameters);
+    final result = await query(sql, parameters: parameters, userId: userId);
     return result.isNotEmpty ? result.first : null;
   }
 
@@ -111,21 +134,23 @@ class DatabaseService {
   static Future<List<ResultRow>> queryMany(
     String sql, {
     List<Object?>? parameters,
+    int? userId,
   }) async {
-    final result = await query(sql, parameters: parameters);
+    final result = await query(sql, parameters: parameters, userId: userId);
     return result.toList();
   }
 
   /// Execute an insert statement and return the inserted ID
   static Future<int> insert(
     String table,
-    Map<String, dynamic> data,
-  ) async {
+    Map<String, dynamic> data, {
+    int? userId,
+  }) async {
     final columns = data.keys.join(', ');
     final placeholders = List.filled(data.length, '?').join(', ');
     
     final sql = 'INSERT INTO $table ($columns) VALUES ($placeholders)';
-    final result = await query(sql, parameters: data.values.toList());
+    final result = await query(sql, parameters: data.values.toList(), userId: userId);
     return result.insertId ?? 0;
   }
 
@@ -135,13 +160,14 @@ class DatabaseService {
     Map<String, dynamic> data,
     String whereClause, {
     List<Object?>? whereParameters,
+    int? userId,
   }) async {
     final setClause = data.keys.map((key) => '$key = ?').join(', ');
     
     final sql = 'UPDATE $table SET $setClause WHERE $whereClause';
     final parameters = [...data.values, ...?whereParameters];
     
-    final result = await query(sql, parameters: parameters);
+    final result = await query(sql, parameters: parameters, userId: userId);
     return result.affectedRows ?? 0;
   }
 
@@ -150,9 +176,10 @@ class DatabaseService {
     String table,
     String whereClause, {
     List<Object?>? parameters,
+    int? userId,
   }) async {
     final sql = 'DELETE FROM $table WHERE $whereClause';
-    final result = await query(sql, parameters: parameters);
+    final result = await query(sql, parameters: parameters, userId: userId);
     return result.affectedRows ?? 0;
   }
 
@@ -171,14 +198,36 @@ class DatabaseService {
   }
 
   /// Execute a transaction
-  static Future<T> transaction<T>(Future<T> Function() operation) async {
+  static Future<T> transaction<T>(Future<T> Function() operation, {int? userId}) async {
     await _connection.query('START TRANSACTION');
+    
+    // Set user context for audit triggers if userId is provided
+    if (userId != null) {
+      await _connection.query('SET @current_user_id = ?', [userId.toString()]);
+    }
+    
     try {
       final result = await operation();
       await _connection.query('COMMIT');
+      
+      // Clear user context after successful transaction
+      if (userId != null) {
+        await _connection.query('SET @current_user_id = NULL');
+      }
+      
       return result;
     } catch (e) {
       await _connection.query('ROLLBACK');
+      
+      // Clear user context on rollback
+      if (userId != null) {
+        try {
+          await _connection.query('SET @current_user_id = NULL');
+        } catch (clearError) {
+          print('Failed to clear user context on rollback: $clearError');
+        }
+      }
+      
       rethrow;
     }
   }
@@ -192,11 +241,33 @@ class DatabaseService {
   /// Execute a prepared statement
   static Future<Results> prepared(
     String sql,
-    List<Object?> parameters,
-  ) async {
+    List<Object?> parameters, {
+    int? userId,
+  }) async {
     try {
-      return await _connection.query(sql, parameters);
+      // Set user context for audit triggers if userId is provided
+      if (userId != null) {
+        await _connection.query('SET @current_user_id = ?', [userId.toString()]);
+      }
+      
+      final result = await _connection.query(sql, parameters);
+      
+      // Clear user context after query
+      if (userId != null) {
+        await _connection.query('SET @current_user_id = NULL');
+      }
+      
+      return result;
     } catch (e) {
+      // Clear user context on error
+      if (userId != null) {
+        try {
+          await _connection.query('SET @current_user_id = NULL');
+        } catch (clearError) {
+          print('Failed to clear user context: $clearError');
+        }
+      }
+      
       print('Prepared statement error: $e');
       rethrow;
     }

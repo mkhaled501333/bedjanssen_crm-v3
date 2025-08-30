@@ -38,6 +38,18 @@ Future<Response> _handlePut(RequestContext context, String ticketId, String item
     
     final body = await context.request.json() as Map<String, dynamic>;
     print(  body);
+    
+    // Extract user ID from JWT payload
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+    
     final queryParts = <String>[];
     final params = <dynamic>[];
 
@@ -89,6 +101,7 @@ Future<Response> _handlePut(RequestContext context, String ticketId, String item
     final result = await DatabaseService.query(
       'UPDATE ticket_items SET ${queryParts.join(', ')} WHERE id = ? AND ticket_id = ?',
       parameters: params,
+      userId: userId,
     );
 
     if (result.affectedRows == 0) {
@@ -108,6 +121,7 @@ Future<Response> _handlePut(RequestContext context, String ticketId, String item
       WHERE ti.id = ?
       ''',
       parameters: [itId],
+      userId: 1, // System user for read operations
     );
     
     if (updatedItem == null) {
@@ -204,9 +218,21 @@ Future<Response> _handleDelete(RequestContext context, String ticketId, String i
       );
     }
     
+    // Extract user ID from JWT payload
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+    
     final result = await DatabaseService.query(
       'DELETE FROM ticket_items WHERE id = ? AND ticket_id = ?',
       parameters: [itId, tId],
+      userId: userId,
     );
 
     if (result.affectedRows == 0) {

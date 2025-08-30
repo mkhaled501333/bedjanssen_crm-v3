@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'database/database_config.dart';
-import 'database/migrations.dart';
+import 'database/migrations/migrations.dart';
 
 class Server {
   static Future<void> initialize() async {

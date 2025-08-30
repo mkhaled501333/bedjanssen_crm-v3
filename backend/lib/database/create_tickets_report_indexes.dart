@@ -29,7 +29,10 @@ Future<void> main() async {
 /// Helper function to create index with error handling
 Future<void> _createIndexSafely(String indexName, String tableName, String indexSql) async {
   try {
-    await DatabaseService.query(indexSql);
+    await DatabaseService.query(
+      indexSql,
+      userId: 1, // System user for index creation
+    );
     print('✅ Index $indexName created on $tableName');
   } catch (e) {
     if (e.toString().contains('Duplicate key name') || e.toString().contains('already exists')) {

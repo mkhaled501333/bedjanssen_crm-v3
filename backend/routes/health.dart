@@ -23,7 +23,10 @@ Future<Response> _handleGet(RequestContext context) async {
     try {
       if (DatabaseConfig.isInitialized) {
         // Test database connection with a simple query first
-        await DatabaseService.query('SELECT 1');
+        await DatabaseService.query(
+          'SELECT 1',
+          userId: 1, // System user for health check
+        );
         
         final dbName = await DatabaseService.getCurrentDatabase();
         final usersTableExists = await DatabaseService.tableExists('users');

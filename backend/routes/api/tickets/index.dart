@@ -122,6 +122,7 @@ Future<Response> _handlePost(RequestContext context) async {
           priorityMap[body['priority']?.toString().toLowerCase() ?? 'medium'] ?? 1,
           userId,
         ],
+        userId: userId,
       );
       
       final ticketId = ticketResult.insertId!;
@@ -147,6 +148,7 @@ Future<Response> _handlePost(RequestContext context) async {
           callData['callDuration'] ?? 0,
           userId,
         ],
+        userId: userId,
       );
       
       final callId = callResult.insertId!;
@@ -172,6 +174,7 @@ Future<Response> _handlePost(RequestContext context) async {
             itemData['requestReasonDetail'],
             userId,
         ],
+        userId: userId,
       );
       
       return {
@@ -179,7 +182,7 @@ Future<Response> _handlePost(RequestContext context) async {
         'callId': callId,
         'itemId': itemResult.insertId!,
       };
-    });
+    }, userId: userId);
     
     // Log activity for ticket creation (Activity ID: 500)
     try {

@@ -131,6 +131,7 @@ Future<Response> _handlePut(RequestContext context, String itemId) async {
     final result = await DatabaseService.query(
       'UPDATE ticket_item_change_same SET ${queryParts.join(', ')} WHERE ticket_item_id = ?',
       parameters: params,
+      userId: userId,
     );
 
     if (result.affectedRows == 0) {
@@ -231,6 +232,7 @@ Future<Response> _handlePost(RequestContext context, String itemId) async {
         body['deliveryDate'],
         userId,
       ],
+      userId: userId,
     );
 
     // Log activity
@@ -264,12 +266,22 @@ Future<Response> _handleDelete(RequestContext context, String itemId) async {
       );
     }
     
-    final body = await context.request.json() as Map<String, dynamic>;
-    final userId = body['userId'] as int? ?? 1; // Default to 1 if not provided
     
+    // Extract user ID from JWT token
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+
     await DatabaseService.query(
       'DELETE FROM ticket_item_change_same WHERE ticket_item_id = ?',
       parameters: [itId],
+      userId: userId,
     );
 
     // Log activity

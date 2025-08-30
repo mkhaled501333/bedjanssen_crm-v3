@@ -102,6 +102,7 @@ class User {
           'is_active': isActive ? 1 : 0,
           'permissions': jsonEncode(permissions),
         },
+        userId: createdBy,
       );
       
       if (insertId > 0) {
@@ -128,6 +129,7 @@ class User {
         },
         'id = ?',
         whereParameters: [id],
+        userId: createdBy,
       );
       
       if (affectedRows > 0) {
@@ -147,6 +149,7 @@ class User {
     final result = await DatabaseService.queryOne(
       sql,
       parameters: [id],
+      userId: 1, // System user for read operations
     );
     
     return result != null ? User.fromMap(result.fields) : null;
@@ -158,6 +161,7 @@ class User {
     final result = await DatabaseService.queryOne(
       sql,
       parameters: [username],
+      userId: 1, // System user for read operations
     );
     
     return result != null ? User.fromMap(result.fields) : null;
@@ -166,7 +170,10 @@ class User {
   /// Get all users
   static Future<List<User>> findAll() async {
     const sql = 'SELECT * FROM users ORDER BY created_at DESC';
-    final results = await DatabaseService.queryMany(sql);
+    final results = await DatabaseService.queryMany(
+      sql,
+      userId: 1, // System user for read operations
+    );
     
     return results.map((row) => User.fromMap(row.fields)).toList();
   }
@@ -184,6 +191,7 @@ class User {
     final results = await DatabaseService.queryMany(
       sql,
       parameters: [limit, offset],
+      userId: 1, // System user for read operations
     );
     
     return results.map((row) => User.fromMap(row.fields)).toList();
@@ -192,7 +200,10 @@ class User {
   /// Count total users
   static Future<int> count() async {
     const sql = 'SELECT COUNT(*) as total FROM users';
-    final result = await DatabaseService.queryOne(sql);
+    final result = await DatabaseService.queryOne(
+      sql,
+      userId: 1, // System user for read operations
+    );
     return result?['total'] as int? ?? 0;
   }
 
@@ -208,6 +219,7 @@ class User {
     final results = await DatabaseService.queryMany(
       sql,
       parameters: [searchTerm, searchTerm],
+      userId: 1, // System user for read operations
     );
     
     return results.map((row) => User.fromMap(row.fields)).toList();
@@ -221,6 +233,7 @@ class User {
       'users',
       'id = ?',
       parameters: [id],
+      userId: createdBy,
     );
     
     return affectedRows > 0;
@@ -236,7 +249,11 @@ class User {
       parameters.add(excludeId);
     }
     
-    final result = await DatabaseService.queryOne(sql, parameters: parameters);
+    final result = await DatabaseService.queryOne(
+      sql, 
+      parameters: parameters,
+      userId: 1, // System user for read operations
+    );
     final count = result?['count'] as int? ?? 0;
     return count > 0;
   }

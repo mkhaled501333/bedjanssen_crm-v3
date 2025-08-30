@@ -118,6 +118,7 @@ Future<Response> _handlePut(RequestContext context, String itemId) async {
     final result = await DatabaseService.query(
       'UPDATE ticket_item_maintenance SET ${queryParts.join(', ')} WHERE ticket_item_id = ?',
       parameters: params,
+      userId: userId,
     );
 
     if (result.affectedRows == 0) {
@@ -217,6 +218,7 @@ Future<Response> _handlePost(RequestContext context, String itemId) async {
         body['deliveryDate'],
         userId,
       ],
+      userId: userId,
     );
 
     // Log activity
@@ -265,6 +267,7 @@ Future<Response> _handleDelete(RequestContext context, String itemId) async {
     await DatabaseService.query(
       'DELETE FROM ticket_item_maintenance WHERE ticket_item_id = ?',
       parameters: [itId],
+      userId: userId,
     );
 
     // Log activity

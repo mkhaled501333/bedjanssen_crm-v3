@@ -69,6 +69,7 @@ Future<Response> _handlePost(RequestContext context) async {
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         ''',
         parameters: [companyId, name, address, notes, governorateId, cityId, userId],
+        userId: userId,
       );
       
       final newCustomerId = customerResult.insertId!;
@@ -88,6 +89,7 @@ Future<Response> _handlePost(RequestContext context) async {
             _getPhoneTypeId(phoneMap['phoneType'] as String?),
             userId,
           ],
+          userId: userId,
         );
       }
       
@@ -106,6 +108,7 @@ Future<Response> _handlePost(RequestContext context) async {
           ticket['description'] ?? '',
           userId,
         ],
+        userId: userId,
       );
       
       final ticketId = ticketResult.insertId!;
@@ -131,6 +134,7 @@ Future<Response> _handlePost(RequestContext context) async {
             ticketCall['callDuration'] ?? 0,
             userId,
           ],
+          userId: userId,
         );
       }
       
@@ -160,12 +164,13 @@ Future<Response> _handlePost(RequestContext context) async {
               0, // client_approval
               userId,
             ],
+            userId: userId,
           );
         }
       }
       
       return newCustomerId;
-    });
+    }, userId: userId);
     
     // Log activity for customer creation with ticket (Activity ID: 111)
     try {

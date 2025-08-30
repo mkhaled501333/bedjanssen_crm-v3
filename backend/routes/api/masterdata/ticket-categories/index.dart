@@ -40,7 +40,9 @@ Response _handleOptions() {
 Future<Response> _handleGet(RequestContext context) async {
   try {
     final results = await DatabaseService.query(
-        'SELECT id, name, created_by, created_at, updated_at, company_id FROM ticket_categories');
+        'SELECT id, name, created_by, created_at, updated_at, company_id FROM ticket_categories',
+        userId: 1, // System user for read operations
+    );
 
     final categories = results.map((row) {
       return {
@@ -72,7 +74,7 @@ Future<Response> _handleGet(RequestContext context) async {
   }
 }
 
-Future<Response> _handlePost(RequestContext context) async {
+Future<Response> _handlePost(RequestContext context) async { 
   try {
     final body = await context.request.body();
     final data = jsonDecode(body);
@@ -100,9 +102,21 @@ Future<Response> _handlePost(RequestContext context) async {
       ));
     }
 
+    // Extract user ID from JWT token
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+
     await DatabaseService.query(
       'INSERT INTO ticket_categories (name, created_by, created_at, updated_at, company_id) VALUES (?, ?, ?, ?, ?)',
       parameters: [name, createdBy, now, now, companyId],
+      userId: userId,
     );
 
     return _addCorsHeaders(Response.json(

@@ -32,6 +32,7 @@ Future<Response> _get(RequestContext context, String customerId) async {
     final results = await DatabaseService.query(
       'SELECT * FROM customer_phones WHERE customer_id = ?',
       parameters: [customerIdInt],
+      userId: 1, // System user for read operations
     );
 
     final phones = results.map((row) => CustomerPhone.fromJson(row.fields)).toList();
@@ -79,6 +80,7 @@ Future<Response> _post(RequestContext context, String customerId) async {
     final result = await DatabaseService.query(
       'INSERT INTO customer_phones (customer_id, company_id, phone, phone_type, created_by) VALUES (?, ?, ?, ?, ?)',
       parameters: [customerIdInt, companyId, phone, phoneType, userId],
+      userId: userId,
     );
 
     final lastInsertId = result.insertId;

@@ -71,6 +71,7 @@ Future<Response> _handlePost(RequestContext context) async {
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         ''',
         parameters: [companyId, name, address, notes, governorateId, cityId, userId],
+        userId: userId,
       );
       
       final newCustomerId = customerResult.insertId!;
@@ -82,7 +83,7 @@ Future<Response> _handlePost(RequestContext context) async {
           '''
           INSERT INTO customer_phones (company_id, customer_id, phone, phone_type, created_by, created_at, updated_at) 
           VALUES (?, ?, ?, ?, ?, NOW(), NOW())
-          ''',
+        ''',
           parameters: [
             companyId,
             newCustomerId,
@@ -90,6 +91,7 @@ Future<Response> _handlePost(RequestContext context) async {
             _getPhoneTypeId(phoneMap['phoneType'] as String?),
             userId,
           ],
+          userId: userId,
         );
       }
       
@@ -109,10 +111,11 @@ Future<Response> _handlePost(RequestContext context) async {
           call['callDuration'] ?? 0,
           userId,
         ],
+        userId: userId,
       );
       
       return newCustomerId;
-    });
+    }, userId: userId);
     
     // Log activity for customer creation with call (Activity ID: 110)
     try {

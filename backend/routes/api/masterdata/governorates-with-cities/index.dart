@@ -35,10 +35,16 @@ Response _handleOptions() {
 
 Future<Response> _get(RequestContext context) async {
   try {
-    final governoratesResults = await DatabaseService.query('SELECT id, name FROM governorates ORDER BY name');
+    final governoratesResults = await DatabaseService.query(
+      'SELECT id, name FROM governorates ORDER BY name',
+      userId: 1, // System user for read operations
+    );
     final governorates = governoratesResults.map((row) => Governorate.fromJson(row.fields)).toList();
 
-    final citiesResults = await DatabaseService.query('SELECT id, name, governorate_id FROM cities ORDER BY name');
+    final citiesResults = await DatabaseService.query(
+      'SELECT id, name, governorate_id FROM cities ORDER BY name',
+      userId: 1, // System user for read operations
+    );
     final cities = citiesResults.map((row) => City.fromJson(row.fields)).toList();
 
     final citiesByGovId = <int, List<City>>{};

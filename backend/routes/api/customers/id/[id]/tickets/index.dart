@@ -135,6 +135,7 @@ Future<Response> _handlePost(RequestContext context, String id) async {
           body['priority'] ?? 'medium',
           userId,
         ],
+        userId: userId,
       );
       
       return result.insertId!;

@@ -100,6 +100,7 @@ Future<Response> _handlePut(RequestContext context, String id) async {
         userId,
         ticketId,
       ],
+      userId: userId,
     );
     
     // Log activity for ticket closure (Activity ID: 501)
@@ -151,6 +152,7 @@ Future<bool> _checkTicketExists(int ticketId) async {
     final result = await DatabaseService.queryOne(
       'SELECT id, status FROM tickets WHERE id = ?',
       parameters: [ticketId],
+      userId: 1, // System user for read operations
     );
     return result != null && result['status'] != 1;
   } catch (e) {

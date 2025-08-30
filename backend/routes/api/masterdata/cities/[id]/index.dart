@@ -44,6 +44,7 @@ Future<Response> _get(RequestContext context, String id) async {
     final result = await DatabaseService.queryOne(
       'SELECT id, name, governorate_id FROM cities WHERE id = ?',
       parameters: [cityId],
+      userId: 1, // System user for read operations
     );
 
     if (result == null) {
@@ -74,7 +75,11 @@ Future<Response> _put(RequestContext context, String id) async {
       return Response.json(statusCode: 400, body: {'message': 'Name or governorate_id is required'});
     }
 
-    final existingCityResult = await DatabaseService.queryOne('SELECT name, governorate_id FROM cities WHERE id = ?', parameters: [cityId]);
+    final existingCityResult = await DatabaseService.queryOne(
+      'SELECT name, governorate_id FROM cities WHERE id = ?', 
+      parameters: [cityId],
+      userId: 1, // System user for read operations
+    );
     if (existingCityResult == null) {
         return Response.json(statusCode: 404, body: {'message': 'City not found'});
     }
@@ -84,9 +89,21 @@ Future<Response> _put(RequestContext context, String id) async {
     final newName = name ?? existingCity.name;
     final newGovernorateId = governorateId ?? existingCity.governorateId;
 
+    // Extract user ID from JWT token
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+
     await DatabaseService.query(
       'UPDATE cities SET name = ?, governorate_id = ? WHERE id = ?',
       parameters: [newName, newGovernorateId, cityId],
+      userId: userId,
     );
 
     return Response.json(body: {'id': cityId, 'name': newName, 'governorate_id': newGovernorateId});
@@ -105,9 +122,21 @@ Future<Response> _delete(RequestContext context, String id) async {
       return Response.json(statusCode: 400, body: {'message': 'Invalid ID'});
     }
 
+    // Extract user ID from JWT token
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+
     await DatabaseService.query(
       'DELETE FROM cities WHERE id = ?',
       parameters: [cityId],
+      userId: userId,
     );
 
     return Response(statusCode: 204);

@@ -27,6 +27,7 @@ class ActivityLogService {
           userId,
           details != null ? json.encode(details) : null,
         ],
+        userId: userId,
       );
     } catch (e) {
       print('Error logging activity: $e');
@@ -132,7 +133,11 @@ class ActivityLogService {
         $limitClause $offsetClause
       ''';
       
-      final results = await DatabaseService.queryMany(query, parameters: parameters);
+      final results = await DatabaseService.queryMany(
+        query, 
+        parameters: parameters,
+        userId: 1, // System user for read operations
+      );
       
       return results.map((row) => ActivityLog.fromMap(row.fields)).toList();
     } catch (e) {
@@ -206,7 +211,11 @@ class ActivityLogService {
         $limitClause $offsetClause
       ''';
       
-      final results = await DatabaseService.queryMany(query, parameters: parameters);
+      final results = await DatabaseService.queryMany(
+        query, 
+        parameters: parameters,
+        userId: 1, // System user for read operations
+      );
       
       return results.map((row) {
         final activityLog = ActivityLog.fromMap(row.fields);
@@ -229,6 +238,7 @@ class ActivityLogService {
     try {
       final results = await DatabaseService.queryMany(
         'SELECT * FROM entities ORDER BY name',
+        userId: 1, // System user for read operations
       );
       
       return results.map((row) => Entity.fromMap(row.fields)).toList();
@@ -243,6 +253,7 @@ class ActivityLogService {
     try {
       final results = await DatabaseService.queryMany(
         'SELECT * FROM activities ORDER BY name',
+        userId: 1, // System user for read operations
       );
       
       return results.map((row) => Activity.fromMap(row.fields)).toList();
@@ -259,6 +270,7 @@ class ActivityLogService {
       final existing = await DatabaseService.queryOne(
         'SELECT id FROM entities WHERE name = ?',
         parameters: [entityName],
+        userId: 1, // System user for entity operations
       );
       
       if (existing != null) {
@@ -269,6 +281,7 @@ class ActivityLogService {
       final result = await DatabaseService.query(
         'INSERT INTO entities (name) VALUES (?)',
         parameters: [entityName],
+        userId: 1, // System user for entity operations
       );
       
       return result.insertId!;
@@ -285,6 +298,7 @@ class ActivityLogService {
       final existing = await DatabaseService.queryOne(
         'SELECT id FROM activities WHERE name = ?',
         parameters: [activityName],
+        userId: 1, // System user for activity operations
       );
       
       if (existing != null) {
@@ -295,6 +309,7 @@ class ActivityLogService {
       final result = await DatabaseService.query(
         'INSERT INTO activities (name, description, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)',
         parameters: [activityName, description],
+        userId: 1, // System user for activity operations
       );
       
       return result.insertId!;

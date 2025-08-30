@@ -104,6 +104,7 @@ Future<Response> _handlePut(RequestContext context, String id) async {
         body['ticketCatId'],
         ticketId,
       ],
+      userId: userId,
     );
     
     // Log activity for ticket category update (Activity ID: 502)
@@ -155,6 +156,7 @@ Future<bool> _checkTicketExists(int ticketId) async {
     final result = await DatabaseService.queryOne(
       'SELECT id FROM tickets WHERE id = ?',
       parameters: [ticketId],
+      userId: 1, // System user for read operations
     );
     return result != null;
   } catch (e) {
@@ -167,6 +169,7 @@ Future<bool> _checkCategoryExists(int categoryId) async {
     final result = await DatabaseService.queryOne(
       'SELECT id FROM ticket_categories WHERE id = ?',
       parameters: [categoryId],
+      userId: 1, // System user for read operations
     );
     return result != null;
   } catch (e) {
@@ -187,6 +190,7 @@ Future<Map<String, dynamic>?> _getTicketDetails(int ticketId) async {
       WHERE t.id = ?
       ''',
       parameters: [ticketId],
+      userId: 1, // System user for read operations
     );
     
     if (ticketResult == null) {

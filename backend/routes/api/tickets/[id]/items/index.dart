@@ -72,6 +72,7 @@ Future<Response> _handleGet(RequestContext context, String id) async {
       ORDER BY ti.created_at DESC
       ''',
       parameters: [ticketId],
+      userId: 1, // System user for read operations
     );
 
     final items = results.map((item) {
@@ -201,6 +202,7 @@ Future<Response> _handlePost(RequestContext context, String id) async {
           body['request_reason_id'],
           body['request_reason_detail'],
         ],
+        userId: userId,
       );
       final itemId = insertResult.insertId;
 
@@ -217,6 +219,7 @@ Future<Response> _handlePost(RequestContext context, String id) async {
         WHERE ti.id = ?
         ''',
         parameters: [itemId],
+        userId: 1, // System user for read operations
       );
 
       if (itemResult == null) {
@@ -329,6 +332,7 @@ Future<bool> _checkTicketExists(int ticketId) async {
     final result = await DatabaseService.queryOne(
       'SELECT id FROM tickets WHERE id = ?',
       parameters: [ticketId],
+      userId: 1, // System user for read operations
     );
     return result != null;
   } catch (e) {

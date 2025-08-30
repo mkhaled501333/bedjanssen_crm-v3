@@ -33,7 +33,10 @@ Response _handleOptions() {
 
 Future<Response> _handleGet(RequestContext context) async {
   try {
-    final results = await DatabaseService.query('SELECT id, name FROM companies');
+    final results = await DatabaseService.query(
+      'SELECT id, name FROM companies',
+      userId: 1, // System user for read operations
+    );
     
     final companies = results.map((row) {
       return {

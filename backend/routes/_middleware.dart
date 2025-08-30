@@ -1,7 +1,7 @@
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:janssencrm_backend/database/database_config.dart';
-import 'package:janssencrm_backend/database/migrations.dart';
+import 'package:janssencrm_backend/database/migrations/migrations.dart';
 
 bool _isServerInitialized = false;
 

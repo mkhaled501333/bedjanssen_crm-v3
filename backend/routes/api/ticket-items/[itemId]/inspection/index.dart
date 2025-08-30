@@ -78,6 +78,7 @@ Future<Response> _handlePut(RequestContext context, String itemId) async {
         body['inspectionResult'],
         itId,
       ],
+      userId: userId,
     );
 
     // Log activities for each updated field

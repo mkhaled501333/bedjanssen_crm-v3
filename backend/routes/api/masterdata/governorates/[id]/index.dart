@@ -44,6 +44,7 @@ Future<Response> _get(RequestContext context, String id) async {
     final result = await DatabaseService.queryOne(
       'SELECT id, name FROM governorates WHERE id = ?',
       parameters: [governorateId],
+      userId: 1, // System user for read operations
     );
 
     if (result == null) {
@@ -73,9 +74,21 @@ Future<Response> _put(RequestContext context, String id) async {
       return Response.json(statusCode: 400, body: {'message': 'Name is required'});
     }
 
+    // Extract user ID from JWT token
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+
     await DatabaseService.query(
       'UPDATE governorates SET name = ? WHERE id = ?',
       parameters: [name, governorateId],
+      userId: userId,
     );
 
     return Response.json(body: {'id': governorateId, 'name': name});
@@ -94,9 +107,21 @@ Future<Response> _delete(RequestContext context, String id) async {
       return Response.json(statusCode: 400, body: {'message': 'Invalid ID'});
     }
 
+    // Extract user ID from JWT token
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+
     await DatabaseService.query(
       'DELETE FROM governorates WHERE id = ?',
       parameters: [governorateId],
+      userId: userId,
     );
 
     return Response(statusCode: 204);

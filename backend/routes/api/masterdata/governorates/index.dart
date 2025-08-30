@@ -36,7 +36,10 @@ Response _handleOptions() {
 
 Future<Response> _get(RequestContext context) async {
   try {
-    final results = await DatabaseService.query('SELECT id, name FROM governorates');
+    final results = await DatabaseService.query(
+      'SELECT id, name FROM governorates',
+      userId: 1, // System user for read operations
+    );
     final governorates = results.map((row) => Governorate.fromJson(row.fields)).toList();
     return _addCorsHeaders(Response.json(body: governorates.map((g) => g.toJson()).toList()));
   } catch (e) {
@@ -56,9 +59,21 @@ Future<Response> _post(RequestContext context) async {
       return _addCorsHeaders(Response.json(statusCode: 400, body: {'message': 'Name is required'}));
     }
 
+    // Extract user ID from JWT token
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+
     final result = await DatabaseService.query(
       'INSERT INTO governorates (name) VALUES (?)',
       parameters: [name],
+      userId: userId,
     );
 
     final lastInsertId = result.insertId;

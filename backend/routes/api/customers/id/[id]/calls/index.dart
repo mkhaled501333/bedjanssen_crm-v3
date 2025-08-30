@@ -109,6 +109,7 @@ Future<Response> _handlePost(RequestContext context, String id) async {
           body['callDuration'] ?? 0,
           userId,
         ],
+        userId: userId,
       );
       
       return result.insertId!;

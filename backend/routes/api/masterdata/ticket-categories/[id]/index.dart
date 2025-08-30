@@ -29,6 +29,7 @@ Future<Response> _handleGet(RequestContext context, String id) async {
     final result = await DatabaseService.query(
       'SELECT id, name, created_by, created_at, updated_at, company_id FROM ticket_categories WHERE id = ?',
       parameters: [id],
+      userId: 1, // System user for read operations
     );
 
     if (result.isEmpty) {
@@ -75,9 +76,21 @@ Future<Response> _handlePut(RequestContext context, String id) async {
       );
     }
 
+    // Extract user ID from JWT token
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+
     await DatabaseService.query(
       'UPDATE ticket_categories SET name = ?, updated_at = ? WHERE id = ?',
       parameters: [name, now, id],
+      userId: userId,
     );
 
     return Response.json(
@@ -98,9 +111,21 @@ Future<Response> _handlePut(RequestContext context, String id) async {
 
 Future<Response> _handleDelete(RequestContext context, String id) async {
   try {
+    // Extract user ID from JWT token
+    int userId = 1; // Default fallback
+    try {
+      final jwtPayload = context.read<dynamic>();
+      if (jwtPayload is Map<String, dynamic>) {
+        userId = jwtPayload['id'] as int? ?? 1;
+      }
+    } catch (e) {
+      print('Failed to extract user ID from JWT payload: $e');
+    }
+
     await DatabaseService.query(
       'DELETE FROM ticket_categories WHERE id = ?',
       parameters: [id],
+      userId: userId,
     );
 
     return Response.json(

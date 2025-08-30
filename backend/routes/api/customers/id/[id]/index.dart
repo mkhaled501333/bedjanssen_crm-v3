@@ -155,6 +155,7 @@ Future<Response> _handlePut(RequestContext context, String id) async {
         body['cityId'] ?? existingCustomer['city_id'],
         customerId,
       ],
+      userId: userId,
     );
 
     // Log activities for updated fields

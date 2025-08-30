@@ -117,10 +117,11 @@ Future<Response> _handlePost(RequestContext context, String id) async {
           body['callDuration'] ?? 0,
           userId,
         ],
+        userId: userId,
       );
       
       return result.insertId!;
-    });
+    }, userId: userId);
     
     // Log activity for adding call log to ticket (Activity ID: 503)
     try {
@@ -184,6 +185,7 @@ Future<bool> _checkTicketExists(int ticketId) async {
     final result = await DatabaseService.queryOne(
       'SELECT id FROM tickets WHERE id = ?',
       parameters: [ticketId],
+      userId: 1, // System user for read operations
     );
     return result != null;
   } catch (e) {
@@ -202,6 +204,7 @@ Future<Map<String, dynamic>?> _getCallDetails(int callId) async {
       WHERE tc.id = ?
       ''',
       parameters: [callId],
+      userId: 1, // System user for read operations
     );
     
     if (callResult == null) {
