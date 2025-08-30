@@ -14,14 +14,14 @@ Activity logging has been implemented for authentication operations to track use
 - **Activity ID 1**: User login
 - **Description**: تسجيل دخول المستخدم إلى النظام (User login to the system)
 - **Route**: `POST /api/auth/login`
-- **Entity**: users (entity_id: 3)
+- **Entity**: users (entity_id: 1)
 - **Implementation**: Logs successful user authentication
 
 #### User Logout
 - **Activity ID 2**: User logout
 - **Description**: تسجيل خروج المستخدم من النظام (User logout from the system)
 - **Route**: `POST /api/auth/logout`
-- **Entity**: users (entity_id: 3)
+- **Entity**: users (entity_id: 1)
 - **Implementation**: Logs user logout activity
 
 ## Technical Implementation
@@ -33,7 +33,7 @@ The login endpoint logs activity after successful authentication:
 // Log login activity
 try {
   await ActivityLogService.log(
-    entityId: 3, // users entity
+    entityId: 1, // users entity
     recordId: user.id,
     activityId: 1, // User login activity
     userId: user.id,
@@ -63,13 +63,13 @@ try {
 // Log logout activity
 try {
   await ActivityLogService.log(
-    entityId: 3, // users entity
+    entityId: 1, // users entity
     recordId: userId,
     activityId: 2, // User logout activity
     userId: userId,
   );
 } catch (e) {
-  print('Failed to log logout activity: $e');
+    print('Failed to log logout activity: $e');
 }
 ```
 
@@ -83,7 +83,7 @@ try {
 
 The activity logging system uses the following tables:
 
-- **entities**: Defines entity types (users = entity_id 3)
+- **entities**: Defines entity types (users = entity_id 1)
 - **activities**: Defines activity types with descriptions
 - **activity_logs**: Stores individual activity log entries
 
@@ -128,5 +128,3 @@ This will log one activity: "User logout" (ID: 2) for the user extracted from th
 - Add IP address and user agent logging for enhanced security
 - Implement failed login attempt logging
 - Add session duration tracking
-- Implement suspicious activity detection
-- Add activity log retention policies for auth events

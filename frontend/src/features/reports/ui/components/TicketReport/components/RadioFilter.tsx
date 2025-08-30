@@ -5,14 +5,12 @@ interface RadioFilterProps {
   value: string | null;
   onChange: (value: string | null) => void;
   onApply: () => void;
-  onClear: () => void;
 }
 
 const RadioFilter: React.FC<RadioFilterProps> = ({
   value,
   onChange,
   onApply,
-  onClear,
 }) => {
   const [localValue, setLocalValue] = useState<string | null>(value);
   const [shouldApply, setShouldApply] = useState(false);

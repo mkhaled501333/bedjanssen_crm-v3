@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import styles from './TicketReport.module.css';
 import { useTicketReportData, useTicketReportFilters, useTicketReportPagination, useTicketReportSelection } from './hooks';
 import FilterHeader from './components/FilterHeader';
-import { getColumnKey, getUniqueValues, exportToCSV, getDisplayValue } from './utils';
-import { TicketItem, FilterValue, DateRange, COLUMN_FILTER_CONFIG, AvailableFilters } from './types';
+import { exportToCSV, getDisplayValue } from './utils';
+import { DateRange, COLUMN_FILTER_CONFIG, AvailableFilters } from './types';
 import LoadingSpinner from './components/LoadingSpinner';
 import TableLoadingOverlay from './components/TableLoadingOverlay';
 import LoadingRow from './components/LoadingRow';
@@ -78,7 +78,6 @@ const TicketReport: React.FC = () => {
     selectedRows,
     toggleSelectAll,
     toggleRowSelection,
-    clearSelection,
     isAllSelected,
     isIndeterminate,
   } = useTicketReportSelection(data);
@@ -98,38 +97,15 @@ const TicketReport: React.FC = () => {
     };
   }, [closeAllDropdowns]);
 
-  // Function to convert filter names to IDs
-  const convertFilterNamesToIds = (column: string, selectedNames: string[]): number[] => {
-    if (!availableFilters || selectedNames.length === 0) return [];
-
-    const columnToFilterMap: Record<string, keyof AvailableFilters> = {
-      'Governorate': 'governorates',
-      'City': 'cities',
-      'Category': 'ticket_categories',
-      'Status': 'ticket_statuses',
-      'Product': 'products',
-      'Size': 'products',
-      'Request Reason': 'request_reasons',
-      'Action': 'actions',
-    };
-
-    const filterKey = columnToFilterMap[column];
-    if (!filterKey) return [];
-
-    const filterData = availableFilters[filterKey];
-    if (!filterData || !Array.isArray(filterData)) return [];
-
-    // Find the IDs for the selected names
-    const ids: number[] = [];
-    selectedNames.forEach(selectedName => {
-      const option = filterData.find(opt => opt.name === selectedName);
-      if (option && typeof option.id === 'number') {
-        ids.push(option.id);
-      }
-    });
-
-    return ids;
-  };
+  // Function to convert filter names to IDs for API calls
+  const convertFilterNamesToIds = useCallback((column: string, selectedNames: string[]): number[] => {
+    const filterConfig = COLUMN_FILTER_CONFIG[column];
+    if (!filterConfig || !filterConfig.availableValues) return [];
+    
+    return selectedNames
+      .map(name => filterConfig.availableValues.find(item => item.name === name)?.id)
+      .filter(id => id !== undefined) as number[];
+  }, []);
 
   // Function to get available filter values for a specific column
   const getAvailableFilterValues = (column: string): string[] => {
@@ -214,49 +190,43 @@ const TicketReport: React.FC = () => {
     const apiFilters = {
       companyId,
       ...Object.entries(activeFilters).reduce((acc, [column, value]) => {
-        const filterConfig = COLUMN_FILTER_CONFIG.find(config => config.column === column);
-        if (!filterConfig) return acc;
-
-        switch (filterConfig.filterType) {
-          case 'multiSelect':
-            if (Array.isArray(value) && value.length > 0) {
-              // For multiSelect filters, we need to convert string names to IDs
-              if (filterConfig.dataType === 'number') {
-                // Convert string names to IDs by looking up in availableFilters
-                const ids = convertFilterNamesToIds(column, value as string[]);
-                if (ids.length > 0) {
-                  acc[filterConfig.backendKey] = ids;
-                }
-              } else {
-                // For non-ID filters, send the values as-is
-                acc[filterConfig.backendKey] = value;
+        if (!value || (Array.isArray(value) && value.length === 0)) return acc;
+        
+        switch (column) {
+          case 'Status':
+          case 'Category':
+          case 'Product':
+          case 'Size':
+          case 'Request Reason':
+          case 'Inspected':
+          case 'Client Approval':
+          case 'Action':
+          case 'Pulled Status':
+          case 'Delivered Status':
+            if (Array.isArray(value)) {
+              const ids = convertFilterNamesToIds(column, value as string[]);
+              if (ids.length > 0) {
+                acc[`${column.toLowerCase().replace(/\s+/g, '_')}_ids`] = ids;
               }
             }
             break;
-          case 'radio':
-            if (value !== null && value !== undefined) {
-              acc[filterConfig.backendKey] = value;
+          case 'Governorate':
+          case 'City':
+            if (Array.isArray(value)) {
+              const ids = convertFilterNamesToIds(column, value as string[]);
+              if (ids.length > 0) {
+                acc[`${column.toLowerCase()}_ids`] = ids;
+              }
             }
             break;
-          case 'text':
-            if (typeof value === 'string' && value.trim().length > 0) {
-              acc[filterConfig.backendKey] = value.trim();
-            }
-            break;
-          case 'boolean':
-            if (typeof value === 'boolean') {
-              acc[filterConfig.backendKey] = value;
-            }
-            break;
-          case 'dateRange':
-            if (value && typeof value === 'object' && 'from' in value) {
+          case 'Ticket Creation Date':
+          case 'Inspection Date':
+            if (value && typeof value === 'object' && 'from' in value && 'to' in value) {
               const dateRange = value as DateRange;
               try {
                 if (dateRange.from) {
-                  // Ensure from is a Date object before calling toISOString
-                  const fromDate = dateRange.from instanceof Date ? dateRange.from : new Date(dateRange.from);
+                  const fromDate = new Date(dateRange.from);
                   if (!isNaN(fromDate.getTime())) {
-                    // Determine which date filter this is based on the column
                     if (column === 'Ticket Creation Date') {
                       acc.ticketCreatedDateFrom = fromDate.toISOString();
                     } else {
@@ -265,8 +235,7 @@ const TicketReport: React.FC = () => {
                   }
                 }
                 if (dateRange.to) {
-                  // Ensure to is a Date object before calling toISOString
-                  const toDate = dateRange.to instanceof Date ? dateRange.to : new Date(dateRange.to);
+                  const toDate = new Date(dateRange.to);
                   if (!isNaN(toDate.getTime())) {
                     // Determine which date filter this is based on the column
                     if (column === 'Ticket Creation Date') {
@@ -286,12 +255,12 @@ const TicketReport: React.FC = () => {
             break;
         }
         return acc;
-      }, {} as any),
+      }, {} as Record<string, unknown>),
     };
 
     fetchData(apiFilters, currentPage, itemsPerPage);
     resetPagination();
-  }, [activeFilters, currentPage, itemsPerPage, fetchData, resetPagination, companyId]);
+  }, [activeFilters, currentPage, itemsPerPage, fetchData, resetPagination, companyId, convertFilterNamesToIds]);
 
   const handleExportToCSV = () => {
     exportToCSV(data, 'ticket-report-export.csv');

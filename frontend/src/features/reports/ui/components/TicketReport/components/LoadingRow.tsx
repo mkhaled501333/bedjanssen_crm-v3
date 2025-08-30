@@ -1,5 +1,4 @@
 import React from 'react';
-import LoadingSpinner from './LoadingSpinner';
 import styles from './LoadingRow.module.css';
 
 interface LoadingRowProps {

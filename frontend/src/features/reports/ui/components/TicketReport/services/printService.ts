@@ -1,4 +1,3 @@
-import { TicketItem } from '../types';
 import { getApiBaseUrl, authFetch } from '../../../../../../shared/utils';
 
 interface PrintTicketData {
@@ -43,7 +42,7 @@ export class PrintService {
           if (errorData.error) {
             errorMessage = errorData.error;
           }
-        } catch (parseError) {
+        } catch {
           console.log('Could not parse error response');
         }
         throw new Error(errorMessage);
@@ -202,7 +201,7 @@ export class PrintService {
         <button class="print-button no-print" onclick="window.print()">🖨️ طباعة</button>
     `;
 
-    tickets.forEach((ticket, index) => {
+    tickets.forEach((ticket) => {
       html += `
         <div class="ticket">
           <div class="ticket-header">
@@ -442,7 +441,7 @@ export class PrintService {
         <button class="print-button no-print" onclick="window.print()">🖨️ طباعة</button>
     `;
 
-    tickets.forEach((ticket, index) => {
+    tickets.forEach((ticket) => {
       html += `
         <div class="ticket">
           <div class="ticket-header">

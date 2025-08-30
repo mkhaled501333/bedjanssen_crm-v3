@@ -4,15 +4,15 @@ import styles from '../TicketReport.module.css';
 interface MultiSelectFilterProps {
   uniqueValues: string[];
   selectedValues: string[];
-  onFilterSelection: (value: string[]) => void;
+  onFilterSelection: (values: string[]) => void;
   onApplyFilter: () => void;
   onClearFilter: () => void;
   isLoading?: boolean;
 }
 
 const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
-  uniqueValues = [],
-  selectedValues = [],
+  uniqueValues,
+  selectedValues,
   onFilterSelection,
   onApplyFilter,
   onClearFilter,
@@ -20,9 +20,15 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Ensure we have valid arrays
-  const safeUniqueValues = Array.isArray(uniqueValues) ? uniqueValues : [];
-  const safeSelectedValues = Array.isArray(selectedValues) ? selectedValues : [];
+  // Ensure we have valid arrays and memoize to prevent unnecessary re-renders
+  const safeUniqueValues = useMemo(() => 
+    Array.isArray(uniqueValues) ? uniqueValues : [], 
+    [uniqueValues]
+  );
+  const safeSelectedValues = useMemo(() => 
+    Array.isArray(selectedValues) ? selectedValues : [], 
+    [selectedValues]
+  );
   
   // Filter values based on search term
   const filteredValues = useMemo(() => {
@@ -118,7 +124,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
       <div className={styles.filterOptions}>
         {filteredValues.length === 0 ? (
           <div className={styles.noSearchResults}>
-            No options match "{searchTerm}"
+            No options match &quot;{searchTerm}&quot;
           </div>
         ) : (
           <>

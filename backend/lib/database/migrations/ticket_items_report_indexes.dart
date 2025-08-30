@@ -9,25 +9,13 @@ Future<void> createTicketItemsReportIndexes(MySqlConnection conn) async {
   // TICKET ITEMS REPORT VIEW PERFORMANCE INDEXES (فهارس تحسين أداء تقرير عناصر التذاكر)
   // =============================================================================
   
-  // فهارس أساسية للفلترة حسب الإجراء (استبدال، صيانة)
-  await createIndexSafely(conn, 'idx_ticket_items_action', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_action ON ticket_items(action)');
+  // فهارس أساسية للفلترة حسب المنتج والسبب
+  await createIndexSafely(conn, 'idx_ticket_items_product_id', 'ticket_items',
+    'CREATE INDEX idx_ticket_items_product_id ON ticket_items(product_id)');
   
-  // فهارس مركبة للشركة والإجراء - للفلترة المتقدمة
-  await createIndexSafely(conn, 'idx_ticket_items_company_action', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_company_action ON ticket_items(company_id, action)');
-  
-  // فهارس حالة السحب والتسليم - لتتبع حالة العناصر
-  await createIndexSafely(conn, 'idx_ticket_items_pulled_status', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_pulled_status ON ticket_items(pulled_status)');
-  await createIndexSafely(conn, 'idx_ticket_items_delivered_status', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_delivered_status ON ticket_items(delivered_status)');
-  
-  // فهارس مركبة للشركة وحالة السحب والتسليم
-  await createIndexSafely(conn, 'idx_ticket_items_company_pulled', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_company_pulled ON ticket_items(company_id, pulled_status)');
-  await createIndexSafely(conn, 'idx_ticket_items_company_delivered', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_company_delivered ON ticket_items(company_id, delivered_status)');
+  // فهارس مركبة للشركة والمنتج - للفلترة المتقدمة
+  await createIndexSafely(conn, 'idx_ticket_items_company_product', 'ticket_items',
+    'CREATE INDEX idx_ticket_items_company_product ON ticket_items(company_id, product_id)');
   
   // فهارس الفحص والتاريخ - للفلترة الزمنية
   await createIndexSafely(conn, 'idx_ticket_items_inspected', 'ticket_items',
@@ -39,29 +27,25 @@ Future<void> createTicketItemsReportIndexes(MySqlConnection conn) async {
   await createIndexSafely(conn, 'idx_ticket_items_company_inspection', 'ticket_items',
     'CREATE INDEX idx_ticket_items_company_inspection ON ticket_items(company_id, inspected, inspection_date)');
   
-  // فهارس جغرافية مركبة - للفلترة حسب الموقع
-  await createIndexSafely(conn, 'idx_ticket_items_company_location', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_company_location ON ticket_items(company_id, governomate_id, city_id)');
-  await createIndexSafely(conn, 'idx_ticket_items_location_customer', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_location_customer ON ticket_items(governomate_id, city_id, customer_id)');
+  // فهارس جغرافية مركبة - للفلترة حسب الموقع (من خلال التذكرة)
+  await createIndexSafely(conn, 'idx_ticket_items_company_ticket', 'ticket_items',
+    'CREATE INDEX idx_ticket_items_company_ticket ON ticket_items(company_id, ticket_id)');
   
   // فهارس المنتجات - للفلترة حسب المنتج
-  await createIndexSafely(conn, 'idx_ticket_items_company_product', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_company_product ON ticket_items(company_id, product_id)');
   await createIndexSafely(conn, 'idx_ticket_items_product_size', 'ticket_items',
     'CREATE INDEX idx_ticket_items_product_size ON ticket_items(product_id, product_size)');
   
-  // فهرس مركب للشركة والعميل - للفلترة المتقدمة
-  await createIndexSafely(conn, 'idx_ticket_items_company_customer', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_company_customer ON ticket_items(company_id, customer_id)');
+  // فهرس مركب للشركة وسبب الطلب - للفلترة المتقدمة
+  await createIndexSafely(conn, 'idx_ticket_items_company_request_reason', 'ticket_items',
+    'CREATE INDEX idx_ticket_items_company_request_reason ON ticket_items(company_id, request_reason_id)');
   
-  // فهارس مركبة للفلترة المعقدة - تغطي جميع شروط البحث
-  await createIndexSafely(conn, 'idx_ticket_items_company_action_status', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_company_action_status ON ticket_items(company_id, action, pulled_status, delivered_status)');
+  // فهارس مركبة للفلترة المعقدة - تغطي جميع شروط البحث المتاحة
+  await createIndexSafely(conn, 'idx_ticket_items_company_inspection_status', 'ticket_items',
+    'CREATE INDEX idx_ticket_items_company_inspection_status ON ticket_items(company_id, inspected, inspection_date)');
   
   // فهرس شامل للتقارير المتقدمة - يغطي جميع شروط البحث الشائعة
   await createIndexSafely(conn, 'idx_ticket_items_comprehensive_report', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_comprehensive_report ON ticket_items(company_id, governomate_id, city_id, action, inspected, inspection_date)');
+    'CREATE INDEX idx_ticket_items_comprehensive_report ON ticket_items(company_id, product_id, request_reason_id, inspected, inspection_date)');
 
   // =============================================================================
   // TICKET ITEM CHANGE TABLES INDEXES (فهارس جداول تغيير عناصر التذاكر)
@@ -99,17 +83,13 @@ Future<void> createTicketItemsReportIndexes(MySqlConnection conn) async {
   await createIndexSafely(conn, 'idx_ticket_items_company_product_size', 'ticket_items',
     'CREATE INDEX idx_ticket_items_company_product_size ON ticket_items(company_id, product_id, product_size)');
   
-  // فهرس مركب للشركة وسبب الطلب
-  await createIndexSafely(conn, 'idx_ticket_items_company_request_reason', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_company_request_reason ON ticket_items(company_id, request_reason_id)');
-  
   // فهرس مركب للشركة والفحص والتاريخ
   await createIndexSafely(conn, 'idx_ticket_items_company_inspection_date', 'ticket_items',
     'CREATE INDEX idx_ticket_items_company_inspection_date ON ticket_items(company_id, inspected, inspection_date)');
   
   // فهرس شامل للتقارير المتقدمة - يغطي جميع شروط البحث الشائعة
   await createIndexSafely(conn, 'idx_ticket_items_advanced_reporting', 'ticket_items',
-    'CREATE INDEX idx_ticket_items_advanced_reporting ON ticket_items(company_id, governomate_id, city_id, action, inspected, pulled_status, delivered_status)');
+    'CREATE INDEX idx_ticket_items_advanced_reporting ON ticket_items(company_id, product_id, request_reason_id, inspected, inspection_date)');
 
   print('✓ Additional ticket items report indexes created successfully.');
 }

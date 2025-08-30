@@ -5,14 +5,12 @@ interface YesNoRadioFilterProps {
   value: boolean | null;
   onChange: (value: boolean | null) => void;
   onApply: () => void;
-  onClear: () => void;
 }
 
 const YesNoRadioFilter: React.FC<YesNoRadioFilterProps> = ({
   value,
   onChange,
   onApply,
-  onClear,
 }) => {
   const [localValue, setLocalValue] = useState<boolean | null>(value);
   const [shouldApply, setShouldApply] = useState(false);

@@ -34,20 +34,7 @@ const FilterHeader: React.FC<FilterHeaderProps> = ({
   customClassName,
   isLoading = false,
 }) => {
-  const getFilterCount = () => {
-    if (!selectedValues) return 0;
-    if (Array.isArray(selectedValues)) return selectedValues.length;
-    if (typeof selectedValues === 'string') return selectedValues.trim().length > 0 ? 1 : 0;
-    if (typeof selectedValues === 'boolean') return 1;
-    if (selectedValues === null) return 0; // Radio filter with "All" selected - not an active filter
-    if (selectedValues && typeof selectedValues === 'object' && 'from' in selectedValues) {
-      const dateRange = selectedValues as { from: Date | null; to: Date | null };
-      return (dateRange.from || dateRange.to) ? 1 : 0;
-    }
-    return 0;
-  };
 
-  const actualFilterCount = getFilterCount();
 
   // Columns that should not show filter icons
   const columnsWithoutFilters = ['ID', 'Customer', 'Ticket ID', 'Size'];

@@ -8,24 +8,30 @@ Future<void> insertActivitiesData(MySqlConnection conn) async {
   print('Inserting activities data...');
 
   try {
-    // Insert entities data
+    // Insert entities data first (required for activity_logs foreign key)
+    print('Step 1: Inserting entities...');
     await insertEntitiesData(conn);
     
-    // Insert permissions data
-    await insertPermissionsData(conn);
-    
-    // Insert activities data
+    // Insert activities data (required for activity_logs foreign key)
+    print('Step 2: Inserting activities...');
     await insertActivitiesTableData(conn);
     
-    print('✓ Activities data inserted successfully.');
+    // Insert permissions data last (not required for activity_logs)
+    print('Step 3: Inserting permissions...');
+    await insertPermissionsData(conn);
+    
+    print('✓ All activities data inserted successfully.');
   } catch (e) {
     print('⚠ Could not insert activities data: $e');
     print('Activities data insertion skipped - tables may already contain data');
+    rethrow; // Re-throw to ensure the server doesn't start with incomplete data
   }
 }
 
 /// Insert entities data
 Future<void> insertEntitiesData(MySqlConnection conn) async {
+  print('Inserting entities data...');
+
   final entities = [
     {'id': 1, 'name': 'users'},
     {'id': 2, 'name': 'customers'},
@@ -50,17 +56,31 @@ Future<void> insertEntitiesData(MySqlConnection conn) async {
 
   for (final entity in entities) {
     try {
+      // Use REPLACE INTO to ensure the entity exists with the correct ID
       await DatabaseService.query(
-        'INSERT IGNORE INTO entities (id, name) VALUES (?, ?)',
+        'REPLACE INTO entities (id, name, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)',
         parameters: [entity['id'], entity['name']],
         userId: 1, // System user for seeding
       );
+      print('✓ Entity ${entity['name']} (ID: ${entity['id']}) inserted/replaced successfully');
     } catch (e) {
-      // Ignore duplicate key errors
-      if (!e.toString().contains('Duplicate entry')) {
-        print('⚠ Error inserting entity ${entity['name']}: $e');
-      }
+      print('✗ Error inserting entity ${entity['name']} (ID: ${entity['id']}): $e');
+      // Don't rethrow - continue with other entities
     }
+  }
+  
+  // Verify entities were inserted
+  try {
+    final result = await DatabaseService.query(
+      'SELECT id, name FROM entities ORDER BY id',
+      userId: 1,
+    );
+    print('✓ Entities table now contains ${result.length} entities:');
+    for (final row in result) {
+      print('  - ID ${row['id']}: ${row['name']}');
+    }
+  } catch (e) {
+    print('⚠ Could not verify entities: $e');
   }
 }
 
@@ -75,17 +95,31 @@ Future<void> insertPermissionsData(MySqlConnection conn) async {
 
   for (final permission in permissions) {
     try {
+      // Use REPLACE INTO to ensure the permission exists with the correct ID
       await DatabaseService.query(
-        'INSERT IGNORE INTO permissions (id, title, description) VALUES (?, ?, ?)',
+        'REPLACE INTO permissions (id, title, description) VALUES (?, ?, ?)',
         parameters: [permission['id'], permission['title'], permission['description']],
         userId: 1, // System user for seeding
       );
+      print('✓ Permission ${permission['title']} (ID: ${permission['id']}) inserted/replaced successfully');
     } catch (e) {
-      // Ignore duplicate key errors
-      if (!e.toString().contains('Duplicate entry')) {
-        print('⚠ Error inserting permission ${permission['title']}: $e');
-      }
+      print('✗ Error inserting permission ${permission['title']} (ID: ${permission['id']}): $e');
+      // Don't rethrow - continue with other permissions
     }
+  }
+  
+  // Verify permissions were inserted
+  try {
+    final result = await DatabaseService.query(
+      'SELECT id, title FROM permissions ORDER BY id',
+      userId: 1,
+    );
+    print('✓ Permissions table now contains ${result.length} permissions:');
+    for (final row in result) {
+      print('  - ID ${row['id']}: ${row['title']}');
+    }
+  } catch (e) {
+    print('⚠ Could not verify permissions: $e');
   }
   
   print('✓ Permissions data inserted successfully.');

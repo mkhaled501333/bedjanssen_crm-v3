@@ -5,14 +5,12 @@ interface BooleanFilterProps {
   value: boolean | null;
   onChange: (value: boolean | null) => void;
   onApply: () => void;
-  onClear: () => void;
 }
 
 const BooleanFilter: React.FC<BooleanFilterProps> = ({
   value,
   onChange,
   onApply,
-  onClear,
 }) => {
   const [localValue, setLocalValue] = useState<boolean | null>(value);
   const [shouldApply, setShouldApply] = useState(false);
@@ -46,11 +44,6 @@ const BooleanFilter: React.FC<BooleanFilterProps> = ({
     setLocalValue(null);
     onChange(null);
     setShouldApply(true); // Trigger apply after state update
-  };
-
-  const getDisplayValue = (value: boolean | null): string => {
-    if (value === null) return 'All';
-    return value ? 'Yes' : 'No';
   };
 
   return (

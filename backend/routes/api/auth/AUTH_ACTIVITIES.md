@@ -8,7 +8,7 @@ This document lists all the activities available in the auth API routes with the
 - **Route**: `POST /api/auth/login`
 - **Activity Name**: User login
 - **Activity ID**: 1
-- **Entity ID**: 3 (users)
+- **Entity ID**: 1 (users)
 - **Description**: Authenticates a user with username and password, returns JWT token and user information
 - **Activity Logging**: ✅ Implemented - Logs successful login attempts
 - **Parameters**:
@@ -24,7 +24,7 @@ This document lists all the activities available in the auth API routes with the
 - **Route**: `POST /api/auth/logout`
 - **Activity Name**: User logout
 - **Activity ID**: 2
-- **Entity ID**: 3 (users)
+- **Entity ID**: 1 (users)
 - **Description**: Handles user logout (stateless JWT implementation - token invalidation handled client-side)
 - **Activity Logging**: ✅ Implemented - Logs logout attempts with user ID extracted from JWT token
 - **Parameters**: None required (user ID extracted from Authorization header)
@@ -48,8 +48,5 @@ This document lists all the activities available in the auth API routes with the
 **Note**: 
 - The authentication system uses JWT (JSON Web Tokens) for stateless authentication
 - Login endpoint validates user credentials against the database and checks if the user is active
-- Password comparison is currently done in plain text (no hashing)
-- JWT tokens are signed with a secret key and expire after 8 hours
-- Logout is handled client-side by discarding the token (no server-side token blacklisting)
-- All auth endpoints support CORS for cross-origin requests
-- Company information is included in the login response for user context
+- Logout endpoint extracts user ID from JWT token for activity logging
+- All authentication activities are logged for audit and security purposes

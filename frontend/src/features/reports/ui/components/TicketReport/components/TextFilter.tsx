@@ -5,14 +5,12 @@ interface TextFilterProps {
   value: string;
   onChange: (value: string) => void;
   onApply: () => void;
-  onClear: () => void;
 }
 
 const TextFilter: React.FC<TextFilterProps> = ({
   value,
   onChange,
   onApply,
-  onClear,
 }) => {
   const [localValue, setLocalValue] = useState<string>(value);
   const [shouldApply, setShouldApply] = useState(false);

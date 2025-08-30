@@ -6,14 +6,12 @@ interface DateRangePickerProps {
   value: DateRange;
   onChange: (value: DateRange) => void;
   onApply: () => void;
-  onClear: () => void;
 }
 
 const DateRangePicker: React.FC<DateRangePickerProps> = ({
   value,
   onChange,
   onApply,
-  onClear,
 }) => {
   const [localValue, setLocalValue] = useState<DateRange>(value);
   const [shouldApply, setShouldApply] = useState(false);

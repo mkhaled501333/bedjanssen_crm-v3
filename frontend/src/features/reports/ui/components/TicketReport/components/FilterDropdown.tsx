@@ -56,7 +56,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
             value={typeof selectedValues === 'string' ? selectedValues : ''}
             onChange={(value) => onFilterSelection(column, value)}
             onApply={() => onApplyFilter(column)}
-            onClear={() => onClearFilter(column)}
           />
         );
       case 'radio':
@@ -68,7 +67,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
               value={typeof selectedValues === 'boolean' ? selectedValues : null}
               onChange={(value) => onFilterSelection(column, value)}
               onApply={() => onApplyFilter(column)}
-              onClear={() => onClearFilter(column)}
             />
           );
         } else {
@@ -78,7 +76,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
               value={typeof selectedValues === 'string' ? selectedValues : null}
               onChange={(value) => onFilterSelection(column, value)}
               onApply={() => onApplyFilter(column)}
-              onClear={() => onClearFilter(column)}
             />
           );
         }
@@ -88,7 +85,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
             value={typeof selectedValues === 'boolean' ? selectedValues : null}
             onChange={(value) => onFilterSelection(column, value)}
             onApply={() => onApplyFilter(column)}
-            onClear={() => onClearFilter(column)}
           />
         );
       case 'dateRange':
@@ -99,7 +95,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
               : { from: null, to: null }}
             onChange={(value) => onFilterSelection(column, value)}
             onApply={() => onApplyFilter(column)}
-            onClear={() => onClearFilter(column)}
           />
         );
       default:

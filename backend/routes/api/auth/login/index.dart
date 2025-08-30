@@ -80,7 +80,7 @@ Future<Response> onRequest(RequestContext context) async {
     // Log login activity
     try {
       await ActivityLogService.log(
-        entityId: 3, // users entity
+        entityId: 1, // users entity (ID 1 according to seed data)
         recordId: user.id!,
         activityId: 1, // User login activity
         userId: user.id!,
