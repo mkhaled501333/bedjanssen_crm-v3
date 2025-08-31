@@ -61,7 +61,7 @@ export type AppType = {
 };
 
 export const DEFAULT_APPS: AppType[] = [
-  { id: 'masterdata', name: 'Master Data', icon: '🗃️', gradient: 'linear-gradient(135deg, #8e44ad, #6c3483)', requiredPermission: 2 },
+  { id: 'masterdata', name: 'Master Data', icon: '🗃️', gradient: 'linear-gradient(135deg, #8e44ad, #6c3483)', requiredPermission: 40 },
   { id: 'usermanagement', name: 'User Management', icon: '👥', gradient: 'linear-gradient(135deg, #e74c3c, #c0392b)', requiredPermission: 1 },
   { id: 'reports', name: 'Reports', icon: '📊', gradient: 'linear-gradient(135deg, #1abc9c, #16a085)' }
 ];
