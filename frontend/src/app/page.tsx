@@ -107,31 +107,8 @@ export default function Home() {
         <div className={navStyles.homeContent}>
           <div className={navStyles.homeContentInner}>
             <div className={navStyles.homeHeader}>
-              <h1 className={navStyles.homeTitle}>Welcome Home</h1>
-              <p className={navStyles.homeSubtitle}>Your central hub for productivity and navigation. Access all your applications and manage your workflow from here.</p>
-            </div>
-            
-            <div className={navStyles.homeGrid}>
-              <div className={navStyles.homeCard}>
-                <h3 className={navStyles.homeCardTitle}>📊 Quick Stats</h3>
-                <p className={navStyles.homeCardText}>• 7 Applications Available</p>
-                <p className={navStyles.homeCardText}>• Modern Navigation System</p>
-                <p className={navStyles.homeCardText}>• Responsive Design</p>
-              </div>
-              
-              <div className={navStyles.homeCard}>
-                <h3 className={navStyles.homeCardTitle}>🚀 Getting Started</h3>
-                <p className={navStyles.homeCardText}>• Click any app icon in the sidebar</p>
-                <p className={navStyles.homeCardText}>• Use the search bar to find content</p>
-                <p className={navStyles.homeCardText}>• Manage tabs in the header</p>
-              </div>
-              
-              <div className={navStyles.homeCard}>
-                <h3 className={navStyles.homeCardTitle}>⚡ Features</h3>
-                <p className={navStyles.homeCardText}>• Sticky Home Tab</p>
-                <p className={navStyles.homeCardText}>• Dynamic Tab Management</p>
-                <p className={navStyles.homeCardText}>• Intuitive Navigation</p>
-              </div>
+              <h1 className={navStyles.homeTitle}>Welcome to Janssen CRM</h1>
+              <p className={navStyles.homeSubtitle}>Your comprehensive customer relationship management platform. Manage customers, tickets, and business operations efficiently.</p>
             </div>
           </div>
         </div>

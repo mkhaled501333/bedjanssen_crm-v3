@@ -18,6 +18,9 @@ Future<void> runMigrations(MySqlConnection conn) async {
     // Create ticket items report view
     await createTicketItemsReportView(conn);
 
+    // Create audit triggers
+    await createAuditTriggers(conn);
+
     // Insert activities data
     await insertActivitiesData(conn);
 

@@ -61,12 +61,7 @@ export type AppType = {
 };
 
 export const DEFAULT_APPS: AppType[] = [
-  { id: 'mail', name: 'Mail', icon: '✉', gradient: 'linear-gradient(135deg, #3498db, #2980b9)' },
-  { id: 'calendar', name: 'Calendar', icon: '📅', gradient: 'linear-gradient(135deg, #9b59b6, #8e44ad)' },
-  { id: 'notes', name: 'Notes', icon: '📝', gradient: 'linear-gradient(135deg, #e67e22, #d35400)' },
-  { id: 'tasks', name: 'Tasks', icon: '✓', gradient: 'linear-gradient(135deg, #2ecc71, #27ae60)' },
   { id: 'masterdata', name: 'Master Data', icon: '🗃️', gradient: 'linear-gradient(135deg, #8e44ad, #6c3483)', requiredPermission: 2 },
   { id: 'usermanagement', name: 'User Management', icon: '👥', gradient: 'linear-gradient(135deg, #e74c3c, #c0392b)', requiredPermission: 1 },
-  { id: 'reports', name: 'Reports', icon: '📊', gradient: 'linear-gradient(135deg, #1abc9c, #16a085)' },
-  { id: 'bookmarks', name: 'Bookmarks', icon: '🔖', gradient: 'linear-gradient(135deg, #f39c12, #e67e22)' }
+  { id: 'reports', name: 'Reports', icon: '📊', gradient: 'linear-gradient(135deg, #1abc9c, #16a085)' }
 ];

@@ -4,3 +4,4 @@ export 'ticket_items_report_indexes.dart';
 export 'views.dart';
 export 'seed_data.dart';
 export 'utilities.dart';
+export 'audit_triggers.dart';
