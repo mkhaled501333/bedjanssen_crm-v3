@@ -38,6 +38,17 @@ services:
     volumes:
       - phpmyadmin_data:/var/lib/phpmyadmin
 
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: janssencrm-portainer
+    restart: always
+    ports:
+      - "83:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    command: -H unix:///var/run/docker.sock
+
   backend:
     build:
       context: ./backend
@@ -62,3 +73,4 @@ services:
 volumes:
   mysql_data:
   phpmyadmin_data:
+  portainer_data:
