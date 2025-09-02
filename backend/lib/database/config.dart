@@ -11,4 +11,5 @@ class Config {
   // For Docker environment, uncomment these lines:
   // static const String dbHost = 'mysql';
   // static const int dbPort = 3306;
+  
 }
