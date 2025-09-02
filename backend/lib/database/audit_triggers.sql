@@ -1296,6 +1296,7 @@ END//
 -- TICKETCALL TABLE AUDIT TRIGGERS
 -- =====================================================
 
+
 CREATE TRIGGER ticketcall_insert_audit
 AFTER INSERT ON ticketcall
 FOR EACH ROW
