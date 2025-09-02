@@ -50,8 +50,8 @@ Future<void> createIndexSafely(MySqlConnection conn, String indexName, String ta
   }
 }
 
-/// Create basic tables
-Future<void> createBasicTables(MySqlConnection conn) async {
+/// Create basic tables without activity_logs foreign keys
+Future<void> createBasicTablesWithoutForeignKeys(MySqlConnection conn) async {
   print('Creating basic tables...');
 
   // audit_logs
@@ -81,6 +81,16 @@ Future<void> createBasicTables(MySqlConnection conn) async {
       created_at DATETIME,
       updated_at DATETIME,
       company_id INT
+    )
+  ''');
+
+  // call_types
+  await createTableSafely(conn, 'call_types', '''
+    CREATE TABLE IF NOT EXISTS call_types (
+      id INT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )
   ''');
 
@@ -357,7 +367,15 @@ Future<void> createBasicTables(MySqlConnection conn) async {
     )
   ''');
 
-  // activity_logs
+
+
+  print('✓ Basic tables created successfully.');
+}
+
+/// Create activity_logs table with foreign keys (after entities and activities exist)
+Future<void> createActivityLogsTable(MySqlConnection conn) async {
+  print('Creating activity_logs table...');
+  
   await createTableSafely(conn, 'activity_logs', '''
     CREATE TABLE IF NOT EXISTS activity_logs (
       id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -376,6 +394,6 @@ Future<void> createBasicTables(MySqlConnection conn) async {
       FOREIGN KEY (activity_id) REFERENCES activities(id)
     )
   ''');
-
-  print('✓ Basic tables created successfully.');
+  
+  print('✓ Activity logs table created successfully.');
 }

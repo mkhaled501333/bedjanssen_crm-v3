@@ -25,6 +25,7 @@ Future<void> _dropExistingTriggers(MySqlConnection conn) async {
     'ticket_items_insert_audit', 'ticket_items_update_audit', 'ticket_items_delete_audit',
     'customer_phones_insert_audit', 'customer_phones_update_audit', 'customer_phones_delete_audit',
     'call_categories_insert_audit', 'call_categories_update_audit', 'call_categories_delete_audit',
+    'call_types_insert_audit', 'call_types_update_audit', 'call_types_delete_audit',
     'cities_insert_audit', 'cities_update_audit', 'cities_delete_audit',
     'governorates_insert_audit', 'governorates_update_audit', 'governorates_delete_audit',
     'customercall_insert_audit', 'customercall_update_audit', 'customercall_delete_audit',
@@ -56,6 +57,7 @@ Future<void> _createBasicTriggers(MySqlConnection conn) async {
   await _createTicketsTriggers(conn);
   await _createCompaniesTriggers(conn);
   await _createCallCategoriesTriggers(conn);
+  await _createCallTypesTriggers(conn);
   await _createCitiesTriggers(conn);
   await _createGovernoratesTriggers(conn);
   await _createCustomerPhonesTriggers(conn);
@@ -550,6 +552,85 @@ Future<void> _createCallCategoriesTriggers(MySqlConnection conn) async {
   ''', userId: 1);
 
   print('✓ Call categories audit triggers created');
+}
+
+/// Create call_types table audit triggers
+Future<void> _createCallTypesTriggers(MySqlConnection conn) async {
+  await DatabaseService.query('''
+    CREATE TRIGGER call_types_insert_audit
+    AFTER INSERT ON call_types
+    FOR EACH ROW
+    BEGIN
+        INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
+        VALUES (
+            COALESCE(@current_user_id, 'SYSTEM'),
+            'INSERT',
+            'call_types',
+            CAST(NEW.id AS CHAR),
+            NULL,
+            JSON_OBJECT(
+                'id', NEW.id,
+                'name', NEW.name,
+                'created_at', NEW.created_at,
+                'updated_at', NEW.updated_at
+            ),
+            NOW()
+        );
+    END
+  ''', userId: 1);
+
+  await DatabaseService.query('''
+    CREATE TRIGGER call_types_update_audit
+    AFTER UPDATE ON call_types
+    FOR EACH ROW
+    BEGIN
+        INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
+        VALUES (
+            COALESCE(@current_user_id, 'SYSTEM'),
+            'UPDATE',
+            'call_types',
+            CAST(NEW.id AS CHAR),
+            JSON_OBJECT(
+                'id', OLD.id,
+                'name', OLD.name,
+                'created_at', OLD.created_at,
+                'updated_at', OLD.updated_at
+            ),
+            JSON_OBJECT(
+                'id', NEW.id,
+                'name', NEW.name,
+                'created_at', NEW.created_at,
+                'updated_at', NEW.updated_at
+            ),
+            NOW()
+        );
+    END
+  ''', userId: 1);
+
+  await DatabaseService.query('''
+    CREATE TRIGGER call_types_delete_audit
+    AFTER DELETE ON call_types
+    FOR EACH ROW
+    BEGIN
+        INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
+        VALUES (
+            COALESCE(@current_user_id, 'SYSTEM'),
+            'DELETE',
+            'call_types',
+            CAST(OLD.id AS CHAR),
+            JSON_OBJECT(
+                'id', OLD.id,
+                'name', OLD.name,
+                'created_at', OLD.created_at,
+                'updated_at', OLD.updated_at
+            ),
+            NULL,
+            NOW()
+        );
+    END
+  ''', userId: 1);
+
+  print('✓ Call types audit triggers created');
 }
 
 /// Create cities table audit triggers

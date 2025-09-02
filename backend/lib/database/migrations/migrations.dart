@@ -6,8 +6,14 @@ Future<void> runMigrations(MySqlConnection conn) async {
   try {
     print('Starting database migrations...');
 
-    // Create basic tables
-    await createBasicTables(conn);
+    // Create basic tables (without activity_logs foreign keys first)
+    await createBasicTablesWithoutForeignKeys(conn);
+
+    // Insert activities data (entities and activities must exist before activity_logs)
+    await insertActivitiesData(conn);
+
+    // Create activity_logs table with foreign keys (after entities and activities exist)
+    await createActivityLogsTable(conn);
 
     // Create optimized indexes for tickets report service
     await createOptimizedTicketsReportIndexes(conn);
@@ -20,9 +26,6 @@ Future<void> runMigrations(MySqlConnection conn) async {
 
     // Create audit triggers
     await createAuditTriggers(conn);
-
-    // Insert activities data
-    await insertActivitiesData(conn);
 
     print('✓ All migrations completed: database schema and indexes ensured.');
   } catch (e) {
