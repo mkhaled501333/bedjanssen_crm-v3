@@ -23,6 +23,7 @@ services:
       - mysql
     environment:
       ADMINER_DEFAULT_SERVER: mysql
+      UPLOAD_LIMIT: 512M
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
