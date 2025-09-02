@@ -57,9 +57,8 @@ export const useTicketReportData = (companyId: number = 1) => {
     }
   }, [companyId]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  // Remove automatic fetch on mount to prevent loops
+  // Data will be fetched when component mounts via the main useEffect
 
   return {
     data,
@@ -157,14 +156,17 @@ export const useTicketReportFilters = () => {
   }, [filterSelections]);
 
   const clearFilter = useCallback((column: string) => {
+    console.log('🧹 Clearing filter for column:', column);
     setActiveFilters(prev => {
       const newFilters = { ...prev };
       delete newFilters[column];
+      console.log('🧹 New active filters after clear:', newFilters);
       return newFilters;
     });
     setFilterSelections(prev => {
       const newSelections = { ...prev };
       delete newSelections[column];
+      console.log('🧹 New filter selections after clear:', newSelections);
       return newSelections;
     });
     setFilterDropdowns(prev => ({ ...prev, [column]: false }));
@@ -172,11 +174,13 @@ export const useTicketReportFilters = () => {
   }, []);
 
   const clearAllFilters = useCallback(() => {
+    console.log('🧹 Clearing all filters');
     setActiveFilters({});
     setFilterSelections({});
     // Clear localStorage
     localStorage.removeItem('ticketReport_filters');
     localStorage.removeItem('ticketReport_filterSelections');
+    console.log('🧹 All filters cleared');
   }, []);
 
   const closeAllDropdowns = useCallback(() => {

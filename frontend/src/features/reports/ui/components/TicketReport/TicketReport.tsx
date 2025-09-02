@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import styles from './TicketReport.module.css';
 import { useTicketReportData, useTicketReportFilters, useTicketReportPagination, useTicketReportSelection } from './hooks';
 import FilterHeader from './components/FilterHeader';
@@ -37,6 +37,7 @@ const useResponsiveWidth = () => {
 const TicketReport: React.FC = () => {
   const companyId = 1; // Default company ID, should come from auth context
   const tableWidth = useResponsiveWidth();
+  const isInitialMount = useRef(true);
   
   // Custom hooks for state management
   const {
@@ -99,13 +100,29 @@ const TicketReport: React.FC = () => {
 
   // Function to convert filter names to IDs for API calls
   const convertFilterNamesToIds = useCallback((column: string, selectedNames: string[]): number[] => {
-    const filterConfig = COLUMN_FILTER_CONFIG[column];
-    if (!filterConfig || !filterConfig.availableValues) return [];
+    if (!availableFilters) return [];
+    
+    // Map column names to availableFilters keys
+    const columnToFilterMap: Record<string, keyof AvailableFilters> = {
+      'Governorate': 'governorates',
+      'City': 'cities',
+      'Category': 'ticket_categories',
+      'Status': 'ticket_statuses',
+      'Product': 'products',
+      'Request Reason': 'request_reasons',
+      'Action': 'actions',
+    };
+
+    const filterKey = columnToFilterMap[column];
+    if (!filterKey) return [];
+
+    const filterData = availableFilters[filterKey];
+    if (!filterData || !Array.isArray(filterData)) return [];
     
     return selectedNames
-      .map(name => filterConfig.availableValues.find(item => item.name === name)?.id)
+      .map(name => filterData.find(item => item.name === name)?.id)
       .filter(id => id !== undefined) as number[];
-  }, []);
+  }, [availableFilters]);
 
   // Function to get available filter values for a specific column
   const getAvailableFilterValues = (column: string): string[] => {
@@ -184,8 +201,19 @@ const TicketReport: React.FC = () => {
     }
   };
 
+  // Initial data fetch on mount
+  useEffect(() => {
+    fetchData({ companyId }, 1, itemsPerPage);
+  }, []); // Only run once on mount
+
   // Apply filters when they change
   useEffect(() => {
+    // Skip if this is the initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     // Convert frontend filter format to API format
     const apiFilters = {
       companyId,
@@ -194,28 +222,72 @@ const TicketReport: React.FC = () => {
         
         switch (column) {
           case 'Status':
-          case 'Category':
-          case 'Product':
-          case 'Size':
-          case 'Request Reason':
-          case 'Inspected':
-          case 'Client Approval':
-          case 'Action':
-          case 'Pulled Status':
-          case 'Delivered Status':
             if (Array.isArray(value)) {
               const ids = convertFilterNamesToIds(column, value as string[]);
               if (ids.length > 0) {
-                acc[`${column.toLowerCase().replace(/\s+/g, '_')}_ids`] = ids;
+                acc.ticketStatus = ids[0].toString(); // Status is single value
               }
             }
             break;
+          case 'Category':
+            if (Array.isArray(value)) {
+              const ids = convertFilterNamesToIds(column, value as string[]);
+              if (ids.length > 0) {
+                acc.ticketCatIds = ids;
+              }
+            }
+            break;
+          case 'Product':
+            if (Array.isArray(value)) {
+              const ids = convertFilterNamesToIds(column, value as string[]);
+              if (ids.length > 0) {
+                acc.productIds = ids;
+              }
+            }
+            break;
+          case 'Size':
+            if (Array.isArray(value)) {
+              acc.productSize = (value as string[])[0]; // Size is single value
+            }
+            break;
+          case 'Request Reason':
+            if (Array.isArray(value)) {
+              const ids = convertFilterNamesToIds(column, value as string[]);
+              if (ids.length > 0) {
+                acc.requestReasonIds = ids;
+              }
+            }
+            break;
+          case 'Action':
+            if (Array.isArray(value)) {
+              acc.actions = value as string[];
+            }
+            break;
+          case 'Inspected':
+          case 'Client Approval':
+          case 'Pulled Status':
+          case 'Delivered Status':
+            if (typeof value === 'boolean') {
+              const key = column === 'Inspected' ? 'inspected' :
+                         column === 'Client Approval' ? 'clientApproval' :
+                         column === 'Pulled Status' ? 'pulledStatus' :
+                         'deliveredStatus';
+              acc[key] = value;
+            }
+            break;
           case 'Governorate':
+            if (Array.isArray(value)) {
+              const ids = convertFilterNamesToIds(column, value as string[]);
+              if (ids.length > 0) {
+                acc.governomateIds = ids;
+              }
+            }
+            break;
           case 'City':
             if (Array.isArray(value)) {
               const ids = convertFilterNamesToIds(column, value as string[]);
               if (ids.length > 0) {
-                acc[`${column.toLowerCase()}_ids`] = ids;
+                acc.cityIds = ids;
               }
             }
             break;
@@ -258,9 +330,11 @@ const TicketReport: React.FC = () => {
       }, {} as Record<string, unknown>),
     };
 
+
+    console.log('🔍 Filter effect triggered with apiFilters:', apiFilters);
     fetchData(apiFilters, currentPage, itemsPerPage);
     resetPagination();
-  }, [activeFilters, currentPage, itemsPerPage, fetchData, resetPagination, companyId, convertFilterNamesToIds]);
+  }, [activeFilters, currentPage, itemsPerPage, fetchData, resetPagination, companyId]);
 
   const handleExportToCSV = () => {
     exportToCSV(data, 'ticket-report-export.csv');
