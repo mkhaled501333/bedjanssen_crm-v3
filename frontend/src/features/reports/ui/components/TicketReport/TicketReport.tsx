@@ -5,7 +5,7 @@ import styles from './TicketReport.module.css';
 import { useTicketReportData, useTicketReportFilters, useTicketReportPagination, useTicketReportSelection } from './hooks';
 import FilterHeader from './components/FilterHeader';
 import { exportToCSV, getDisplayValue } from './utils';
-import { DateRange, COLUMN_FILTER_CONFIG, AvailableFilters } from './types';
+import { DateRange, AvailableFilters } from './types';
 import LoadingSpinner from './components/LoadingSpinner';
 import TableLoadingOverlay from './components/TableLoadingOverlay';
 import LoadingRow from './components/LoadingRow';
@@ -38,6 +38,7 @@ const TicketReport: React.FC = () => {
   const companyId = 1; // Default company ID, should come from auth context
   const tableWidth = useResponsiveWidth();
   const isInitialMount = useRef(true);
+  const hasInitialData = useRef(false);
   
   // Custom hooks for state management
   const {
@@ -98,31 +99,7 @@ const TicketReport: React.FC = () => {
     };
   }, [closeAllDropdowns]);
 
-  // Function to convert filter names to IDs for API calls
-  const convertFilterNamesToIds = useCallback((column: string, selectedNames: string[]): number[] => {
-    if (!availableFilters) return [];
-    
-    // Map column names to availableFilters keys
-    const columnToFilterMap: Record<string, keyof AvailableFilters> = {
-      'Governorate': 'governorates',
-      'City': 'cities',
-      'Category': 'ticket_categories',
-      'Status': 'ticket_statuses',
-      'Product': 'products',
-      'Request Reason': 'request_reasons',
-      'Action': 'actions',
-    };
 
-    const filterKey = columnToFilterMap[column];
-    if (!filterKey) return [];
-
-    const filterData = availableFilters[filterKey];
-    if (!filterData || !Array.isArray(filterData)) return [];
-    
-    return selectedNames
-      .map(name => filterData.find(item => item.name === name)?.id)
-      .filter(id => id !== undefined) as number[];
-  }, [availableFilters]);
 
   // Function to get available filter values for a specific column
   const getAvailableFilterValues = (column: string): string[] => {
@@ -203,7 +180,10 @@ const TicketReport: React.FC = () => {
 
   // Initial data fetch on mount
   useEffect(() => {
-    fetchData({ companyId }, 1, itemsPerPage);
+    if (!hasInitialData.current) {
+      fetchData({ companyId }, 1, itemsPerPage);
+      hasInitialData.current = true;
+    }
   }, []); // Only run once on mount
 
   // Apply filters when they change
@@ -214,6 +194,38 @@ const TicketReport: React.FC = () => {
       return;
     }
 
+    // Skip if availableFilters is not loaded yet or we don't have initial data
+    if (!availableFilters || !hasInitialData.current) {
+      return;
+    }
+
+
+
+    // Helper function to convert filter names to IDs
+    const convertNamesToIds = (column: string, selectedNames: string[]): number[] => {
+      if (!availableFilters) return [];
+      
+      const columnToFilterMap: Record<string, keyof AvailableFilters> = {
+        'Governorate': 'governorates',
+        'City': 'cities',
+        'Category': 'ticket_categories',
+        'Status': 'ticket_statuses',
+        'Product': 'products',
+        'Request Reason': 'request_reasons',
+        'Action': 'actions',
+      };
+
+      const filterKey = columnToFilterMap[column];
+      if (!filterKey) return [];
+
+      const filterData = availableFilters[filterKey];
+      if (!filterData || !Array.isArray(filterData)) return [];
+      
+      return selectedNames
+        .map(name => filterData.find(item => item.name === name)?.id)
+        .filter(id => id !== undefined) as number[];
+    };
+
     // Convert frontend filter format to API format
     const apiFilters = {
       companyId,
@@ -223,7 +235,7 @@ const TicketReport: React.FC = () => {
         switch (column) {
           case 'Status':
             if (Array.isArray(value)) {
-              const ids = convertFilterNamesToIds(column, value as string[]);
+              const ids = convertNamesToIds(column, value as string[]);
               if (ids.length > 0) {
                 acc.ticketStatus = ids[0].toString(); // Status is single value
               }
@@ -231,7 +243,7 @@ const TicketReport: React.FC = () => {
             break;
           case 'Category':
             if (Array.isArray(value)) {
-              const ids = convertFilterNamesToIds(column, value as string[]);
+              const ids = convertNamesToIds(column, value as string[]);
               if (ids.length > 0) {
                 acc.ticketCatIds = ids;
               }
@@ -239,7 +251,7 @@ const TicketReport: React.FC = () => {
             break;
           case 'Product':
             if (Array.isArray(value)) {
-              const ids = convertFilterNamesToIds(column, value as string[]);
+              const ids = convertNamesToIds(column, value as string[]);
               if (ids.length > 0) {
                 acc.productIds = ids;
               }
@@ -252,7 +264,7 @@ const TicketReport: React.FC = () => {
             break;
           case 'Request Reason':
             if (Array.isArray(value)) {
-              const ids = convertFilterNamesToIds(column, value as string[]);
+              const ids = convertNamesToIds(column, value as string[]);
               if (ids.length > 0) {
                 acc.requestReasonIds = ids;
               }
@@ -277,7 +289,7 @@ const TicketReport: React.FC = () => {
             break;
           case 'Governorate':
             if (Array.isArray(value)) {
-              const ids = convertFilterNamesToIds(column, value as string[]);
+              const ids = convertNamesToIds(column, value as string[]);
               if (ids.length > 0) {
                 acc.governomateIds = ids;
               }
@@ -285,7 +297,7 @@ const TicketReport: React.FC = () => {
             break;
           case 'City':
             if (Array.isArray(value)) {
-              const ids = convertFilterNamesToIds(column, value as string[]);
+              const ids = convertNamesToIds(column, value as string[]);
               if (ids.length > 0) {
                 acc.cityIds = ids;
               }
@@ -331,10 +343,10 @@ const TicketReport: React.FC = () => {
     };
 
 
-    console.log('🔍 Filter effect triggered with apiFilters:', apiFilters);
+
     fetchData(apiFilters, currentPage, itemsPerPage);
     resetPagination();
-  }, [activeFilters, currentPage, itemsPerPage, fetchData, resetPagination, companyId]);
+  }, [activeFilters, currentPage, itemsPerPage, companyId]);
 
   const handleExportToCSV = () => {
     exportToCSV(data, 'ticket-report-export.csv');
