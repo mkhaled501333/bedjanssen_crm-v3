@@ -23,7 +23,6 @@ services:
       - mysql
     environment:
       ADMINER_DEFAULT_SERVER: mysql
-      UPLOAD_LIMIT: 512M
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
@@ -36,6 +35,7 @@ services:
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
+      UPLOAD_LIMIT: 512M
     volumes:
       - phpmyadmin_data:/var/lib/phpmyadmin
 
