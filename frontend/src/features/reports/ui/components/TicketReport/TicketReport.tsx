@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import styles from './TicketReport.module.css';
 import { useTicketReportData, useTicketReportFilters, useTicketReportPagination, useTicketReportSelection } from './hooks';
 import FilterHeader from './components/FilterHeader';
@@ -184,6 +184,7 @@ const TicketReport: React.FC = () => {
       fetchData({ companyId }, 1, itemsPerPage);
       hasInitialData.current = true;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
 
   // Apply filters when they change
@@ -346,6 +347,7 @@ const TicketReport: React.FC = () => {
 
     fetchData(apiFilters, currentPage, itemsPerPage);
     resetPagination();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFilters, currentPage, itemsPerPage, companyId]);
 
   const handleExportToCSV = () => {
