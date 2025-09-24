@@ -54,6 +54,18 @@ export const formatBoolean = (value: boolean | null): string => {
   return value ? 'Yes' : 'No';
 };
 
+export const formatClientApproval = (value: number | null): string => {
+  if (value === null || value === undefined) return '-';
+  
+  switch (value) {
+    case 0: return 'لا يوجد خيار';
+    case 1: return 'في انتظار رد العميل';
+    case 2: return 'موافق';
+    case 3: return 'غير موافق';
+    default: return '-';
+  }
+};
+
 export const formatStatus = (value: string | number | null): string => {
   if (value === null || value === undefined) return '-';
   
@@ -94,7 +106,7 @@ export const exportToCSV = (data: TicketItem[], filename: string = 'ticket-repor
       `"${row.request_reason_name}"`,
       formatBoolean(row.inspected),
       formatDate(row.inspection_date),
-      formatBoolean(row.client_approval),
+      formatClientApproval(row.client_approval),
       `"${row.action}"`,
       formatBoolean(row.pulled_status),
       formatBoolean(row.delivered_status)
@@ -123,7 +135,9 @@ export const getDisplayValue = (item: TicketItem, columnKey: keyof TicketItem): 
     case 'ticket_status':
       return formatStatus(value as string);
     case 'inspected':
+      return formatBoolean(value as boolean);
     case 'client_approval':
+      return formatClientApproval(value as number);
     case 'pulled_status':
     case 'delivered_status':
       return formatBoolean(value as boolean);

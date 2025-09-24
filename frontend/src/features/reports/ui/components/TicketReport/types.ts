@@ -19,7 +19,7 @@ export interface TicketItem {
   inspected: boolean;
   inspection_date: string | null;
   ticket_created_at: string | null;
-  client_approval: boolean;
+  client_approval: number;
   action: string;
   pulled_status: boolean;
   delivered_status: boolean;
@@ -56,7 +56,7 @@ export interface AppliedFilters {
   actions?: string[];
   pulledStatus?: boolean;
   deliveredStatus?: boolean;
-  clientApproval?: boolean;
+  clientApproval?: number[];
 }
 
 export interface FilterSummary {
@@ -137,7 +137,7 @@ export const COLUMN_FILTER_CONFIG: FilterConfig[] = [
   { column: 'Inspected', filterType: 'boolean', backendKey: 'inspected', dataType: 'boolean' },
   { column: 'Inspection Date', filterType: 'dateRange', backendKey: 'inspectionDate', dataType: 'date' },
   { column: 'Ticket Creation Date', filterType: 'dateRange', backendKey: 'ticketCreatedDate', dataType: 'date' },
-  { column: 'Client Approval', filterType: 'boolean', backendKey: 'clientApproval', dataType: 'boolean' },
+  { column: 'Client Approval', filterType: 'multiSelect', backendKey: 'clientApproval', dataType: 'number' },
   { column: 'Action', filterType: 'multiSelect', backendKey: 'actions', dataType: 'string' },
   { column: 'Pulled Status', filterType: 'radio', backendKey: 'pulledStatus', dataType: 'boolean' },
   { column: 'Delivered Status', filterType: 'radio', backendKey: 'deliveredStatus', dataType: 'boolean' },

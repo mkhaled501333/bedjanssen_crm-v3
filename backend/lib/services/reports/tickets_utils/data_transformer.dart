@@ -156,7 +156,7 @@ class DataTransformer {
       'inspected': safeToInt(row['inspected']) == 1,
       'inspectionDate': formatDate(row['inspection_date']),
       'inspectionResult': safeToString(row['inspection_result']),
-      'clientApproval': safeToInt(row['client_approval']) == 1,
+      'clientApproval': safeToInt(row['client_approval']),
       'createdAt': formatDateTime(row['created_at']),
       'updatedAt': formatDateTime(row['updated_at']),
     };

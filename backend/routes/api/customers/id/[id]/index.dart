@@ -533,7 +533,7 @@ Future<List<Map<String, dynamic>>> _getTicketItems(int ticketId) async {
         actionFormData = {
           'maintenanceSteps': _blobToString(item['maintenance_steps']),
           'maintenanceCost': item['maintenance_cost'],
-          'clientApproval': item['maintenance_client_approval'] == 1 ? 'approved' : (item['maintenance_client_approval'] == 0 ? 'rejected' : null),
+          'clientApproval': item['maintenance_client_approval'] == 2 ? 'approved' : (item['maintenance_client_approval'] == 3 ? 'rejected' : (item['maintenance_client_approval'] == 1 ? 'pending' : (item['maintenance_client_approval'] == 0 ? 'no-choice' : null))),
           'refusalReason': _blobToString(item['maintenance_refusal_reason']),
           'pulled': item['maintenance_pulled'] == 1,
           'pullDate': item['maintenance_pull_date']?.toString().substring(0,10),
@@ -545,7 +545,7 @@ Future<List<Map<String, dynamic>>> _getTicketItems(int ticketId) async {
           actionFormData = {
             'productSize': _blobToString(item['changesame_product_size']),
             'cost': item['changesame_cost'],
-            'clientApproval': item['changesame_client_approval'] == 1 ? 'approved' : (item['changesame_client_approval'] == 0 ? 'rejected' : null),
+            'clientApproval': item['changesame_client_approval'] == 2 ? 'approved' : (item['changesame_client_approval'] == 3 ? 'rejected' : (item['changesame_client_approval'] == 1 ? 'pending' : (item['changesame_client_approval'] == 0 ? 'no-choice' : null))),
             'refusalReason': _blobToString(item['changesame_refusal_reason']),
             'pulled': item['changesame_pulled'] == 1,
             'pullDate': item['changesame_pull_date']?.toString().substring(0,10),
@@ -559,7 +559,7 @@ Future<List<Map<String, dynamic>>> _getTicketItems(int ticketId) async {
             'productId': item['changeanother_product_id'],
             'productSize': _blobToString(item['changeanother_product_size']),
             'cost': item['changeanother_cost'],
-            'clientApproval': item['changeanother_client_approval'] == 1 ? 'approved' : (item['changeanother_client_approval'] == 0 ? 'rejected' : null),
+            'clientApproval': item['changeanother_client_approval'] == 2 ? 'approved' : (item['changeanother_client_approval'] == 3 ? 'rejected' : (item['changeanother_client_approval'] == 1 ? 'pending' : (item['changeanother_client_approval'] == 0 ? 'no-choice' : null))),
             'refusalReason': _blobToString(item['changeanother_refusal_reason']),
             'pulled': item['changeanother_pulled'] == 1,
             'pullDate': item['changeanother_pull_date']?.toString().substring(0,10),

@@ -137,6 +137,24 @@ class EnhancedRequestsDataImporter:
         except (ValueError, TypeError):
             return default
     
+    def safe_float(self, value, default=0.0):
+        """Safely convert a value to float."""
+        if pd.isna(value) or value == '' or str(value).strip() == '':
+            return default
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            return default
+    
+    def safe_str(self, value, default=''):
+        """Safely convert a value to string."""
+        if pd.isna(value):
+            return default
+        try:
+            return str(value)
+        except (ValueError, TypeError):
+            return default
+    
 
     
     def validate_data(self, df: pd.DataFrame, table_name: str) -> Tuple[bool, List[str]]:
@@ -348,6 +366,10 @@ class EnhancedRequestsDataImporter:
             # Database expects: ['ticket_item_id', 'maintenance_steps', 'maintenance_cost', 'client_approval', 'refusal_reason', 'pulled', 'pull_date', 'delivered', 'delivery_date', 'created_by', 'company_id']
             
             # Map Excel columns to database columns
+            # Handle duplicate column names by dropping the original ticket_item_id column
+            if 'ticket_item_id' in df.columns and 'id' in df.columns:
+                df = df.drop('ticket_item_id', axis=1)  # Drop original ticket_item_id column
+            
             df = df.rename(columns={
                 'id': 'ticket_item_id',
                 'maintanancedescription': 'maintenance_steps',
@@ -362,7 +384,12 @@ class EnhancedRequestsDataImporter:
             })
             
             # Add missing columns with default values
-            df['company_id'] = df['company_id'].fillna(DEFAULT_VALUES['company_id'])
+            # Handle all-NaN columns properly
+            if df['company_id'].isna().all():
+                df['company_id'] = DEFAULT_VALUES['company_id']
+            else:
+                df['company_id'] = df['company_id'].fillna(DEFAULT_VALUES['company_id'])
+            
             df['created_at'] = df['create_at']
             df['updated_at'] = df['update_at']
             
@@ -403,15 +430,32 @@ class EnhancedRequestsDataImporter:
                         updated_at = VALUES(updated_at)
                     """
                     # Convert dates to proper format
-                    pull_date = row['pull_date'] if pd.notna(row['pull_date']) else None
-                    delivery_date = row['delivery_date'] if pd.notna(row['delivery_date']) else None
-                    created_at = row['created_at'] if pd.notna(row['created_at']) else pd.Timestamp.now()
-                    updated_at = row['updated_at'] if pd.notna(row['updated_at']) else pd.Timestamp.now()
+                    pull_date = row['pull_date'] if not pd.isna(row['pull_date']) else None
+                    delivery_date = row['delivery_date'] if not pd.isna(row['delivery_date']) else None
+                    created_at = row['created_at'] if not pd.isna(row['created_at']) else pd.Timestamp.now()
+                    updated_at = row['updated_at'] if not pd.isna(row['updated_at']) else pd.Timestamp.now()
                     
-                    self.cursor.execute(query, (self.safe_int(row['ticket_item_id']), str(row['maintenance_steps']),
-                                               float(row['maintenance_cost']), self.safe_int(row['client_approval']), str(row['refusal_reason']),
-                                               self.safe_int(row['pulled']), pull_date, self.safe_int(row['delivered']), delivery_date,
-                                               self.safe_int(row['created_by'], DEFAULT_VALUES['created_by']), self.safe_int(row['company_id'], DEFAULT_VALUES['company_id']), created_at, updated_at))
+                    # Convert problematic values using safe conversion functions
+                    ticket_item_id = self.safe_int(row['ticket_item_id'])
+                    maintenance_steps = self.safe_str(row['maintenance_steps'])
+                    maintenance_cost = self.safe_float(row['maintenance_cost'])
+                    client_approval = self.safe_int(row['client_approval'])
+                    refusal_reason = self.safe_str(row['refusal_reason'])
+                    pulled = self.safe_int(row['pulled'])
+                    delivered = self.safe_int(row['delivered'])
+                    created_by = self.safe_int(row['created_by'], DEFAULT_VALUES['created_by'])
+                    company_id = self.safe_int(row['company_id'], DEFAULT_VALUES['company_id'])
+                    
+                    params = (ticket_item_id, maintenance_steps, maintenance_cost, client_approval,
+                             refusal_reason, pulled, pull_date, delivered, delivery_date,
+                             created_by, company_id, created_at, updated_at)
+                    
+                    try:
+                        self.cursor.execute(query, params)
+                    except Exception as e:
+                        self.logger.error(f"Error executing query for row {row['ticket_item_id']}: {e}")
+                        self.logger.error(f"Converted params: {params}")
+                        raise
                 
                 self.connection.commit()
                 batch_num = i//IMPORT_SETTINGS['batch_size'] + 1
@@ -447,6 +491,10 @@ class EnhancedRequestsDataImporter:
             # Database expects: ['ticket_item_id', 'product_id', 'product_size', 'cost', 'client_approval', 'refusal_reason', 'pulled', 'pull_date', 'delivered', 'delivery_date', 'created_by', 'company_id']
             
             # Map Excel columns to database columns
+            # Handle duplicate column names by dropping the original ticket_item_id column
+            if 'ticket_item_id' in df.columns and 'id' in df.columns:
+                df = df.drop('ticket_item_id', axis=1)  # Drop original ticket_item_id column
+            
             df = df.rename(columns={
                 'id': 'ticket_item_id',
                 'product_id': 'product_id',
@@ -462,7 +510,12 @@ class EnhancedRequestsDataImporter:
             })
             
             # Add missing columns with default values
-            df['company_id'] = df['company_id'].fillna(DEFAULT_VALUES['company_id'])
+            # Handle all-NaN columns properly
+            if df['company_id'].isna().all():
+                df['company_id'] = DEFAULT_VALUES['company_id']
+            else:
+                df['company_id'] = df['company_id'].fillna(DEFAULT_VALUES['company_id'])
+            
             df['created_at'] = df['create_at']
             df['updated_at'] = df['update_at']
             
@@ -502,27 +555,27 @@ class EnhancedRequestsDataImporter:
                         delivery_date = VALUES(delivery_date),
                         updated_at = VALUES(updated_at)
                     """
+                    # Convert problematic values using safe conversion functions
+                    ticket_item_id = self.safe_int(row['ticket_item_id'])
+                    product_id = self.safe_int(row['product_id'])
+                    product_size = self.safe_str(row['product_size'])
+                    cost = self.safe_float(row['cost'])
+                    client_approval = self.safe_int(row['client_approval'])
+                    refusal_reason = self.safe_str(row['refusal_reason'])
+                    pulled = self.safe_int(row['pulled'])
+                    pull_date = row['pull_date'] if not pd.isna(row['pull_date']) else None
+                    delivered = self.safe_int(row['delivered'])
+                    delivery_date = row['delivery_date'] if not pd.isna(row['delivery_date']) else None
+                    created_by = self.safe_int(row['created_by'], DEFAULT_VALUES['created_by'])
+                    company_id = self.safe_int(row['company_id'], DEFAULT_VALUES['company_id'])
+                    created_at = row['created_at'] if not pd.isna(row['created_at']) else pd.Timestamp.now()
+                    updated_at = row['updated_at'] if not pd.isna(row['updated_at']) else pd.Timestamp.now()
+
+                    params = (ticket_item_id, product_id, product_size, cost, client_approval,
+                             refusal_reason, pulled, pull_date, delivered, delivery_date,
+                             created_by, company_id, created_at, updated_at)
+
                     try:
-                        # Convert problematic float values to int explicitly
-                        ticket_item_id = int(float(row['ticket_item_id'])) if pd.notna(row['ticket_item_id']) else 0
-                        product_id = int(float(row['product_id'])) if pd.notna(row['product_id']) else 0
-                        product_size = str(row['product_size']) if pd.notna(row['product_size']) else ''
-                        cost = float(row['cost']) if pd.notna(row['cost']) else 0.0
-                        client_approval = int(float(row['client_approval'])) if pd.notna(row['client_approval']) else 0
-                        refusal_reason = str(row['refusal_reason']) if pd.notna(row['refusal_reason']) else ''
-                        pulled = int(float(row['pulled'])) if pd.notna(row['pulled']) else 0
-                        pull_date = row['pull_date'] if pd.notna(row['pull_date']) else None
-                        delivered = int(float(row['delivered'])) if pd.notna(row['delivered']) else 0
-                        delivery_date = row['delivery_date'] if pd.notna(row['delivery_date']) else None
-                        created_by = int(float(row['created_by'])) if pd.notna(row['created_by']) else DEFAULT_VALUES['created_by']
-                        company_id = int(float(row['company_id'])) if pd.notna(row['company_id']) else DEFAULT_VALUES['company_id']
-                        created_at = row['created_at'] if pd.notna(row['created_at']) else pd.Timestamp.now()
-                        updated_at = row['updated_at'] if pd.notna(row['updated_at']) else pd.Timestamp.now()
-
-                        params = (ticket_item_id, product_id, product_size, cost, client_approval,
-                                 refusal_reason, pulled, pull_date, delivered, delivery_date,
-                                 created_by, company_id, created_at, updated_at)
-
                         self.cursor.execute(query, params)
                     except Exception as e:
                         self.logger.error(f"Error executing query for row {row['ticket_item_id']}: {e}")
@@ -563,6 +616,10 @@ class EnhancedRequestsDataImporter:
             # Database expects: ['ticket_item_id', 'product_id', 'product_size', 'cost', 'client_approval', 'refusal_reason', 'pulled', 'pull_date', 'delivered', 'delivery_date', 'created_by', 'company_id']
             
             # Map Excel columns to database columns
+            # Handle duplicate column names by dropping the original ticket_item_id column
+            if 'ticket_item_id' in df.columns and 'id' in df.columns:
+                df = df.drop('ticket_item_id', axis=1)  # Drop original ticket_item_id column
+            
             df = df.rename(columns={
                 'id': 'ticket_item_id',
                 'product_id': 'product_id',
@@ -577,7 +634,12 @@ class EnhancedRequestsDataImporter:
             })
             
             # Add missing columns with default values
-            df['company_id'] = df['company_id'].fillna(DEFAULT_VALUES['company_id'])
+            # Handle all-NaN columns properly
+            if df['company_id'].isna().all():
+                df['company_id'] = DEFAULT_VALUES['company_id']
+            else:
+                df['company_id'] = df['company_id'].fillna(DEFAULT_VALUES['company_id'])
+            
             df['product_size'] = 'Standard'  # Default size since not in Excel
             df['created_at'] = df['create_at']
             df['updated_at'] = df['update_at']
@@ -618,27 +680,27 @@ class EnhancedRequestsDataImporter:
                         delivery_date = VALUES(delivery_date),
                         updated_at = VALUES(updated_at)
                     """
+                    # Convert problematic values using safe conversion functions
+                    ticket_item_id = self.safe_int(row['ticket_item_id'])
+                    product_id = self.safe_int(row['product_id'])
+                    product_size = self.safe_str(row['product_size'])
+                    cost = self.safe_float(row['cost'])
+                    client_approval = self.safe_int(row['client_approval'])
+                    refusal_reason = self.safe_str(row['refusal_reason'])
+                    pulled = self.safe_int(row['pulled'])
+                    pull_date = row['pull_date'] if not pd.isna(row['pull_date']) else None
+                    delivered = self.safe_int(row['delivered'])
+                    delivery_date = row['delivery_date'] if not pd.isna(row['delivery_date']) else None
+                    created_by = self.safe_int(row['created_by'], DEFAULT_VALUES['created_by'])
+                    company_id = self.safe_int(row['company_id'], DEFAULT_VALUES['company_id'])
+                    created_at = row['created_at'] if not pd.isna(row['created_at']) else pd.Timestamp.now()
+                    updated_at = row['updated_at'] if not pd.isna(row['updated_at']) else pd.Timestamp.now()
+
+                    params = (ticket_item_id, product_id, product_size, cost, client_approval,
+                             refusal_reason, pulled, pull_date, delivered, delivery_date,
+                             created_by, company_id, created_at, updated_at)
+
                     try:
-                        # Convert problematic float values to int explicitly
-                        ticket_item_id = int(float(row['ticket_item_id'])) if pd.notna(row['ticket_item_id']) else 0
-                        product_id = int(float(row['product_id'])) if pd.notna(row['product_id']) else 0
-                        product_size = str(row['product_size']) if pd.notna(row['product_size']) else ''
-                        cost = float(row['cost']) if pd.notna(row['cost']) else 0.0
-                        client_approval = int(float(row['client_approval'])) if pd.notna(row['client_approval']) else 0
-                        refusal_reason = str(row['refusal_reason']) if pd.notna(row['refusal_reason']) else ''
-                        pulled = int(float(row['pulled'])) if pd.notna(row['pulled']) else 0
-                        pull_date = row['pull_date'] if pd.notna(row['pull_date']) else None
-                        delivered = int(float(row['delivered'])) if pd.notna(row['delivered']) else 0
-                        delivery_date = row['delivery_date'] if pd.notna(row['delivery_date']) else None
-                        created_by = int(float(row['created_by'])) if pd.notna(row['created_by']) else DEFAULT_VALUES['created_by']
-                        company_id = int(float(row['company_id'])) if pd.notna(row['company_id']) else DEFAULT_VALUES['company_id']
-                        created_at = row['created_at'] if pd.notna(row['created_at']) else pd.Timestamp.now()
-                        updated_at = row['updated_at'] if pd.notna(row['updated_at']) else pd.Timestamp.now()
-
-                        params = (ticket_item_id, product_id, product_size, cost, client_approval,
-                                 refusal_reason, pulled, pull_date, delivered, delivery_date,
-                                 created_by, company_id, created_at, updated_at)
-
                         self.cursor.execute(query, params)
                     except Exception as e:
                         self.logger.error(f"Error executing query for row {row['ticket_item_id']}: {e}")
@@ -730,31 +792,31 @@ class EnhancedRequestsDataImporter:
                         created_by = VALUES(created_by),
                         updated_at = VALUES(updated_at)
                     """
+                    # Convert problematic values using safe conversion functions
+                    ticket_item_id = self.safe_int(row['id'])
+                    company_id = self.safe_int(row['company_id'], DEFAULT_VALUES['company_id'])
+                    ticket_id = self.safe_int(row['ticket_id'])
+                    product_id = self.safe_int(row['product_id'])
+                    product_size = self.safe_str(row['product_size'])
+                    quantity = self.safe_int(row['quantity'])
+                    purchase_date = row['purchase_date'] if not pd.isna(row['purchase_date']) else None
+                    purchase_location = self.safe_str(row['purchase_location'])
+                    request_reason_id = self.safe_int(row['request_reason_id'])
+                    request_reason_detail = self.safe_str(row['request_reason_detail'])
+                    inspected = self.safe_int(row['inspected'])
+                    inspection_date = row['inspection_date'] if not pd.isna(row['inspection_date']) else None
+                    inspection_result = self.safe_str(row['inspection_result'])
+                    client_approval = self.safe_int(row['client_approval'])
+                    created_by = self.safe_int(row['created_by'], DEFAULT_VALUES['created_by'])
+                    created_at = row['created_at'] if not pd.isna(row['created_at']) else pd.Timestamp.now()
+                    updated_at = row['updated_at'] if not pd.isna(row['updated_at']) else pd.Timestamp.now()
+
+                    params = (ticket_item_id, company_id, ticket_id, product_id, product_size,
+                             quantity, purchase_date, purchase_location, request_reason_id,
+                             request_reason_detail, inspected, inspection_date, inspection_result,
+                             client_approval, created_by, created_at, updated_at)
+
                     try:
-                        # Convert problematic float values to int explicitly
-                        ticket_item_id = int(float(row['id'])) if pd.notna(row['id']) else 0
-                        company_id = int(float(row['company_id'])) if pd.notna(row['company_id']) else DEFAULT_VALUES['company_id']
-                        ticket_id = int(float(row['ticket_id'])) if pd.notna(row['ticket_id']) else 0
-                        product_id = int(float(row['product_id'])) if pd.notna(row['product_id']) else 0
-                        product_size = str(row['product_size']) if pd.notna(row['product_size']) else ''
-                        quantity = int(float(row['quantity'])) if pd.notna(row['quantity']) else 0
-                        purchase_date = row['purchase_date'] if pd.notna(row['purchase_date']) else None
-                        purchase_location = str(row['purchase_location']) if pd.notna(row['purchase_location']) else ''
-                        request_reason_id = int(float(row['request_reason_id'])) if pd.notna(row['request_reason_id']) else 0
-                        request_reason_detail = str(row['request_reason_detail']) if pd.notna(row['request_reason_detail']) else ''
-                        inspected = int(float(row['inspected'])) if pd.notna(row['inspected']) else 0
-                        inspection_date = row['inspection_date'] if pd.notna(row['inspection_date']) else None
-                        inspection_result = str(row['inspection_result']) if pd.notna(row['inspection_result']) else ''
-                        client_approval = int(float(row['client_approval'])) if pd.notna(row['client_approval']) else 0
-                        created_by = int(float(row['created_by'])) if pd.notna(row['created_by']) else DEFAULT_VALUES['created_by']
-                        created_at = row['created_at'] if pd.notna(row['created_at']) else pd.Timestamp.now()
-                        updated_at = row['updated_at'] if pd.notna(row['updated_at']) else pd.Timestamp.now()
-
-                        params = (ticket_item_id, company_id, ticket_id, product_id, product_size,
-                                 quantity, purchase_date, purchase_location, request_reason_id,
-                                 request_reason_detail, inspected, inspection_date, inspection_result,
-                                 client_approval, created_by, created_at, updated_at)
-
                         self.cursor.execute(query, params)
                     except Exception as e:
                         self.logger.error(f"Error executing query for row {row['id']}: {e}")

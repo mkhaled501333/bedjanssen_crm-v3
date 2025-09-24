@@ -76,12 +76,16 @@ Future<Response> _handlePut(RequestContext context, String itemId) async {
 
         if (rawClientApproval is String) {
           if (rawClientApproval.toLowerCase() == 'approved') {
-            clientApproval = 1;
+            clientApproval = 2;
           } else if (rawClientApproval.toLowerCase() == 'rejected' || rawClientApproval.toLowerCase() == 'refused') {
+            clientApproval = 3;
+          } else if (rawClientApproval.toLowerCase() == 'pending') {
+            clientApproval = 1;
+          } else if (rawClientApproval.toLowerCase() == 'no-choice') {
             clientApproval = 0;
           }
         } else if (rawClientApproval is bool) {
-          clientApproval = rawClientApproval ? 1 : 0;
+          clientApproval = rawClientApproval ? 2 : 3;
         } else if (rawClientApproval is int) {
           clientApproval = rawClientApproval;
         }
@@ -203,12 +207,16 @@ Future<Response> _handlePost(RequestContext context, String itemId) async {
 
     if (rawClientApproval is String) {
       if (rawClientApproval.toLowerCase() == 'approved') {
-        clientApproval = 1;
+        clientApproval = 2;
       } else if (rawClientApproval.toLowerCase() == 'rejected' || rawClientApproval.toLowerCase() == 'refused') {
+        clientApproval = 3;
+      } else if (rawClientApproval.toLowerCase() == 'pending') {
+        clientApproval = 1;
+      } else if (rawClientApproval.toLowerCase() == 'no-choice') {
         clientApproval = 0;
       }
     } else if (rawClientApproval is bool) {
-      clientApproval = rawClientApproval ? 1 : 0;
+      clientApproval = rawClientApproval ? 2 : 3;
     } else if (rawClientApproval is int) {
       clientApproval = rawClientApproval;
     }

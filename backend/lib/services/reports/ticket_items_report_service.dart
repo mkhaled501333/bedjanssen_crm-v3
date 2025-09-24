@@ -23,7 +23,7 @@ class TicketItemsReportService {
     List<String>? actions,
     bool? pulledStatus,
     bool? deliveredStatus,
-    bool? clientApproval,
+    List<int>? clientApproval,
     int page = 1,
     int limit = 50,
   }) async {
@@ -182,9 +182,10 @@ class TicketItemsReportService {
         whereConditions.add('delivered_status = ?');
         parameters.add(deliveredStatus);
       }
-      if (clientApproval != null) {
-        whereConditions.add('client_approval = ?');
-        parameters.add(clientApproval);
+      if (clientApproval != null && clientApproval.isNotEmpty) {
+        final placeholders = clientApproval.map((_) => '?').join(',');
+        whereConditions.add('client_approval IN ($placeholders)');
+        parameters.addAll(clientApproval);
       }
 
       final whereClause = whereConditions.join(' AND ');

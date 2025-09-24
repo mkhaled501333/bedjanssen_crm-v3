@@ -305,8 +305,8 @@ class EnhancedJanssenCRMDataImporter:
                 return False
             
             # Map Excel columns to database columns
-            # Excel has: ['cusotmerName', 'id_governorates', 'id_city', 'adress']
-            # Database expects: ['name', 'governomate_id', 'city_id', 'address'] (note: database has typo)
+            # Excel has: ['id', 'company_id', 'cusotmerName', 'id_governorates', 'id_city', 'adress', 'notes', 'created_by', 'created_at', 'updated_at']
+            # Database expects: ['id', 'company_id', 'name', 'governomate_id', 'city_id', 'address', 'notes', 'created_by', 'created_at', 'updated_at']
             df_mapped = df.rename(columns={
                 'cusotmerName': 'name',
                 'id_governorates': 'governomate_id',  # Database column name has typo
@@ -319,15 +319,19 @@ class EnhancedJanssenCRMDataImporter:
                 self.logger.error("Found null values in customer names. Please check the Excel file.")
                 return False
             
-            # Handle missing values and data types
+            # Handle missing values and data types properly
+            # Fill NaN values with appropriate defaults
             df_mapped['company_id'] = df_mapped['company_id'].fillna(DEFAULT_VALUES['company_id']).astype(int)
             df_mapped['governomate_id'] = df_mapped['governomate_id'].fillna(DEFAULT_VALUES['governorate_id']).astype(int)
             df_mapped['city_id'] = df_mapped['city_id'].fillna(DEFAULT_VALUES['city_id']).astype(int)
             df_mapped['created_by'] = df_mapped['created_by'].fillna(DEFAULT_VALUES['created_by']).astype(int)
             
-            # Convert datetime columns
-            df_mapped['created_at'] = pd.to_datetime(df_mapped['created_at'])
-            df_mapped['updated_at'] = pd.to_datetime(df_mapped['updated_at'])
+            # Handle notes column - it's all NaN, so fill with empty string
+            df_mapped['notes'] = df_mapped['notes'].fillna('').astype(str)
+            
+            # Convert datetime columns to MySQL-compatible format
+            df_mapped['created_at'] = pd.to_datetime(df_mapped['created_at']).dt.strftime('%Y-%m-%d %H:%M:%S')
+            df_mapped['updated_at'] = pd.to_datetime(df_mapped['updated_at']).dt.strftime('%Y-%m-%d %H:%M:%S')
             
             # Process in batches
             total_records = len(df_mapped)
@@ -453,8 +457,8 @@ class EnhancedJanssenCRMDataImporter:
             df_mapped['company_id'] = DEFAULT_VALUES['company_id']
             df_mapped['phone_type'] = DEFAULT_VALUES['phone_type']
             df_mapped['created_by'] = DEFAULT_VALUES['created_by']
-            df_mapped['created_at'] = datetime.now()
-            df_mapped['updated_at'] = datetime.now()
+            df_mapped['created_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            df_mapped['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
             # Process in batches
             total_records = len(df_mapped)

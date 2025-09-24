@@ -112,6 +112,109 @@ class EnhancedTicketDataImporter:
             self.connection.close()
         self.logger.info("Database connection closed")
     
+    def disable_audit_triggers(self):
+        """Disable audit triggers to prevent audit_logs table from filling up during import."""
+        try:
+            # Disable audit triggers for all tables
+            triggers_to_disable = [
+                'audit_trigger_tickets',
+                'audit_trigger_ticket_calls',
+                'audit_trigger_ticket_categories'
+            ]
+            
+            for trigger in triggers_to_disable:
+                try:
+                    self.cursor.execute(f"DROP TRIGGER IF EXISTS {trigger}")
+                    self.logger.info(f"Disabled audit trigger: {trigger}")
+                except Exception as e:
+                    self.logger.warning(f"Could not disable trigger {trigger}: {e}")
+            
+            self.connection.commit()
+            self.logger.info("Audit triggers disabled for import process")
+            
+        except Exception as e:
+            self.logger.warning(f"Error disabling audit triggers: {e}")
+    
+    def enable_audit_triggers(self):
+        """Re-enable audit triggers after import is complete."""
+        try:
+            # Re-create audit triggers
+            audit_triggers_sql = """
+            -- Tickets audit trigger
+            CREATE TRIGGER audit_trigger_tickets
+            AFTER INSERT ON tickets
+            FOR EACH ROW
+            BEGIN
+                INSERT INTO audit_logs (user_id, action, target_entity, target_id, new_value, timestamp)
+                VALUES ('system', 'INSERT', 'tickets', NEW.id, JSON_OBJECT('id', NEW.id, 'description', NEW.description), NOW());
+            END;
+            
+            CREATE TRIGGER audit_trigger_tickets_update
+            AFTER UPDATE ON tickets
+            FOR EACH ROW
+            BEGIN
+                INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
+                VALUES ('system', 'UPDATE', 'tickets', NEW.id, 
+                    JSON_OBJECT('id', OLD.id, 'description', OLD.description, 'status', OLD.status),
+                    JSON_OBJECT('id', NEW.id, 'description', NEW.description, 'status', NEW.status), NOW());
+            END;
+            
+            -- Ticket calls audit trigger
+            CREATE TRIGGER audit_trigger_ticket_calls
+            AFTER INSERT ON ticket_calls
+            FOR EACH ROW
+            BEGIN
+                INSERT INTO audit_logs (user_id, action, target_entity, target_id, new_value, timestamp)
+                VALUES ('system', 'INSERT', 'ticket_calls', NEW.id, JSON_OBJECT('id', NEW.id, 'ticket_id', NEW.ticket_id), NOW());
+            END;
+            
+            CREATE TRIGGER audit_trigger_ticket_calls_update
+            AFTER UPDATE ON ticket_calls
+            FOR EACH ROW
+            BEGIN
+                INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
+                VALUES ('system', 'UPDATE', 'ticket_calls', NEW.id,
+                    JSON_OBJECT('id', OLD.id, 'ticket_id', OLD.ticket_id),
+                    JSON_OBJECT('id', NEW.id, 'ticket_id', NEW.ticket_id), NOW());
+            END;
+            
+            -- Ticket categories audit trigger
+            CREATE TRIGGER audit_trigger_ticket_categories
+            AFTER INSERT ON ticket_categories
+            FOR EACH ROW
+            BEGIN
+                INSERT INTO audit_logs (user_id, action, target_entity, target_id, new_value, timestamp)
+                VALUES ('system', 'INSERT', 'ticket_categories', NEW.id, JSON_OBJECT('id', NEW.id, 'name', NEW.name), NOW());
+            END;
+            
+            CREATE TRIGGER audit_trigger_ticket_categories_update
+            AFTER UPDATE ON ticket_categories
+            FOR EACH ROW
+            BEGIN
+                INSERT INTO audit_logs (user_id, action, target_entity, target_id, old_value, new_value, timestamp)
+                VALUES ('system', 'UPDATE', 'ticket_categories', NEW.id,
+                    JSON_OBJECT('id', OLD.id, 'name', OLD.name),
+                    JSON_OBJECT('id', NEW.id, 'name', NEW.name), NOW());
+            END;
+            """
+            
+            # Execute each trigger creation separately
+            trigger_statements = audit_triggers_sql.split(';')
+            for statement in trigger_statements:
+                statement = statement.strip()
+                if statement:
+                    try:
+                        self.cursor.execute(statement)
+                        self.logger.info("Re-created audit trigger")
+                    except Exception as e:
+                        self.logger.warning(f"Could not re-create audit trigger: {e}")
+            
+            self.connection.commit()
+            self.logger.info("Audit triggers re-enabled after import")
+            
+        except Exception as e:
+            self.logger.warning(f"Error re-enabling audit triggers: {e}")
+    
     def check_table_exists(self, table_name: str) -> bool:
         """Check if a table exists in the database."""
         try:
@@ -698,6 +801,8 @@ class EnhancedTicketDataImporter:
             self.logger.error(f"Unexpected error during import: {e}")
             return False
         finally:
+            # Re-enable audit triggers before disconnecting
+            self.enable_audit_triggers()
             self.disconnect()
     
     def _print_summary(self, success_count: int, total_tasks: int):

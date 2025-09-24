@@ -1593,9 +1593,10 @@ const ActionForm = ({
           <div className={styles.formField}>
               <label htmlFor="clientApproval">موافقة العميل</label>
               <select id="clientApproval" value={String(formData.clientApproval || '')} onChange={e => onFormChange('clientApproval', e.target.value)} disabled={disabled}>
-                <option value="">اختر موافقة العميل</option>
+                <option value="no-choice">لا يوجد خيار</option>
+                <option value="pending">في انتظار رد العميل</option>
                 <option value="approved">موافق</option>
-                <option value="rejected">مرفوض</option>
+                <option value="rejected">غير موافق</option>
               </select>
           </div>
       </div>

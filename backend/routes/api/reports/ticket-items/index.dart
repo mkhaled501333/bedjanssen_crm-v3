@@ -92,7 +92,7 @@ Future<Response> _handlePost(RequestContext context) async {
       actions: _safeCastToStringList(filters['actions']),
       pulledStatus: filters['pulledStatus'] as bool?,
       deliveredStatus: filters['deliveredStatus'] as bool?,
-      clientApproval: filters['clientApproval'] as bool?,
+      clientApproval: _safeCastToList<int>(filters['clientApproval']),
       page: page,
       limit: limit,
     );
