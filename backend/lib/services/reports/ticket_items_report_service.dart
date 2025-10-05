@@ -30,45 +30,15 @@ class TicketItemsReportService {
     try {
       // First, check if the view exists and has data
       try {
-        // Diagnostic: Check each table individually to identify the issue
-        print('🔍 Diagnosing view data issue...');
-        
-        final tables = [
-          'ticket_items',
-          'tickets', 
-          'customers',
-          'governorates',
-          'cities',
-          'product_info',
-          'request_reasons',
-          'ticket_item_change_another',
-          'ticket_item_change_same',
-          'ticket_item_maintenance'
-        ];
-        
-        for (final table in tables) {
-          try {
-            final countQuery = 'SELECT COUNT(*) as count FROM $table';
-            final countResult = await DatabaseService.query(countQuery);
-            final count = countResult.first['count'] as int;
-            print('  📊 $table: $count records');
-          } catch (e) {
-            print('  ❌ $table: Error - $e');
-          }
-        }
-        
         final testQuery = 'SELECT COUNT(*) as count FROM ticket_items_report LIMIT 1';
         final testResult = await DatabaseService.query(testQuery);
-        print('✓ View ticket_items_report exists and is accessible');
         
         // Handle case where view might be empty
         if (testResult.isNotEmpty) {
           final count = testResult.first['count'] as int;
-          print('✓ View has $count total records');
           
           // If view is completely empty, return empty result instead of error
           if (count == 0) {
-            print('⚠ View is empty - returning empty result structure');
             return {
               'success': true,
               'data': {
@@ -101,11 +71,8 @@ class TicketItemsReportService {
               }
             };
           }
-        } else {
-          print('⚠ View exists but returned no results');
         }
       } catch (e) {
-        print('✗ Error accessing ticket_items_report view: $e');
         return {
           'success': false,
           'error': 'Database view not accessible: ${e.toString()}',
@@ -115,6 +82,7 @@ class TicketItemsReportService {
       // Build base WHERE clause for the current filter state
       final whereConditions = <String>['company_id = ?'];
       final parameters = <dynamic>[companyId];
+      
 
       // Add currently applied filters to WHERE clause
       if (customerIds != null && customerIds.isNotEmpty) {
@@ -363,13 +331,6 @@ class TicketItemsReportService {
         }
       };
 
-      // Debug: Check for any remaining DateTime objects
-      print('Response data keys: ${responseData.keys}');
-      print('Report data length: ${reportData.length}');
-      if (reportData.isNotEmpty) {
-        print('First report item keys: ${reportData.first.keys}');
-        print('First report item inspection_date type: ${reportData.first['inspection_date']?.runtimeType}');
-      }
 
       return responseData;
     } catch (e) {
@@ -409,12 +370,6 @@ class TicketItemsReportService {
         item['name'].toString().isNotEmpty
       ).toList();
       
-      // Debug: Log the structure of the first item
-      if (mappedResult.isNotEmpty) {
-        print('First ${tableAlias} item: ${mappedResult.first}');
-        print('First ${tableAlias} item type: ${mappedResult.first.runtimeType}');
-        print('First ${tableAlias} item keys: ${mappedResult.first.keys}');
-      }
       
       return mappedResult;
     } catch (e) {

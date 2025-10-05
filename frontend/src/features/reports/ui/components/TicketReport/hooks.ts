@@ -10,7 +10,7 @@ import {
 } from './types';
 import TicketItemsReportAPI from './api';
 
-export const useTicketReportData = (companyId: number = 1) => {
+export const useTicketReportData = (companyId: number) => {
   const [data, setData] = useState<TicketItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

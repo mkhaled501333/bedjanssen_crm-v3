@@ -10,6 +10,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import TableLoadingOverlay from './components/TableLoadingOverlay';
 import LoadingRow from './components/LoadingRow';
 import { PrintService } from './services/printService';
+import { getCurrentUserCompanyId } from '../../../../../shared/utils/auth';
 
 // Custom hook for responsive width calculation
 const useResponsiveWidth = () => {
@@ -35,7 +36,7 @@ const useResponsiveWidth = () => {
 };
 
 const TicketReport: React.FC = () => {
-  const companyId = 1; // Default company ID, should come from auth context
+  const companyId = getCurrentUserCompanyId() || 1; // Get from user auth, fallback to 1
   const tableWidth = useResponsiveWidth();
   const isInitialMount = useRef(true);
   const hasInitialData = useRef(false);
