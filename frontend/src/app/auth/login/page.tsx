@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { startTokenMonitoring } from '../../../shared/utils';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -32,6 +33,10 @@ const LoginPage = () => {
       const data = await res.json();
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Start token monitoring after successful login
+      startTokenMonitoring();
+      
       window.location.href = '/';
     } catch (err: unknown) {
       if (err instanceof Error) {

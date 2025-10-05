@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import navStyles from './navigation.module.css';
 import { SearchBar } from '../features/search';
 import { DEFAULT_APPS } from '../shared/constants';
@@ -11,8 +11,8 @@ import { MasterData, UserManagement } from '../features/masterdata/ui/components
 import { Reports } from '../features/reports';
 
 
-import { logout } from '../shared/utils';
-import { getCurrentUserName, getCurrentUserCompanyName, hasPermission } from '../shared/utils/auth';
+import { logout, startTokenMonitoring, stopTokenMonitoring } from '../shared/utils';
+import { getCurrentUserName, getCurrentUserCompanyName, hasPermission, isAuthenticated } from '../shared/utils/auth';
 
 
 
@@ -20,6 +20,18 @@ export default function Home() {
   const [activeApp, setActiveApp] = useState('mail');
   const [activeTab, setActiveTab] = useState('home');
   const [tabs, setTabs] = useState<Array<{ id: string; name: string; icon: string; type: string; query?: string; customerId?: string }>>([{ id: 'home', name: 'Home', icon: '🏠', type: 'home' }]);
+
+  // Start token monitoring when component mounts and user is authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      startTokenMonitoring();
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      stopTokenMonitoring();
+    };
+  }, []);
 
   // Customer search suggestions will be dynamically loaded from the CRM backend
   // No static suggestions needed as the SearchBar will fetch real customer data

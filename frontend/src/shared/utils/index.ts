@@ -122,12 +122,75 @@ export async function authFetch(input: RequestInfo, init: RequestInit = {}) {
   if (!headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
-  return fetch(input, { ...init, headers });
+  
+  const response = await fetch(input, { ...init, headers });
+  
+  // Check for 401 Unauthorized response (token expired)
+  if (response.status === 401) {
+    console.warn('Token expired or invalid. Logging out user.');
+    logout();
+    throw new Error('Authentication token expired. Please log in again.');
+  }
+  
+  return response;
+}
+
+// Token expiration utilities
+export function isTokenExpired(token: string): boolean {
+  try {
+    // Decode JWT token to check expiration
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    return payload.exp < currentTime;
+  } catch {
+    // If token is malformed, consider it expired
+    return true;
+  }
+}
+
+export function getTokenExpirationTime(token: string): number | null {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000; // Convert to milliseconds
+  } catch {
+    return null;
+  }
+}
+
+// Global token monitoring
+let tokenCheckInterval: NodeJS.Timeout | null = null;
+
+export function startTokenMonitoring() {
+  if (typeof window === 'undefined') return;
+  
+  // Clear existing interval
+  if (tokenCheckInterval) {
+    clearInterval(tokenCheckInterval);
+  }
+  
+  // Check token every 30 seconds
+  tokenCheckInterval = setInterval(() => {
+    const token = localStorage.getItem('token');
+    if (token && isTokenExpired(token)) {
+      console.warn('Token has expired. Logging out user.');
+      logout();
+    }
+  }, 30000); // Check every 30 seconds
+}
+
+export function stopTokenMonitoring() {
+  if (tokenCheckInterval) {
+    clearInterval(tokenCheckInterval);
+    tokenCheckInterval = null;
+  }
 }
 
 // Logout utility
 export function logout() {
   if (typeof window !== 'undefined') {
+    // Stop token monitoring
+    stopTokenMonitoring();
+    
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     // Call backend logout endpoint with proper URL and auth
