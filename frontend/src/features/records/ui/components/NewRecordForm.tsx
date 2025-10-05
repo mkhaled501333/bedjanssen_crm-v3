@@ -178,7 +178,7 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
     };
 
     loadData();
-  }, [products]);
+  }, []);
 
   // Update cities when governorate changes
   useEffect(() => {
