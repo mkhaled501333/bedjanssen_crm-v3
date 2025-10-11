@@ -73,50 +73,66 @@ export class PrintService {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>تقرير التذاكر المحددة</title>
         <style>
+          @page {
+            size: A4;
+            margin: 15mm;
+          }
           @media print {
-            body { margin: 0; }
+            body { 
+              margin: 0;
+              padding: 0;
+            }
             .no-print { display: none; }
+            .ticket {
+              page-break-after: always;
+              page-break-inside: avoid;
+            }
+            .ticket:last-child {
+              page-break-after: auto;
+            }
           }
           body {
             font-family: 'Arial', sans-serif;
-            margin: 30px;
+            margin: 15px;
+            padding: 0;
             direction: rtl;
             text-align: right;
-            min-height: 100vh;
           }
           .ticket {
-            page-break-inside: avoid;
-            margin-bottom: 20px;
             border: 2px solid #333;
-            padding: 5px;
-            border-radius: 8px;
-            min-height: auto;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            height: calc(297mm - 20mm);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
           }
           .ticket-header {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             border-bottom: 2px solid #333;
-            padding-bottom: 10px;
+            padding-bottom: 6px;
           }
           .ticket-serial {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
           }
           .company-name {
-            font-size: 14px;
-            margin-bottom: 5px;
+            font-size: 12px;
+            margin-bottom: 3px;
           }
           .form-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
           }
           .customer-info {
             display: flex;
             flex-direction: column;
             gap: 0;
-            margin-bottom: 25;
+            margin-bottom: 10px;
           }
           .info-item {
             display: flex;
@@ -124,61 +140,68 @@ export class PrintService {
             gap: 0;
             min-height: 0;
             margin: 0;
-            padding: 4px 0;
+            padding: 2px 0;
           }
           .info-label {
             font-weight: bold;
             min-width: 120px;
+            font-size: 13px;
           }
           .info-value {
             font-weight: normal;
             margin-left: 5px;
+            font-size: 13px;
           }
           .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
-            min-height: auto;
+            margin-bottom: 12px;
           }
           .items-table th,
           .items-table td {
             border: 1px solid #333;
-            padding: 12px;
+            padding: 8px;
             text-align: center;
-            min-height: 40px;
+            font-size: 12px;
           }
           .items-table th {
             background-color: #f0f0f0;
             font-weight: bold;
           }
           .footer-sections {
-            margin-top: 30px;
+            margin-top: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
           }
           .footer-item {
-            margin-bottom: 35px;
+            margin-bottom: 12px;
           }
           .footer-label {
             font-weight: bold;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
+            font-size: 13px;
           }
           .footer-content {
-            min-height: 80px;
+            min-height: 50px;
+            border-bottom: 1px solid #ddd;
           }
           
           .delivery-date .footer-content {
-            min-height: 60px;
+            min-height: 40px;
           }
           
           .notes .footer-content {
-            min-height: 100px;
+            min-height: 60px;
           }
           
           .technical-report .footer-content {
-            min-height: 120px;
+            min-height: 70px;
           }
           
           .complaint-receiver .footer-content {
-            min-height: 40px;
+            min-height: 30px;
           }
           .print-button {
             position: fixed;
@@ -315,55 +338,71 @@ export class PrintService {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>تقرير التذاكر المحددة - نموذج انجلندر</title>
         <style>
+          @page {
+            size: A4;
+            margin: 15mm;
+          }
           @media print {
-            body { margin: 0; }
+            body { 
+              margin: 0;
+              padding: 0;
+            }
             .no-print { display: none; }
+            .ticket {
+              page-break-after: always;
+              page-break-inside: avoid;
+            }
+            .ticket:last-child {
+              page-break-after: auto;
+            }
           }
           body {
             font-family: 'Arial', sans-serif;
-            margin: 30px;
+            margin: 15px;
+            padding: 0;
             direction: rtl;
             text-align: right;
-            min-height: 100vh;
           }
           .ticket {
-            page-break-inside: avoid;
-            margin-bottom: 20px;
             border: 2px solid #333;
-            padding: 5px;
-            border-radius: 8px;
-            min-height: auto;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            height: calc(297mm - 20mm);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
           }
           .ticket-header {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             border-bottom: 2px solid #333;
-            padding-bottom: 10px;
+            padding-bottom: 6px;
           }
           .ticket-serial {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
           }
           .company-name {
-            font-size: 14px;
-            margin-bottom: 5px;
+            font-size: 12px;
+            margin-bottom: 3px;
           }
           .company-name-arabic {
-            font-size: 14px;
-            margin-bottom: 5px;
+            font-size: 12px;
+            margin-bottom: 3px;
             color: #333;
           }
           .form-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
           }
           .customer-info {
             display: flex;
             flex-direction: column;
             gap: 0;
-            margin-bottom: 25px;
+            margin-bottom: 10px;
           }
           .info-item {
             display: flex;
@@ -371,53 +410,68 @@ export class PrintService {
             gap: 0;
             min-height: 0;
             margin: 0;
-            padding: 4px 0;
+            padding: 2px 0;
           }
           .info-label {
             font-weight: bold;
             min-width: 120px;
+            font-size: 13px;
           }
           .info-value {
             font-weight: normal;
             margin-left: 5px;
+            font-size: 13px;
           }
           .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
-            min-height: auto;
+            margin-bottom: 12px;
           }
           .items-table th,
           .items-table td {
             border: 1px solid #333;
-            padding: 12px;
+            padding: 8px;
             text-align: center;
-            min-height: 40px;
+            font-size: 12px;
           }
           .items-table th {
             background-color: #f0f0f0;
             font-weight: bold;
           }
           .footer-sections {
-            margin-top: 30px;
+            margin-top: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
           }
           .footer-item {
-            margin-bottom: 35px;
+            margin-bottom: 12px;
           }
           .footer-label {
             font-weight: bold;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
+            font-size: 13px;
           }
           .footer-content {
-            min-height: 80px;
+            min-height: 50px;
+            border-bottom: 1px solid #ddd;
+          }
+          
+          .delivery-date .footer-content {
+            min-height: 40px;
           }
           
           .notes .footer-content {
-            min-height: 100px;
+            min-height: 180px;
+          }
+          
+          .technical-report .footer-content {
+            min-height: 70px;
           }
           
           .complaint-receiver .footer-content {
-            min-height: 40px;
+            min-height: 100px;
           }
           
           .print-button {

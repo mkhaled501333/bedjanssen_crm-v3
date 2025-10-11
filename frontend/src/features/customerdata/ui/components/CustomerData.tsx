@@ -12,6 +12,7 @@ import { AddNewItemModal } from './modals/AddNewItemModal';
 import { CloseTicketModal } from './modals/CloseTicketModal';
 import { ViewAllCallsModal } from './modals/ViewAllCallsModal';
 import { ActivityLogsModal } from './modals/ActivityLogsModal';
+import { PrintService } from '../../../reports/ui/components/TicketReport/services/printService';
 import { getCurrentUserCompanyId, getCurrentUserId } from '../../../../shared/utils/auth';
 import { 
   updateCustomerDetails, 
@@ -415,6 +416,18 @@ export function CustomerData({ customerId }: CustomerDataProps) {
       console.error("Failed to update ticket category");
       // The modal will show its own error notification
       throw error; // Re-throw to let the modal handle its loading state
+    }
+  };
+
+  const handlePrintJanssenFormat = async () => {
+    if (activeTicket) {
+      await PrintService.printSelectedTickets([activeTicket.ticketID]);
+    }
+  };
+
+  const handlePrintEnglanderFormat = async () => {
+    if (activeTicket) {
+      await PrintService.printEnglanderFormat([activeTicket.ticketID]);
     }
   };
 
@@ -1202,6 +1215,20 @@ export function CustomerData({ customerId }: CustomerDataProps) {
                                 title="View ticket activities"
                               >
                                 📋 Activities
+                              </button>
+                              <button 
+                                className={styles.printBtn}
+                                onClick={handlePrintJanssenFormat}
+                                title="طباعة نموذج يانسن"
+                              >
+                                🖨️ نموذج يانسن
+                              </button>
+                              <button 
+                                className={styles.printBtn}
+                                onClick={handlePrintEnglanderFormat}
+                                title="طباعة نموذج انجلندر"
+                              >
+                                🖨️ نموذج انجلندر
                               </button>
                               <button 
                                 className={styles.closeTicketBtn} 
