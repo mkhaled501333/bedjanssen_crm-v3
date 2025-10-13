@@ -101,19 +101,19 @@ export class PrintService {
           }
           .ticket {
             border: 2px solid #333;
-            padding: 8px;
+            padding: 2px 8px 8px 8px;
             border-radius: 4px;
             margin-bottom: 10px;
-            height: calc(297mm - 20mm);
+            height: calc(100vh - 30px);
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
           }
           .ticket-header {
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border-bottom: 2px solid #333;
-            padding-bottom: 6px;
+            padding-bottom: 4px;
           }
           .ticket-serial {
             font-size: 14px;
@@ -133,7 +133,7 @@ export class PrintService {
             display: flex;
             flex-direction: column;
             gap: 0;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
           }
           .info-item {
             display: flex;
@@ -141,7 +141,7 @@ export class PrintService {
             gap: 0;
             min-height: 0;
             margin: 0;
-            padding: 2px 0;
+            padding: 1px 0;
           }
           .info-label {
             font-weight: bold;
@@ -156,12 +156,12 @@ export class PrintService {
           .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
           }
           .items-table th,
           .items-table td {
             border: 1px solid #333;
-            padding: 8px;
+            padding: 6px;
             text-align: center;
             font-size: 12px;
           }
@@ -170,39 +170,43 @@ export class PrintService {
             font-weight: bold;
           }
           .footer-sections {
-            margin-top: 12px;
+            margin-top: 6px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            min-height: 0;
           }
           .footer-item {
-            margin-bottom: 12px;
+            margin-bottom: 6px;
           }
           .footer-label {
             font-weight: bold;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             font-size: 13px;
           }
           .footer-content {
-            min-height: 50px;
+            min-height: 60px;
             border-bottom: 1px solid #ddd;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
           }
           
           .delivery-date .footer-content {
-            min-height: 40px;
+            min-height: 50px;
           }
           
           .notes .footer-content {
-            min-height: 60px;
+            min-height: 80px;
           }
           
           .technical-report .footer-content {
-            min-height: 70px;
+            min-height: 100px;
           }
           
           .complaint-receiver .footer-content {
-            min-height: 30px;
+            min-height: 40px;
           }
           .print-button {
             position: fixed;
@@ -366,19 +370,19 @@ export class PrintService {
           }
           .ticket {
             border: 2px solid #333;
-            padding: 8px;
+            padding: 2px 8px 8px 8px;
             border-radius: 4px;
             margin-bottom: 10px;
-            height: calc(297mm - 20mm);
+            height: calc(100vh - 30px);
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
           }
           .ticket-header {
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border-bottom: 2px solid #333;
-            padding-bottom: 6px;
+            padding-bottom: 4px;
           }
           .ticket-serial {
             font-size: 14px;
@@ -403,7 +407,7 @@ export class PrintService {
             display: flex;
             flex-direction: column;
             gap: 0;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
           }
           .info-item {
             display: flex;
@@ -411,7 +415,7 @@ export class PrintService {
             gap: 0;
             min-height: 0;
             margin: 0;
-            padding: 2px 0;
+            padding: 1px 0;
           }
           .info-label {
             font-weight: bold;
@@ -426,12 +430,12 @@ export class PrintService {
           .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
           }
           .items-table th,
           .items-table td {
             border: 1px solid #333;
-            padding: 8px;
+            padding: 6px;
             text-align: center;
             font-size: 12px;
           }
@@ -440,39 +444,43 @@ export class PrintService {
             font-weight: bold;
           }
           .footer-sections {
-            margin-top: 12px;
+            margin-top: 6px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            min-height: 0;
           }
           .footer-item {
-            margin-bottom: 12px;
+            margin-bottom: 6px;
           }
           .footer-label {
             font-weight: bold;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             font-size: 13px;
           }
           .footer-content {
-            min-height: 50px;
+            min-height: 60px;
             border-bottom: 1px solid #ddd;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
           }
           
           .delivery-date .footer-content {
-            min-height: 40px;
+            min-height: 50px;
           }
           
           .notes .footer-content {
-            min-height: 180px;
+            min-height: 200px;
           }
           
           .technical-report .footer-content {
-            min-height: 70px;
+            min-height: 100px;
           }
           
           .complaint-receiver .footer-content {
-            min-height: 100px;
+            min-height: 120px;
           }
           
           .print-button {
