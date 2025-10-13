@@ -20,6 +20,7 @@ import {
   addCustomerTicket, 
   closeTicket, 
   updateTicketCategory, 
+  updateTicketPrintingNotes,
   addTicketCall, 
   addTicketItem, 
   updateTicketItemInspection, 
@@ -94,6 +95,8 @@ export function CustomerData({ customerId }: CustomerDataProps) {
   const [isTicketActivityLogsModalOpen, setIsTicketActivityLogsModalOpen] = useState(false);
   const [selectedTicketForActivities, setSelectedTicketForActivities] = useState<string | null>(null);
   const [isCustomerActivityLogsModalOpen, setIsCustomerActivityLogsModalOpen] = useState(false);
+  const [printingNotesText, setPrintingNotesText] = useState<string>('');
+  const [isPrintingNotesDirty, setIsPrintingNotesDirty] = useState(false);
 
 
   const getCompanyName = (companyId: number) => {
@@ -419,6 +422,19 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     }
   };
 
+  const handleSavePrintingNotes = async () => {
+    if (!activeTicket) return;
+    
+    try {
+      await updateTicketPrintingNotes(activeTicket.ticketID.toString(), printingNotesText);
+      setIsPrintingNotesDirty(false);
+      refreshCustomerData();
+    } catch (error) {
+      console.error("Failed to update printing notes:", error);
+      alert("Failed to update printing notes");
+    }
+  };
+
   const handlePrintJanssenFormat = async () => {
     if (activeTicket) {
       await PrintService.printSelectedTickets([activeTicket.ticketID]);
@@ -619,6 +635,8 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     if (itemId) {
       try {
         await updateTicketItemInspection(itemId.toString(), {
+          inspected: itemState.inspectionChecked,
+          inspectionDate: itemState.inspectionDate,
           inspectionResult: itemState.inspectionResult,
         });
         setDirtyResults(prev => ({ ...prev, [key]: false })); // Hide button on success
@@ -661,43 +679,31 @@ export function CustomerData({ customerId }: CustomerDataProps) {
         return; // End the function here for the un-check case
     }
 
-    // For changes to the inspection result, just mark it as dirty
-    if (newState.inspectionResult !== undefined) {
+    // For changes to inspection fields (checkbox, date, result), mark as dirty
+    if (newState.inspectionResult !== undefined || newState.inspectionChecked !== undefined || newState.inspectionDate !== undefined) {
       setTicketItemStates(prev => ({ ...prev, [key]: { ...prev[key], ...newState } }));
       setDirtyResults(prev => ({ ...prev, [key]: true }));
       setIsItemDirty(prev => ({ ...prev, [key]: true }));
       return;
     }
 
-    // For all other cases (checking the box, changing date/result)
+    // For all other cases
     const updatedState = { ...currentState, ...newState };
     setTicketItemStates(prev => ({ ...prev, [key]: updatedState }));
-
-    // Trigger backend update only if relevant fields have changed
-    if (newState.inspectionDate !== undefined || newState.inspectionChecked === true) {
-      const [, itemIdStr] = key.split('-');
-      const itemId = parseInt(itemIdStr, 10);
-      if (itemId) {
-        // This could be debounced in a real app, but for now we'll call it directly
-        // Send only the specific field that was changed
-        if (newState.inspectionChecked === true) {
-          updateTicketItemInspection(itemId.toString(), {
-            inspected: true
-          });
-        }
-        if (newState.inspectionDate !== undefined) {
-          updateTicketItemInspection(itemId.toString(), {
-            inspectionDate: updatedState.inspectionDate
-          });
-        }
-      }
-    }
   };
 
   const activeTicket = useMemo(() => {
     if (activeTab === 'all' || !customer) return null;
     return customer.tickets.find(t => t.ticketID.toString() === activeTab) || null;
   }, [activeTab, customer]);
+
+  // Initialize printing notes when active ticket changes
+  useEffect(() => {
+    if (activeTicket) {
+      setPrintingNotesText(activeTicket.printingNotes || '');
+      setIsPrintingNotesDirty(false);
+    }
+  }, [activeTicket]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -1198,6 +1204,29 @@ export function CustomerData({ customerId }: CustomerDataProps) {
                             <div className={styles.detailItem}><label>Created By</label><span>{activeTicket.createdBy || 'Unknown User'}</span></div>
                             <div className={styles.detailItem}><label>Category</label><span>{activeTicket.ticketCat}</span></div>
                             <div className={styles.detailItem}><label>Company</label><span>{getCompanyName(activeTicket.companyId)}</span></div>
+                        </div>
+                        <div className={styles.printingNotesSection}>
+                          <label className={styles.printingNotesLabel}>ملاحظات الطباعة (Printing Notes)</label>
+                          <textarea
+                            className={styles.printingNotesTextarea}
+                            value={printingNotesText}
+                            onChange={(e) => {
+                              setPrintingNotesText(e.target.value);
+                              setIsPrintingNotesDirty(true);
+                            }}
+                            disabled={activeTicket.status === 1}
+                            placeholder="أدخل ملاحظات الطباعة هنا..."
+                            rows={3}
+                          />
+                          {isPrintingNotesDirty && (
+                            <button
+                              className={styles.savePrintingNotesBtn}
+                              onClick={handleSavePrintingNotes}
+                              disabled={activeTicket.status === 1}
+                            >
+                              💾 حفظ الملاحظات
+                            </button>
+                          )}
                         </div>
                         <div className={styles.ticketActionsStatic}>
                             {activeTicket.status === 1 && (

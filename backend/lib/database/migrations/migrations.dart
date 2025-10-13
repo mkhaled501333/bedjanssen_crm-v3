@@ -27,6 +27,9 @@ Future<void> runMigrations(MySqlConnection conn) async {
     // Create audit triggers
     await createAuditTriggers(conn);
 
+    // Add printing_notes column to existing tickets table
+    await addPrintingNotesColumn(conn);
+
     print('✓ All migrations completed: database schema and indexes ensured.');
   } catch (e) {
     print('✗ Migration failed: $e');

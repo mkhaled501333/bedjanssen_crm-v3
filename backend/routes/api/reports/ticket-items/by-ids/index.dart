@@ -118,6 +118,7 @@ Future<List<Map<String, dynamic>>> _getTicketsByIds(List<int> ticketIds) async {
       city.name as cityName,
       c.address,
       t.description,
+      t.printing_notes as printingNotes,
       u.name as createdByName,
       c.id as customerId
     FROM tickets t
@@ -158,15 +159,16 @@ Future<List<Map<String, dynamic>>> _getTicketsByIds(List<int> ticketIds) async {
       final items = await _getTicketItems(ticketId);
       
              final ticketData = {
-         'id': ticketId,
-         'customerName': row['customerName']?.toString() ?? '',
-         'governorateName': row['governorateName']?.toString() ?? '',
-         'cityName': row['cityName']?.toString() ?? '',
-         'adress': row['address']?.toString() ?? '',
-         'phones': phones,
-         'createdByName': row['createdByName']?.toString() ?? '',
-         'items': items,
-       };
+        'id': ticketId,
+        'customerName': row['customerName']?.toString() ?? '',
+        'governorateName': row['governorateName']?.toString() ?? '',
+        'cityName': row['cityName']?.toString() ?? '',
+        'adress': row['address']?.toString() ?? '',
+        'phones': phones,
+        'createdByName': row['createdByName']?.toString() ?? '',
+        'printingNotes': row['printingNotes']?.toString() ?? '',
+        'items': items,
+      };
        
                print('Ticket data for ID $ticketId:');
         print('  Customer: ${ticketData['customerName']}');

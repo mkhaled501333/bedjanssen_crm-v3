@@ -328,7 +328,8 @@ Future<void> createBasicTablesWithoutForeignKeys(MySqlConnection conn) async {
       closed_at DATETIME,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       closing_notes TEXT,
-      closed_by INT
+      closed_by INT,
+      printing_notes TEXT
     )
   ''');
 

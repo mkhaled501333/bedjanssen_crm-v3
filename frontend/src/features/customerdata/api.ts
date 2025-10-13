@@ -311,6 +311,18 @@ export async function updateTicketCategory(ticketId: string, categoryId: number)
   }
 }
 
+export async function updateTicketPrintingNotes(ticketId: string, printingNotes: string): Promise<void> {
+  const response = await authFetch(`${getApiBaseURL()}/api/tickets/${ticketId}/printing-notes`, {
+    method: 'PUT',
+    body: JSON.stringify({ printingNotes }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Failed to update ticket printing notes' }));
+    throw new Error(errorData.message);
+  }
+}
+
 export const getManufacturers = async () => {
   // FIXME: Update with the correct endpoint
   const response = await authFetch('/api/masterdata/manufacturers');

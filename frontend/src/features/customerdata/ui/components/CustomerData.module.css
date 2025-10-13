@@ -515,6 +515,66 @@
     flex-shrink: 0;
 }
 
+.printingNotesSection {
+    margin-top: 16px;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.printingNotesLabel {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.printingNotesTextarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.printingNotesTextarea:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.printingNotesTextarea:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.savePrintingNotesBtn {
+    margin-top: 8px;
+    padding: 6px 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.savePrintingNotesBtn:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.savePrintingNotesBtn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
 .ticketActionsStatic {
     padding: 12px;
     background: #f8f9fa;

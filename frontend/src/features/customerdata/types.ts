@@ -35,6 +35,7 @@ export interface CustomerTicket {
   description: string;
   status: number;
   priority: string;
+  printingNotes?: string;
   createdBy: string;
   ticketItems: TicketItem[];
   calls: CustomerCall[];

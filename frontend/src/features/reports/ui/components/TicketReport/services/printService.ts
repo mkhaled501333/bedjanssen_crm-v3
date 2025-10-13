@@ -8,6 +8,7 @@ interface PrintTicketData {
   adress: string;
   phones: string[];
   createdByName: string;
+  printingNotes?: string;
   items: {
     productName: string;
     productSize: string;
@@ -305,7 +306,7 @@ export class PrintService {
             </div>
             <div class="footer-item notes">
               <div class="footer-label">ملاحظات:</div>
-              <div class="footer-content"></div>
+              <div class="footer-content">${ticket.printingNotes || ''}</div>
             </div>
             <div class="footer-item technical-report">
               <div class="footer-label">تقرير الفني:</div>
@@ -573,7 +574,7 @@ export class PrintService {
           <div class="footer-sections">
             <div class="footer-item notes">
               <div class="footer-label">ملاحظات:</div>
-              <div class="footer-content"></div>
+              <div class="footer-content">${ticket.printingNotes || ''}</div>
             </div>
             <div class="footer-item complaint-receiver">
               <div class="footer-label">متلقى الشكوى: ${ticket.createdByName || 'غير محدد'}</div>
