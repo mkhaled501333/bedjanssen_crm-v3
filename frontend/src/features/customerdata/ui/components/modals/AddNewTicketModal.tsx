@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, DatePicker, Button, Row, Col, Radio, ConfigProvider, notification } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, Button, Row, Col, Radio, ConfigProvider, notification, InputNumber } from 'antd';
 import moment from 'moment';
 import { getCallCategories } from '../../../api';
 import { getTicketCategories, getRequestReasons, getProducts, getCompanies } from '../../../../masterdata/api';
@@ -104,31 +104,38 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
 
   const handleSave = () => {
     form.validateFields().then(values => {
+      console.log('Form values:', values);
       const ticketData = {
+        companyId: values.companyId, // Include companyId from form
         ticketCatId: values.ticketCatId,
-        description: values.description,
+        description: values.description || '',
         priority: values.priority,
         call: {
           callType: values.callType,
           callCatId: values.callCatId,
-          description: values.callDescription,
-          callNotes: values.callNotes,
-          callDuration: values.callDuration,
+          description: values.callDescription || '',
+          callNotes: values.callNotes || '',
+          callDuration: values.callDuration || '0:0',
         },
         item: {
           productId: values.productId,
           quantity: values.quantity,
-          productSize: values.productSize,
+          productSize: values.productSize || '',
           purchaseDate: values.purchaseDate.format('YYYY-MM-DD'),
           purchaseLocation: values.purchaseLocation,
           requestReasonId: values.requestReasonId,
           requestReasonDetail: values.requestReasonDetail,
         }
       };
+      console.log('Ticket data to save:', ticketData);
       onSave(ticketData);
       form.resetFields();
     }).catch(info => {
       console.log('Validate Failed:', info);
+      api.error({
+        message: 'خطأ في التحقق من البيانات',
+        description: 'يرجى التحقق من جميع الحقول المطلوبة',
+      });
     });
   };
 
@@ -255,20 +262,38 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="quantity" label={<span className={styles.formLabel}>الكمية</span>}>
-                    <Input size="small" type="number" />
+                  <Form.Item 
+                    name="quantity" 
+                    label={<span className={styles.formLabel}>الكمية</span>}
+                    rules={[
+                      { required: true, message: 'الكمية مطلوبة' },
+                      { 
+                        type: 'number', 
+                        message: 'يجب أن تكون الكمية رقم'
+                      }
+                    ]}
+                  >
+                    <InputNumber size="small" min={1} style={{ width: '100%' }} />
                   </Form.Item>
                 </Col>
               </Row>
               
               <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="purchaseDate" label={<span className={styles.formLabel}>تاريخ الشراء</span>}>
+                  <Form.Item 
+                    name="purchaseDate" 
+                    label={<span className={styles.formLabel}>تاريخ الشراء</span>}
+                    rules={[{ required: true, message: 'تاريخ الشراء مطلوب' }]}
+                  >
                     <DatePicker style={{ width: '100%' }} size="small" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                    <Form.Item name="purchaseLocation" label="مكان الشراء">
+                    <Form.Item 
+                      name="purchaseLocation" 
+                      label={<span className={styles.formLabel}>مكان الشراء</span>}
+                      rules={[{ required: true, message: 'مكان الشراء مطلوب' }]}
+                    >
                         <Input size="small" placeholder="أدخل مكان الشراء" />
                     </Form.Item>
                 </Col>

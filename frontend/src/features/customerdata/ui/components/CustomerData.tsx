@@ -278,13 +278,18 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     if (!customer) return;
 
     // Get current user's company ID and user ID from authentication
-    const companyId = getCurrentUserCompanyId();
+    const userCompanyId = getCurrentUserCompanyId();
     const userId = getCurrentUserId();
     
-    if (companyId === null || userId === null) {
+    if (userCompanyId === null || userId === null) {
       console.error('User not authenticated or missing company/user information');
+      alert('Error: User not authenticated. Please log in again.');
       return;
     }
+    
+    // Use companyId from ticketData if provided (from form), otherwise use user's companyId
+    const companyId = (ticketData.companyId as number) || userCompanyId;
+    
     const call = ticketData.call as {
       callType: string;
       callCatId: number;
@@ -327,13 +332,15 @@ export function CustomerData({ customerId }: CustomerDataProps) {
       }
     };
 
+    console.log('Sending ticket data:', JSON.stringify(newTicketData, null, 2));
+
     try {
       await addCustomerTicket(newTicketData);
       setAddNewTicketModalOpen(false);
       refreshCustomerData();
-    } catch {
-      console.error("Failed to add ticket");
-      // You might want to show an error message to the user
+    } catch (error) {
+      console.error("Failed to add ticket:", error);
+      alert(`Failed to add ticket: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
