@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   getGovernoratesWithCities,
   getCallCategories,
@@ -22,6 +22,11 @@ interface NewRecordFormProps {
   initialQuery?: string;
   onSubmit?: (customerId: unknown, customerName: string) => void;
   onCancel?: () => void;
+  onFormChange?: (formData: Record<string, unknown>) => void; // Form change handler
+  initialFormData?: Record<string, unknown> | null;
+  onTabNameUpdate?: (tabName: string) => void; // For updating tab name when customer name changes
+  isActive?: boolean; // Whether this form is currently visible/active
+  tabId?: string; // Unique identifier for this tab instance
 }
 
 interface Governorate {
@@ -51,7 +56,9 @@ interface FormData {
   productId: string;
   brandId: string;
   quantity: string;
-  size: string;
+  length: string; // طول
+  width: string;  // عرض
+  height: string; // ارتفاع
   purchaseDate: string;
   purchasePlace: string;
   requestReasonId: string;
@@ -94,32 +101,41 @@ function Toast({ message, onClose }: { message: string, onClose: () => void }) {
 }
 
 
-export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormProps) {
+export function NewRecordForm({ initialQuery = '', onSubmit, onFormChange, initialFormData, onTabNameUpdate, isActive = true, tabId = 'default' }: NewRecordFormProps): JSX.Element {
   // Check if initialQuery is a phone number (contains only digits, spaces, +, -, (, ))
   const isPhoneNumber = /^[\d\s\+\-\(\)]+$/.test(initialQuery.trim());
   
-  const [formData, setFormData] = useState<FormData>({
-    name: isPhoneNumber ? '' : initialQuery,
-    phone: isPhoneNumber ? initialQuery : '',
-    governorateId: '',
-    cityId: '',
-    address: '',
-    notes: '',
-    requestType: 'call',
-    productId: '',
-    brandId: '',
-    quantity: '',
-    size: '',
-    purchaseDate: '',
-    purchasePlace: '',
-    requestReasonId: '',
-    requestReasonDetail: '',
-    callType: 'incoming',
-    callReasonId: '',
-    callResult: '',
-    callNotes: '', // New field
-    callDurationMinutes: '',
-    callDurationSeconds: '',
+  const [formData, setFormData] = useState<FormData>(() => {
+    // Initialize with initialFormData if available, otherwise use default values
+    if (initialFormData) {
+      return initialFormData as unknown as FormData;
+    }
+    const defaultData: FormData = {
+      name: isPhoneNumber ? '' : initialQuery,
+      phone: isPhoneNumber ? initialQuery : '',
+      governorateId: '',
+      cityId: '',
+      address: '',
+      notes: '',
+      requestType: 'call' as const,
+      productId: '',
+      brandId: '',
+      quantity: '',
+      length: '',
+      width: '',
+      height: '',
+      purchaseDate: '',
+      purchasePlace: '',
+      requestReasonId: '',
+      requestReasonDetail: '',
+      callType: 'incoming' as const,
+      callReasonId: '',
+      callResult: '',
+      callNotes: '', // New field
+      callDurationMinutes: '',
+      callDurationSeconds: '',
+    };
+    return defaultData;
   });
 
   const [governorates, setGovernorates] = useState<Governorate[]>([]);
@@ -130,9 +146,62 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
   const [products, setProducts] = useState<Product[]>([]); // Store full products array
   const [companies, setCompanies] = useState<DropdownOption[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [hasChanges, setHasChanges] = useState(!!initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<string | null>(null);
+  
+  // Ref to track the last form data we sent to parent to prevent infinite loops
+  const lastFormDataRef = useRef<Record<string, unknown> | null>(null);
+  const lastTabNameRef = useRef<string>('');
+
+  // Debug: Monitor callType changes (only log when callType actually changes)
+  useEffect(() => {
+    // Only log when callType changes and form is active to reduce noise
+    // Commented out for better performance
+    // if (formData.callType && isActive) {
+    //   console.log('🔄 Call type changed to:', formData.callType);
+    // }
+  }, [formData.callType, isActive]);
+
+
+  // Track form changes and notify parent with debounce (only when active)
+  useEffect(() => {
+    if (onFormChange && hasChanges && isActive) {
+      // Only notify parent if form data has actually changed
+      const formDataString = JSON.stringify(formData);
+      const lastFormDataString = JSON.stringify(lastFormDataRef.current);
+      
+      if (formDataString !== lastFormDataString) {
+        lastFormDataRef.current = formData as unknown as Record<string, unknown>;
+        
+        // Debounce the form change notification with longer delay for better performance
+        const timeoutId = setTimeout(() => {
+          onFormChange(formData as unknown as Record<string, unknown>);
+        }, 1000);
+        
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, [formData, hasChanges, onFormChange, isActive]);
+
+  // Update tab name when customer name changes with debounce (only when active)
+  useEffect(() => {
+    if (onTabNameUpdate && formData.name && formData.name.trim() && isActive) {
+      const tabName = `New Record: ${formData.name.substring(0, 20)}${formData.name.length > 20 ? '...' : ''}`;
+      
+      // Only update if the tab name has actually changed
+      if (tabName !== lastTabNameRef.current) {
+        lastTabNameRef.current = tabName;
+        
+        // Debounce the tab name update
+        const timeoutId = setTimeout(() => {
+          onTabNameUpdate(tabName);
+        }, 1000);
+        
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, [formData.name, onTabNameUpdate, isActive]);
 
   // Load dropdown data
   useEffect(() => {
@@ -162,15 +231,11 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
         const loadedProducts: Product[] = Array.isArray(productsData) ? productsData as Product[] : ((productsData as { data: Product[] })?.data || []);
         const companies = Array.isArray(companiesData) ? companiesData : ((companiesData as unknown as { data: DropdownOption[] })?.data || []);
 
-        console.log('Loaded governorates:', governorates);
-        console.log('Loaded companies:', companies);
-
         setGovernorates(governorates);
         setCallCategories(callCategories);
         setTicketCategories(ticketCategories);
         setRequestReasons(requestReasons);
         setProducts(loadedProducts);
-        console.log('Loaded products:', products);
         setCompanies(companies);
       } catch (error) {
         console.error('Error loading dropdown data:', error);
@@ -178,14 +243,12 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
     };
 
     loadData();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Update cities when governorate changes
   useEffect(() => {
     if (formData.governorateId) {
       const selectedGovernorate = governorates.find(g => g.id.toString() === formData.governorateId);
-      console.log('Selected Governorate:', selectedGovernorate);
-      console.log('Available cities:', selectedGovernorate?.cities);
       const citiesData = selectedGovernorate?.cities || [];
       setCities(citiesData);
       setFormData(prev => ({ ...prev, cityId: '' }));
@@ -202,6 +265,11 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
   };
 
   const handleRadioChange = (field: keyof FormData, value: string) => {
+    // Only log if the value is actually changing to reduce noise
+    // Commented out for better performance
+    // if (formData[field] !== value) {
+    //   console.log('🔘 Radio button clicked:', { field, value, tabId });
+    // }
     setFormData(prev => ({ ...prev, [field]: value }));
     setHasChanges(true);
     setErrors(prev => ({ ...prev, [field]: '' })); // Clear error on radio change
@@ -244,6 +312,11 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
   };
 
   const handleSubmit = async () => {
+    console.log('📝 SUBMIT STARTED');
+    console.log('📝 Current form data:', formData);
+    console.log('📝 Call type at submit:', formData.callType);
+    console.log('📝 Request type at submit:', formData.requestType);
+    
     if (!hasChanges) return;
     if (!validateForm()) return;
 
@@ -284,7 +357,12 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
         callDurationString = '00:00';
       }
 
+      console.log('📝 Request type check:', formData.requestType);
+      
       if (formData.requestType === 'call') {
+        console.log('📝 Creating customer with CALL');
+        console.log('📝 Call type being sent:', formData.callType);
+        
         // Create customer with call
         const callData = {
           ...customerData,
@@ -296,8 +374,13 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
             callDuration: callDurationString
           }
         };
+        
+        console.log('📝 Call data being sent to API:', callData);
         result = await createCustomerWithCall(callData);
+        console.log('📝 API response:', result);
       } else {
+        console.log('📝 Creating customer with TICKET (maintenance)');
+        console.log('📝 Call type for ticket:', formData.callType);
         // Create customer with ticket (maintenance)
         const ticketData = {
           ...customerData,
@@ -308,7 +391,7 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
             priority: "medium",
             ticketItems: [{
               productId: parseInt(formData.productId),
-              productSize: formData.size,
+              productSize: `${formData.length || ''} × ${formData.width || ''} × ${formData.height || ''}`.replace(/^ × | × $|^ × × $/g, '').trim(),
               quantity: parseInt(formData.quantity) || 1,
               purchaseDate: formData.purchaseDate ? formData.purchaseDate : null,
               purchaseLocation: formData.purchasePlace,
@@ -325,7 +408,10 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
             }
           }
         };
+        
+        console.log('📝 Ticket data being sent to API:', ticketData);
         result = await createCustomerWithTicket(ticketData);
+        console.log('📝 API response:', result);
       }
 
       if (onSubmit) {
@@ -334,32 +420,8 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
         onSubmit(customerId, formData.name);
       }
 
-      // Reset form
-      setFormData({
-        name: '',
-        phone: '',
-        governorateId: '',
-        cityId: '',
-        address: '',
-        notes: '',
-        requestType: 'call',
-        productId: '',
-        brandId: '',
-        quantity: '',
-        size: '',
-        purchaseDate: '',
-        purchasePlace: '',
-        requestReasonId: '',
-        requestReasonDetail: '',
-        callType: 'incoming',
-        callReasonId: '',
-        callResult: '',
-        callNotes: '', // Reset new field
-        callDurationMinutes: '',
-        callDurationSeconds: '',
-      });
-
-      setHasChanges(false);
+      // Don't reset form here - let the parent component handle clearing the form data
+      // The parent will clear the form data after successful submission
       setToast('تم حفظ البيانات بنجاح');
       // Redirect to customer data page
       const customerId = result?.data?.id;
@@ -377,7 +439,7 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
   const toggleForms = (type: 'maintenance' | 'call') => {
     setFormData(prev => ({ ...prev, requestType: type }));
     setHasChanges(true);
-    setErrors(prev => ({ ...prev, productId: '', brandId: '', quantity: '', size: '', purchaseDate: '', purchasePlace: '', requestReasonId: '', requestReasonDetail: '', callReasonId: '', callResult: '', callNotes: '', callDurationMinutes: '', callDurationSeconds: '' })); // Clear maintenance fields on toggle
+    setErrors(prev => ({ ...prev, productId: '', brandId: '', quantity: '', length: '', width: '', height: '', purchaseDate: '', purchasePlace: '', requestReasonId: '', requestReasonDetail: '', callReasonId: '', callResult: '', callNotes: '', callDurationMinutes: '', callDurationSeconds: '' })); // Clear maintenance fields on toggle
   };
 
   // UI/UX: Increased spacing and input sizes
@@ -611,30 +673,82 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
                     </label>
                     {errors.quantity && <div style={{ color: '#d32f2f', fontSize: '14px', marginTop: '4px' }}>{errors.quantity}</div>}
                   </div>
-                  <div style={{ position: 'relative', marginBottom: '10px' }}>
-                    <input
-                      type="text"
-                      value={formData.size}
-                      onChange={handleInputChange('size')}
-                      placeholder=" "
-                      style={inputStyle}
-                    />
-                    <label style={{
-                      position: 'absolute',
-                      right: formData.size ? '8px' : '12px',
-                      top: formData.size ? '-12px' : '50%',
-                      transform: formData.size ? 'none' : 'translateY(-50%)',
-                      color: formData.size ? '#007bff' : '#6c757d',
-                      fontSize: formData.size ? '12px' : '14px',
-                      background: formData.size ? '#fff' : 'transparent',
-                      padding: formData.size ? '0 6px' : '0 4px',
-                      zIndex: 2,
-                      transition: '0.15s all',
-                      pointerEvents: 'none'
-                    }}>
-                      مقاس
-                    </label>
-                    {errors.size && <div style={{ color: '#d32f2f', fontSize: '14px', marginTop: '4px' }}>{errors.size}</div>}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                    <div style={{ position: 'relative', marginBottom: '10px' }}>
+                      <input
+                        type="text"
+                        value={formData.length}
+                        onChange={handleInputChange('length')}
+                        placeholder=" "
+                        style={inputStyle}
+                      />
+                      <label style={{
+                        position: 'absolute',
+                        right: formData.length ? '8px' : '12px',
+                        top: formData.length ? '-12px' : '50%',
+                        transform: formData.length ? 'none' : 'translateY(-50%)',
+                        color: formData.length ? '#007bff' : '#6c757d',
+                        fontSize: formData.length ? '12px' : '14px',
+                        background: formData.length ? '#fff' : 'transparent',
+                        padding: formData.length ? '0 6px' : '0 4px',
+                        zIndex: 2,
+                        transition: '0.15s all',
+                        pointerEvents: 'none'
+                      }}>
+                        طول
+                      </label>
+                      {errors.length && <div style={{ color: '#d32f2f', fontSize: '14px', marginTop: '4px' }}>{errors.length}</div>}
+                    </div>
+                    <div style={{ position: 'relative', marginBottom: '10px' }}>
+                      <input
+                        type="text"
+                        value={formData.width}
+                        onChange={handleInputChange('width')}
+                        placeholder=" "
+                        style={inputStyle}
+                      />
+                      <label style={{
+                        position: 'absolute',
+                        right: formData.width ? '8px' : '12px',
+                        top: formData.width ? '-12px' : '50%',
+                        transform: formData.width ? 'none' : 'translateY(-50%)',
+                        color: formData.width ? '#007bff' : '#6c757d',
+                        fontSize: formData.width ? '12px' : '14px',
+                        background: formData.width ? '#fff' : 'transparent',
+                        padding: formData.width ? '0 6px' : '0 4px',
+                        zIndex: 2,
+                        transition: '0.15s all',
+                        pointerEvents: 'none'
+                      }}>
+                        عرض
+                      </label>
+                      {errors.width && <div style={{ color: '#d32f2f', fontSize: '14px', marginTop: '4px' }}>{errors.width}</div>}
+                    </div>
+                    <div style={{ position: 'relative', marginBottom: '10px' }}>
+                      <input
+                        type="text"
+                        value={formData.height}
+                        onChange={handleInputChange('height')}
+                        placeholder=" "
+                        style={inputStyle}
+                      />
+                      <label style={{
+                        position: 'absolute',
+                        right: formData.height ? '8px' : '12px',
+                        top: formData.height ? '-12px' : '50%',
+                        transform: formData.height ? 'none' : 'translateY(-50%)',
+                        color: formData.height ? '#007bff' : '#6c757d',
+                        fontSize: formData.height ? '12px' : '14px',
+                        background: formData.height ? '#fff' : 'transparent',
+                        padding: formData.height ? '0 6px' : '0 4px',
+                        zIndex: 2,
+                        transition: '0.15s all',
+                        pointerEvents: 'none'
+                      }}>
+                        ارتفاع
+                      </label>
+                      {errors.height && <div style={{ color: '#d32f2f', fontSize: '14px', marginTop: '4px' }}>{errors.height}</div>}
+                    </div>
                   </div>
                 </div>
 
@@ -763,7 +877,7 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
                     }}>
                       <input
                         type="radio"
-                        name="callTypeMaintenance"
+                        name={`callTypeMaintenance-${tabId}`}
                         value="outgoing"
                         checked={formData.callType === 'outgoing'}
                         onChange={() => handleRadioChange('callType', 'outgoing')}
@@ -784,7 +898,7 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
                     }}>
                       <input
                         type="radio"
-                        name="callTypeMaintenance"
+                        name={`callTypeMaintenance-${tabId}`}
                         value="incoming"
                         checked={formData.callType === 'incoming'}
                         onChange={() => handleRadioChange('callType', 'incoming')}
@@ -963,7 +1077,7 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
                     }}>
                       <input
                         type="radio"
-                        name="callType"
+                        name={`callType-${tabId}`}
                         value="outgoing"
                         checked={formData.callType === 'outgoing'}
                         onChange={() => handleRadioChange('callType', 'outgoing')}
@@ -984,7 +1098,7 @@ export function NewRecordForm({ initialQuery = '', onSubmit,  }: NewRecordFormPr
                     }}>
                       <input
                         type="radio"
-                        name="callType"
+                        name={`callType-${tabId}`}
                         value="incoming"
                         checked={formData.callType === 'incoming'}
                         onChange={() => handleRadioChange('callType', 'incoming')}

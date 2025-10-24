@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Button, Row, Col, Radio, ConfigProvider, notification, InputNumber } from 'antd';
 import moment from 'moment';
 import { getCallCategories } from '../../../api';
@@ -13,8 +13,11 @@ const { TextArea } = Input;
 interface AddNewTicketModalProps {
   onClose: () => void;
   onSave: (ticketData: Record<string, unknown>) => void;
+  onFormChange: (formData: Record<string, unknown>) => void; // Form change handler
   customerName: string;
   customerId: number;
+  initialFormData?: Record<string, unknown> | null;
+  visible: boolean;
 }
 
 interface MasterDataItem {
@@ -50,7 +53,7 @@ const mockCallCategories = [
 ];
 
 
-export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicketModalProps) {
+export function AddNewTicketModal({ onClose, onSave, onFormChange, customerName, initialFormData, visible }: AddNewTicketModalProps): JSX.Element {
   const [form] = Form.useForm();
   const [api, contextHolder] = notification.useNotification();
   const [callCategories, setCallCategories] = useState<MasterDataItem[]>([]);
@@ -102,6 +105,28 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
     fetchMasterData();
   }, [api]);
 
+  // Debounced form change handler
+  const debouncedFormChange = useCallback(
+    (allValues: Record<string, unknown>) => {
+      const timeoutId = setTimeout(() => {
+        onFormChange(allValues);
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    },
+    [onFormChange]
+  );
+
+  // Restore form data when modal opens
+  useEffect(() => {
+    if (initialFormData) {
+      form.setFieldsValue(initialFormData);
+      // Also restore the selected company state
+      if (initialFormData.companyId) {
+        setSelectedCompany(initialFormData.companyId as number);
+      }
+    }
+  }, [initialFormData, form]);
+
   const handleSave = () => {
     form.validateFields().then(values => {
       console.log('Form values:', values);
@@ -120,7 +145,7 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
         item: {
           productId: values.productId,
           quantity: values.quantity,
-          productSize: values.productSize || '',
+          productSize: `${values.length || ''} × ${values.width || ''} × ${values.height || ''}`.replace(/^ × | × $|^ × × $/g, '').trim(),
           purchaseDate: values.purchaseDate.format('YYYY-MM-DD'),
           purchaseLocation: values.purchaseLocation,
           requestReasonId: values.requestReasonId,
@@ -129,7 +154,7 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
       };
       console.log('Ticket data to save:', ticketData);
       onSave(ticketData);
-      form.resetFields();
+      // Don't reset fields here - let the parent component handle clearing the form data
     }).catch(info => {
       console.log('Validate Failed:', info);
       api.error({
@@ -144,8 +169,9 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
       {contextHolder}
       <Modal
         title={`إضافة تذكرة جديدة لـ ${customerName}`}
-        open={true}
+        open={visible}
         onCancel={onClose}
+        destroyOnHidden={false}
         width={960}
         footer={[
           <Button key="back" onClick={onClose}>
@@ -156,11 +182,11 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
           </Button>,
         ]}
         styles={{
-          body: { backgroundColor: '#f0f2f5', padding: '16px' },
+          body: { backgroundColor: '#f0f2f5', padding: '12px' },
           header: { 
             backgroundColor: '#fff', 
             borderBottom: '1px solid #e8e8e8',
-            padding: '16px 24px',
+            padding: '12px 20px',
             margin: 0
           },
           content: {
@@ -169,7 +195,7 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
           footer: { 
             backgroundColor: '#fff', 
             borderTop: '1px solid #e8e8e8', 
-            padding: '12px 24px', 
+            padding: '8px 20px', 
             margin: 0
           }
         }}
@@ -179,17 +205,25 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
           layout="vertical"
           name="addNewTicketForm"
           className={styles.compactForm}
+          key={initialFormData ? 'restored' : 'new'}
           initialValues={{
             priority: 'low',
             quantity: 1,
             purchaseDate: moment(),
             callType: 'incoming',
           }}
+          onValuesChange={(changedValues, allValues) => {
+            debouncedFormChange(allValues);
+          }}
+          onFieldsChange={() => {
+            const allValues = form.getFieldsValue();
+            debouncedFormChange(allValues);
+          }}
         >
-          <Row gutter={24}>
+          <Row gutter={16}>
             {/* Right Column (as it's RTL) */}
             <Col span={12}>
-              <Row gutter={16}>
+              <Row gutter={12}>
                 <Col span={12}>
                   <Form.Item name="priority" label={<span className={styles.formLabel}>الأولوية</span>} rules={[{ required: true }]}>
                     <Select size="small" placeholder="اختر الأولوية">
@@ -216,10 +250,10 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
               </Row>
 
               <Form.Item name="description" label={<span className={styles.formLabel}>وصف التذكرة</span>}>
-                <TextArea size="small" rows={3} placeholder="أدخل وصفًا تفصيليًا للتذكرة" />
+                <TextArea size="small" rows={2} placeholder="أدخل وصفًا تفصيليًا للتذكرة" />
               </Form.Item>
 
-              <Row gutter={16}>
+              <Row gutter={12}>
                 <Col span={12}>
                   <Form.Item name="companyId" label={<span className={styles.formLabel}>الشركة المصنعة</span>} rules={[{ required: true }]}>
                     <Select
@@ -255,12 +289,25 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
                 </Col>
               </Row>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="productSize" label={<span className={styles.formLabel}>حجم المنتج</span>}>
-                    <Input size="small" placeholder="مثال: 250مل" />
+              <Row gutter={12}>
+                <Col span={8}>
+                  <Form.Item name="length" label={<span className={styles.formLabel}>طول</span>}>
+                    <Input size="small" placeholder="مثال: 200" />
                   </Form.Item>
                 </Col>
+                <Col span={8}>
+                  <Form.Item name="width" label={<span className={styles.formLabel}>عرض</span>}>
+                    <Input size="small" placeholder="مثال: 150" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="height" label={<span className={styles.formLabel}>ارتفاع</span>}>
+                    <Input size="small" placeholder="مثال: 100" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={12}>
                 <Col span={12}>
                   <Form.Item 
                     name="quantity" 
@@ -278,7 +325,7 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
                 </Col>
               </Row>
               
-              <Row gutter={16}>
+              <Row gutter={12}>
                 <Col span={12}>
                   <Form.Item 
                     name="purchaseDate" 
@@ -313,7 +360,7 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
               </Form.Item>
 
               <Form.Item name="requestReasonDetail" label={<span className={styles.formLabel}>تفاصيل سبب الطلب</span>} rules={[{ required: true, message: 'يرجى إدخال تفاصيل سبب الطلب' }]}>
-                <TextArea size="small" rows={3} placeholder="أدخل تفاصيل إضافية" />
+                <TextArea size="small" rows={2} placeholder="أدخل تفاصيل إضافية" />
               </Form.Item>
             </Col>
 
@@ -340,7 +387,7 @@ export function AddNewTicketModal({ onClose, onSave, customerName }: AddNewTicke
               </Form.Item>
 
               <Form.Item name="callDescription" label={<span className={styles.formLabel}>وصف المكالمة</span>}>
-                <TextArea size="small" rows={4} placeholder="أدخل وصفًا تفصيليًا للمكالمة" />
+                <TextArea size="small" rows={3} placeholder="أدخل وصفًا تفصيليًا للمكالمة" />
               </Form.Item>
             </Col>
           </Row>

@@ -405,13 +405,17 @@ Future<List<Map<String, dynamic>>> _getCustomerTickets(int customerId) async {
           t.priority,
           t.ticket_cat_id,
           t.printing_notes,
+          t.closing_notes,
+          t.closed_by,
           u.name as createdByName,
+          closedByUser.name as closedByName,
           cat.name AS categoryName,
           t.created_at,
           t.updated_at,
           t.closed_at
       FROM tickets t
       LEFT JOIN users u ON t.created_by = u.id
+      LEFT JOIN users closedByUser ON t.closed_by = closedByUser.id
       LEFT JOIN ticket_categories cat ON t.ticket_cat_id = cat.id
       WHERE t.customer_id = ?
       ORDER BY t.created_at DESC
@@ -435,7 +439,9 @@ Future<List<Map<String, dynamic>>> _getCustomerTickets(int customerId) async {
         'status': ticket['status'],
         'priority': ticket['priority'],
         'printingNotes': _blobToString(ticket['printing_notes']),
+        'closingNotes': _blobToString(ticket['closing_notes']),
         'createdBy': _blobToString(ticket['createdByName']),
+        'closedBy': _blobToString(ticket['closedByName']),
         'closedAt': ticket['closed_at']?.toString(),
         'ticketItems': items,
         'calls': calls,

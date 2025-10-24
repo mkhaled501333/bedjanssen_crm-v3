@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import navStyles from './navigation.module.css';
 import { SearchBar } from '../features/search';
 import { DEFAULT_APPS } from '../shared/constants';
@@ -20,6 +20,9 @@ export default function Home() {
   const [activeApp, setActiveApp] = useState('mail');
   const [activeTab, setActiveTab] = useState('home');
   const [tabs, setTabs] = useState<Array<{ id: string; name: string; icon: string; type: string; query?: string; customerId?: string }>>([{ id: 'home', name: 'Home', icon: '🏠', type: 'home' }]);
+  
+  // Form data for multiple NewRecordForm instances to persist across tab switches
+  const [newRecordFormData, setNewRecordFormData] = useState<Record<string, Record<string, unknown>>>({});
 
   // Start token monitoring when component mounts and user is authenticated
   useEffect(() => {
@@ -46,9 +49,10 @@ export default function Home() {
     
     // Create a new tab for the record form
     const newTabId = `new-record-${Date.now()}`;
+    const tabName = query ? `New Record: ${query.substring(0, 20)}${query.length > 20 ? '...' : ''}` : 'New Record';
     const newTab = {
       id: newTabId,
-      name: 'New Record',
+      name: tabName,
       icon: '📝',
       type: 'new-record',
       query: query
@@ -58,6 +62,38 @@ export default function Home() {
     setTabs(prevTabs => [...prevTabs, newTab]);
     setActiveTab(newTabId);
   };
+
+  const closeTab = useCallback((tabId: string) => {
+    if (tabId === 'home') return;
+    setTabs(tabs.filter(tab => tab.id !== tabId));
+    if (activeTab === tabId) {
+      setActiveTab('home');
+    }
+  }, [tabs, activeTab]);
+
+  const handleNewRecordFormChange = useCallback((tabId: string, formData: Record<string, unknown>) => {
+    setNewRecordFormData(prev => ({
+      ...prev,
+      [tabId]: formData
+    }));
+  }, []);
+
+  const handleCloseNewRecordForm = useCallback((tabId: string) => {
+    setNewRecordFormData(prev => {
+      const newData = { ...prev };
+      delete newData[tabId]; // Remove form data for this specific tab
+      return newData;
+    });
+    closeTab(tabId);
+  }, [closeTab]);
+
+  const handleUpdateTabName = useCallback((tabId: string, newName: string) => {
+    setTabs(prevTabs => 
+      prevTabs.map(tab => 
+        tab.id === tabId ? { ...tab, name: newName } : tab
+      )
+    );
+  }, []);
 
   const handleCustomerClick = (customerId: string, customerName: string) => {
     console.log('Opening customer:', customerId, customerName);
@@ -105,14 +141,6 @@ export default function Home() {
     setActiveTab(tabId);
   };
 
-  const closeTab = (tabId: string) => {
-    if (tabId === 'home') return;
-    setTabs(tabs.filter(tab => tab.id !== tabId));
-    if (activeTab === tabId) {
-      setActiveTab('home');
-    }
-  };
-
   const renderContent = () => {
     if (activeTab === 'home') {
       return (
@@ -140,58 +168,81 @@ export default function Home() {
       )
     }
 
-    switch (activeTabData.type) {
-      case 'new-record':
-        return activeTabData.query ? (
-          <NewRecordForm
-            initialQuery={activeTabData.query}
-            onSubmit={(customerId, customerName) => {
-              if (customerId) {
-                const newTabId = `customer-${customerId}-${Date.now()}`;
-                setTabs(prevTabs => {
-                  const updatedTabs = [
-                    ...prevTabs,
-                    {
-                      id: newTabId,
-                      name: customerName || 'Customer',
-                      icon: '👤',
-                      type: 'customer-data',
-                      customerId: customerId.toString(),
-                    },
-                  ];
-                  console.log('Tabs after adding new customer tab:', updatedTabs);
-                  return updatedTabs;
-                });
-                console.log('Switching to new tab:', newTabId);
-                setActiveTab(newTabId);
-              }
-            }}
-          />
-        ) : <p>No query provided</p>;
-      case 'customer-data':
-        return activeTabData.customerId ? (
-          <CustomerData
-            customerId={activeTabData.customerId}
-            onClose={() => closeTab(activeTab)}
-          />
-        ) : <p>No customer ID provided</p>;
-      case 'masterdata':
-        return <MasterData />;
-      case 'usermanagement':
-        return <UserManagement />;
-      case 'reports':
-        return <Reports />;
+    // Render all components but only show the active one
+    return (
+      <div>
+        {/* New Record Forms - render all but only show active */}
+        {tabs.filter(tab => tab.type === 'new-record').map(tab => (
+          <div key={tab.id} style={{ display: activeTab === tab.id ? 'block' : 'none' }}>
+            {tab.query ? (
+              <NewRecordForm
+                initialQuery={tab.query}
+                onSubmit={(customerId, customerName) => {
+                  if (customerId) {
+                    const newTabId = `customer-${customerId}-${Date.now()}`;
+                    setTabs(prevTabs => {
+                      const updatedTabs = [
+                        ...prevTabs,
+                        {
+                          id: newTabId,
+                          name: customerName || 'Customer',
+                          icon: '👤',
+                          type: 'customer-data',
+                          customerId: customerId.toString(),
+                        },
+                      ];
+                      console.log('Tabs after adding new customer tab:', updatedTabs);
+                      return updatedTabs;
+                    });
+                    console.log('Switching to new tab:', newTabId);
+                    setActiveTab(newTabId);
+                    // Clear form data for this specific tab after successful submission
+                    setNewRecordFormData(prev => {
+                      const newData = { ...prev };
+                      delete newData[tab.id];
+                      return newData;
+                    });
+                  }
+                }}
+                onFormChange={(formData) => handleNewRecordFormChange(tab.id, formData)}
+                initialFormData={newRecordFormData[tab.id] || null}
+                onCancel={() => handleCloseNewRecordForm(tab.id)}
+                onTabNameUpdate={(newName) => handleUpdateTabName(tab.id, newName)}
+                isActive={activeTab === tab.id}
+                tabId={tab.id}
+              />
+            ) : <p>No query provided</p>}
+          </div>
+        ))}
 
-      default:
-        return (
+        {/* Customer Data - render all but only show active */}
+        {tabs.filter(tab => tab.type === 'customer-data').map(tab => (
+          <div key={tab.id} style={{ display: activeTab === tab.id ? 'block' : 'none' }}>
+            {tab.customerId ? (
+              <CustomerData
+                customerId={tab.customerId}
+                onClose={() => closeTab(tab.id)}
+              />
+            ) : <p>No customer ID provided</p>}
+          </div>
+        ))}
+
+        {/* Other components */}
+        {activeTabData.type === 'masterdata' && <MasterData />}
+        {activeTabData.type === 'usermanagement' && <UserManagement />}
+        {activeTabData.type === 'reports' && <Reports />}
+
+        {/* Default content for other types */}
+        {!['new-record', 'customer-data', 'masterdata', 'usermanagement', 'reports'].includes(activeTabData.type) && (
           <div className={navStyles.defaultContent}>
             <div className={navStyles.defaultContentInner}>
               <h1 className={navStyles.defaultTitle}>{activeTabData.name}</h1>
               <p className={navStyles.defaultSubtitle}>Content for {activeTabData.name} goes here.</p>
             </div>
           </div>
-        );
-    }
+        )}
+      </div>
+    );
   };
 
   return (

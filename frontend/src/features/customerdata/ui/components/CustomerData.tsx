@@ -97,6 +97,9 @@ export function CustomerData({ customerId }: CustomerDataProps) {
   const [isCustomerActivityLogsModalOpen, setIsCustomerActivityLogsModalOpen] = useState(false);
   const [printingNotesText, setPrintingNotesText] = useState<string>('');
   const [isPrintingNotesDirty, setIsPrintingNotesDirty] = useState(false);
+  
+  // Form data for new ticket modal to persist across tab switches
+  const [newTicketFormData, setNewTicketFormData] = useState<Record<string, unknown> | null>(null);
 
 
   const getCompanyName = (companyId: number) => {
@@ -274,6 +277,15 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     }
   };
 
+  const handleCloseNewTicketModal = () => {
+    setAddNewTicketModalOpen(false);
+    setNewTicketFormData(null); // Clear form data when modal is closed
+  };
+
+  const handleNewTicketFormChange = (formData: Record<string, unknown>) => {
+    setNewTicketFormData(formData);
+  };
+
   const handleSaveTicket = async (ticketData: Record<string, unknown>) => {
     if (!customer) return;
 
@@ -337,6 +349,7 @@ export function CustomerData({ customerId }: CustomerDataProps) {
     try {
       await addCustomerTicket(newTicketData);
       setAddNewTicketModalOpen(false);
+      setNewTicketFormData(null); // Clear form data only after successful save
       refreshCustomerData();
     } catch (error) {
       console.error("Failed to add ticket:", error);
@@ -865,12 +878,15 @@ export function CustomerData({ customerId }: CustomerDataProps) {
           ticketId={selectedTicketForCategoryChange.ticketID}
         />
       )}
-      {isAddNewTicketModalOpen && customer && (
+      {customer && (
         <AddNewTicketModal
           customerName={customer.name}
           customerId={customer.id}
-          onClose={() => setAddNewTicketModalOpen(false)}
+          onClose={handleCloseNewTicketModal}
           onSave={handleSaveTicket}
+          onFormChange={handleNewTicketFormChange}
+          initialFormData={newTicketFormData}
+          visible={isAddNewTicketModalOpen}
         />
       )}
       {isAddNewItemModalOpen && activeTicket && (
@@ -1084,7 +1100,7 @@ export function CustomerData({ customerId }: CustomerDataProps) {
                 </div>
                 <div className={styles.callMainInfo}>
                   <div className={styles.callAgent}>👤 {call.createdBy}</div>
-                  <div className={styles.callCompany}>🏢 {getCompanyName(customer.companyId)}</div>
+                  <div className={styles.callCompany}>🏢 {getCompanyName(call.companyId)}</div>
                 </div>
                 <div className={styles.callCategoryWrapper}>
                   <div className={styles.callCategory}>{call.category}</div>
@@ -1212,27 +1228,51 @@ export function CustomerData({ customerId }: CustomerDataProps) {
                             <div className={styles.detailItem}><label>Category</label><span>{activeTicket.ticketCat}</span></div>
                             <div className={styles.detailItem}><label>Company</label><span>{getCompanyName(activeTicket.companyId)}</span></div>
                         </div>
-                        <div className={styles.printingNotesSection}>
-                          <label className={styles.printingNotesLabel}>ملاحظات الطباعة (Printing Notes)</label>
-                          <textarea
-                            className={styles.printingNotesTextarea}
-                            value={printingNotesText}
-                            onChange={(e) => {
-                              setPrintingNotesText(e.target.value);
-                              setIsPrintingNotesDirty(true);
-                            }}
-                            disabled={activeTicket.status === 1}
-                            placeholder="أدخل ملاحظات الطباعة هنا..."
-                            rows={3}
-                          />
-                          {isPrintingNotesDirty && (
-                            <button
-                              className={styles.savePrintingNotesBtn}
-                              onClick={handleSavePrintingNotes}
+                        <div className={styles.notesContainer}>
+                          <div className={styles.printingNotesSection}>
+                            <label className={styles.printingNotesLabel}>ملاحظات الطباعة (Printing Notes)</label>
+                            <textarea
+                              className={styles.printingNotesTextarea}
+                              value={printingNotesText}
+                              onChange={(e) => {
+                                setPrintingNotesText(e.target.value);
+                                setIsPrintingNotesDirty(true);
+                              }}
                               disabled={activeTicket.status === 1}
-                            >
-                              💾 حفظ الملاحظات
-                            </button>
+                              placeholder="أدخل ملاحظات الطباعة هنا..."
+                              rows={3}
+                            />
+                            {isPrintingNotesDirty && (
+                              <button
+                                className={styles.savePrintingNotesBtn}
+                                onClick={handleSavePrintingNotes}
+                                disabled={activeTicket.status === 1}
+                              >
+                                💾 حفظ الملاحظات
+                              </button>
+                            )}
+                          </div>
+                          {activeTicket.status === 1 && (
+                            <div className={styles.closingNotesSection}>
+                              <label className={styles.closingNotesLabel}>Closing Notes</label>
+                              <textarea
+                                className={styles.closingNotesTextarea}
+                                value={activeTicket.closingNotes || 'No closing notes provided'}
+                                readOnly
+                                disabled
+                                rows={3}
+                              />
+                              <div className={styles.closingNotesMeta}>
+                                <span className={styles.closingNotesDate}>
+                                  Closed on: {activeTicket.closedAt ? formatShortDate(activeTicket.closedAt) : 'Unknown date'}
+                                </span>
+                                {activeTicket.closedBy && (
+                                  <span className={styles.closingNotesUser}>
+                                    by: {activeTicket.closedBy}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           )}
                         </div>
                         <div className={styles.ticketActionsStatic}>
@@ -1317,7 +1357,7 @@ export function CustomerData({ customerId }: CustomerDataProps) {
                                </div>
                                <div className={styles.callMainInfo}>
                                  <div className={styles.callAgent}>👤 {call.createdBy}</div>
-                                 <div className={styles.callCompany}>🏢 {getCompanyName(customer.companyId)}</div>
+                                 <div className={styles.callCompany}>🏢 {getCompanyName(call.companyId)}</div>
                                </div>
                                <div className={styles.callCategoryWrapper}>
                                  <div className={styles.callCategory}>{call.category}</div>

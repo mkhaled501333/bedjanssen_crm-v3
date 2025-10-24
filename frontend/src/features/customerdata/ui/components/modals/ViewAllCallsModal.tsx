@@ -5,6 +5,7 @@ export type ViewAllCallsModalProps = {
   onClose: () => void;
   calls: Array<{
     id: string;
+    companyId: number;
     callType: string;
     category: string;
     createdAt: string;
@@ -44,7 +45,7 @@ const formatTime = (dateString: string) => {
   return dateString;
 };
 
-export function ViewAllCallsModal({ onClose, calls, getCompanyName, companyId }: ViewAllCallsModalProps) {
+export function ViewAllCallsModal({ onClose, calls, getCompanyName }: ViewAllCallsModalProps) {
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
@@ -98,7 +99,7 @@ export function ViewAllCallsModal({ onClose, calls, getCompanyName, companyId }:
                       <span className={styles.agent}>👤 {call.createdBy}</span>
                     </td>
                     <td>
-                      <span className={styles.company}>🏢 {getCompanyName(companyId)}</span>
+                      <span className={styles.company}>🏢 {getCompanyName(call.companyId)}</span>
                     </td>
                     <td>
                       <span className={styles.description}>{call.description || '-'}</span>

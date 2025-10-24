@@ -120,7 +120,8 @@ Future<List<Map<String, dynamic>>> _getTicketsByIds(List<int> ticketIds) async {
       t.description,
       t.printing_notes as printingNotes,
       u.name as createdByName,
-      c.id as customerId
+      c.id as customerId,
+      t.created_at as ticketCreatedAt
     FROM tickets t
     LEFT JOIN customers c ON t.customer_id = c.id
     LEFT JOIN companies comp ON c.company_id = comp.id
@@ -158,6 +159,23 @@ Future<List<Map<String, dynamic>>> _getTicketsByIds(List<int> ticketIds) async {
              final phones = await _getCustomerPhones(row['customerId'] as int?);
       final items = await _getTicketItems(ticketId);
       
+      // Handle ticket creation date
+      String ticketCreatedAt = '';
+      try {
+        if (row['ticketCreatedAt'] != null) {
+          if (row['ticketCreatedAt'] is DateTime) {
+            ticketCreatedAt = (row['ticketCreatedAt'] as DateTime).toIso8601String().split('T')[0];
+          } else if (row['ticketCreatedAt'] is String) {
+            ticketCreatedAt = row['ticketCreatedAt'] as String;
+          } else {
+            ticketCreatedAt = row['ticketCreatedAt'].toString();
+          }
+        }
+      } catch (e) {
+        print('Error processing ticket creation date: $e');
+        ticketCreatedAt = '';
+      }
+
              final ticketData = {
         'id': ticketId,
         'customerName': row['customerName']?.toString() ?? '',
@@ -167,6 +185,7 @@ Future<List<Map<String, dynamic>>> _getTicketsByIds(List<int> ticketIds) async {
         'phones': phones,
         'createdByName': row['createdByName']?.toString() ?? '',
         'printingNotes': row['printingNotes']?.toString() ?? '',
+        'ticketCreatedAt': ticketCreatedAt,
         'items': items,
       };
        

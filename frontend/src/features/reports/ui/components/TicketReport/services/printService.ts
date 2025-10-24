@@ -9,6 +9,7 @@ interface PrintTicketData {
   phones: string[];
   createdByName: string;
   printingNotes?: string;
+  ticketCreatedAt: string;
   items: {
     productName: string;
     productSize: string;
@@ -64,7 +65,6 @@ export class PrintService {
   }
 
   private static generatePrintHTML(tickets: PrintTicketData[]): string {
-    const currentDate = new Date().toLocaleDateString('ar-EG');
     
     let html = `
       <!DOCTYPE html>
@@ -240,7 +240,7 @@ export class PrintService {
           
           <div class="customer-info">
             <div class="info-item">
-              <span class="info-label">التاريخ: <span class="info-value">${currentDate}</span></span>
+              <span class="info-label">التاريخ: <span class="info-value">${ticket.ticketCreatedAt || 'غير محدد'}</span></span>
             </div>
             <div class="info-item">
               <span class="info-label">اسم العميل: <span class="info-value">${ticket.customerName || 'غير محدد'}</span></span>
@@ -333,7 +333,6 @@ export class PrintService {
   }
 
   private static generateEnglanderPrintHTML(tickets: PrintTicketData[]): string {
-    const currentDate = new Date().toLocaleDateString('ar-EG');
     
     let html = `
       <!DOCTYPE html>
@@ -516,7 +515,7 @@ export class PrintService {
           
           <div class="customer-info">
             <div class="info-item">
-              <span class="info-label">التاريخ: <span class="info-value">${currentDate}</span></span>
+              <span class="info-label">التاريخ: <span class="info-value">${ticket.ticketCreatedAt || 'غير محدد'}</span></span>
             </div>
             <div class="info-item">
               <span class="info-label">اسم العميل: <span class="info-value">${ticket.customerName || 'غير محدد'}</span></span>

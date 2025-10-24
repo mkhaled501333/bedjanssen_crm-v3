@@ -281,10 +281,10 @@ int _getCallTypeId(String? callType) {
   final type = callType?.toLowerCase() ?? 'incoming';
   switch (type) {
     case 'incoming':
-      return 1;
+      return 0;
     case 'outgoing':
-      return 2;
-    default:
       return 1;
+    default:
+      return 0;
   }
 }
