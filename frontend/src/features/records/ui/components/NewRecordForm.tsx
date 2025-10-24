@@ -519,7 +519,8 @@ export function NewRecordForm({ initialQuery = '', onSubmit, onFormChange, initi
             background: 'white',
             borderRadius: '4px',
             padding: '18px',
-            border: '1px solid #ddd'
+            border: '1px solid #ddd',
+            flex: formData.requestType === 'maintenance' ? '0 0 40%' : '0 0 50%'
           }}>
             <div style={{
               backgroundColor: '#e8f5e8',
