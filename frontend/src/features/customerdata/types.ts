@@ -19,6 +19,7 @@ export interface TicketItem {
   purchaseDate: string;
   purchaseLocation: string;
   requestReasonId: number;
+  requestReasonName: string;
   requestReasonDetail: string;
   inspected?: boolean;
   inspectionDate?: string;

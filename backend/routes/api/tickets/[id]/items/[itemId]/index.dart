@@ -114,10 +114,11 @@ Future<Response> _handlePut(RequestContext context, String ticketId, String item
     // Fetch the updated item
     final updatedItem = await DatabaseService.queryOne(
       '''
-      SELECT ti.*, p.product_name as product_name, u.name AS createdByName
+      SELECT ti.*, p.product_name as product_name, u.name AS createdByName, rr.name AS request_reason_name
       FROM ticket_items ti
       LEFT JOIN product_info p ON ti.product_id = p.id
       LEFT JOIN users u ON ti.created_by = u.id
+      LEFT JOIN request_reasons rr ON ti.request_reason_id = rr.id
       WHERE ti.id = ?
       ''',
       parameters: [itId],
@@ -164,17 +165,10 @@ Future<Response> _handlePut(RequestContext context, String ticketId, String item
       print('Failed to log item update activity: $e');
     }
 
-    final detail = updatedItem['request_reason_detail'];
-    String? requestReasonDetailString;
-    if (detail != null) {
-      if (detail is Blob) {
-        requestReasonDetailString = utf8.decode(detail.toBytes());
-      } else {
-        requestReasonDetailString = detail.toString();
-      }
-    } else {
-      requestReasonDetailString = null;
-    }
+    final requestReasonDetailString =
+        _decodeSqlText(updatedItem['request_reason_detail']);
+    final requestReasonNameString =
+        _decodeSqlText(updatedItem['request_reason_name']);
 
     return Response.json(
       body: {
@@ -193,6 +187,7 @@ Future<Response> _handlePut(RequestContext context, String ticketId, String item
             'purchaseDate': updatedItem['purchase_date']?.toString(),
             'purchaseLocation': updatedItem['purchase_location'],
             'requestReasonId': updatedItem['request_reason_id'],
+            'requestReasonName': requestReasonNameString,
             'requestReasonDetail': requestReasonDetailString,
         }
       },
@@ -204,6 +199,16 @@ Future<Response> _handlePut(RequestContext context, String ticketId, String item
       body: {'success': false, 'message': 'Internal server error', 'error': e.toString()},
     );
   }
+}
+
+String? _decodeSqlText(dynamic value) {
+  if (value == null) {
+    return null;
+  }
+  if (value is Blob) {
+    return utf8.decode(value.toBytes());
+  }
+  return value.toString();
 }
 
 // DELETE to remove a ticket item

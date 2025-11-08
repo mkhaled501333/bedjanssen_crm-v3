@@ -268,7 +268,7 @@ Future<List<Map<String, dynamic>>> _getCustomerTickets(int customerId) async {
           'purchaseDate': item['purchase_date']?.toString(),
           'purchaseLocation': item['purchase_location'],
           'requestReasonId': item['request_reason_id'],
-          'requestReason': item['request_reason_name'] ?? 'Reason ID: ${item['request_reason_id']}',
+          'requestReasonName': item['request_reason_name'] ?? 'Reason ID: ${item['request_reason_id']}',
           'requestReasonDetail': item['request_reason_detail'],
           'inspected': item['inspected'] == 1,
           'inspectionDate': item['inspection_date']?.toString(),

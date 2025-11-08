@@ -1479,8 +1479,14 @@ export function CustomerData({ customerId }: CustomerDataProps) {
                                         </div>
                                         <div className={styles.detailRow}><span className={styles.detailLabel}>product Size</span><span className={styles.detailValue}>{item.productSize}</span></div>
                                         <div className={styles.requestSection}>
-                                            <div className={styles.detailRow}><span className={styles.detailLabel}>Request Reason</span></div>
-                                            <div className={styles.requestReason}>{item.requestReasonDetail}</div>
+                                            <div className={styles.detailRow}>
+                                                <span className={styles.detailLabel}>Request Reason</span>
+                                                <span className={styles.detailValue}>{item.requestReasonName || `Reason ID: ${item.requestReasonId}`}</span>
+                                            </div>
+                                            <div className={styles.detailRow}>
+                                                <span className={styles.detailLabel}>Details</span>
+                                                <span className={styles.requestReason}>{item.requestReasonDetail || '-'}</span>
+                                            </div>
                                         </div>
                                         <div className={styles.actionSection}>
                                             <div className={styles.dateInspection}>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Button, Row, Col, Radio, ConfigProvider, notification, InputNumber } from 'antd';
 import moment from 'moment';
 import { getCallCategories } from '../../../api';
@@ -117,15 +117,27 @@ export function AddNewTicketModal({ onClose, onSave, onFormChange, customerName,
   );
 
   // Restore form data when modal opens
+  const prevVisibleRef = useRef<boolean>(visible);
+
   useEffect(() => {
-    if (initialFormData) {
-      form.setFieldsValue(initialFormData);
-      // Also restore the selected company state
-      if (initialFormData.companyId) {
-        setSelectedCompany(initialFormData.companyId as number);
+    const wasVisible = prevVisibleRef.current;
+
+    if (visible && !wasVisible) {
+      if (initialFormData) {
+        form.setFieldsValue(initialFormData);
+        if (initialFormData.companyId) {
+          setSelectedCompany(initialFormData.companyId as number);
+        } else {
+          setSelectedCompany(null);
+        }
+      } else {
+        form.resetFields();
+        setSelectedCompany(null);
       }
     }
-  }, [initialFormData, form]);
+
+    prevVisibleRef.current = visible;
+  }, [visible, initialFormData, form]);
 
   const handleSave = () => {
     form.validateFields().then(values => {

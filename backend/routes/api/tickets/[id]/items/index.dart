@@ -64,10 +64,11 @@ Future<Response> _handleGet(RequestContext context, String id) async {
 
     final results = await DatabaseService.query(
       '''
-      SELECT ti.*, p.product_name as product_name, u.name AS createdByName
+      SELECT ti.*, p.product_name as product_name, u.name AS createdByName, rr.name AS request_reason_name
       FROM ticket_items ti
       LEFT JOIN product_info p ON ti.product_id = p.id
       LEFT JOIN users u ON ti.created_by = u.id
+      LEFT JOIN request_reasons rr ON ti.request_reason_id = rr.id
       WHERE ti.ticket_id = ?
       ORDER BY ti.created_at DESC
       ''',
@@ -76,17 +77,10 @@ Future<Response> _handleGet(RequestContext context, String id) async {
     );
 
     final items = results.map((item) {
-      final detail = item['request_reason_detail'];
-      String? requestReasonDetailString;
-      if (detail != null) {
-        if (detail is Blob) {
-          requestReasonDetailString = utf8.decode(detail.toBytes());
-        } else {
-          requestReasonDetailString = detail.toString();
-        }
-      } else {
-        requestReasonDetailString = null;
-      }
+      final requestReasonDetailString =
+          _decodeSqlText(item['request_reason_detail']);
+      final requestReasonNameString =
+          _decodeSqlText(item['request_reason_name']);
 
       return {
         'id': item['id'],
@@ -102,6 +96,7 @@ Future<Response> _handleGet(RequestContext context, String id) async {
         'purchaseDate': item['purchase_date']?.toString(),
         'purchaseLocation': item['purchase_location'],
         'requestReasonId': item['request_reason_id'],
+        'requestReasonName': requestReasonNameString,
         'requestReasonDetail': requestReasonDetailString,
       };
     }).toList();
@@ -212,10 +207,11 @@ Future<Response> _handlePost(RequestContext context, String id) async {
 
       final itemResult = await DatabaseService.queryOne(
         '''
-        SELECT ti.*, p.product_name as product_name, u.name AS createdByName
+        SELECT ti.*, p.product_name as product_name, u.name AS createdByName, rr.name AS request_reason_name
         FROM ticket_items ti
         LEFT JOIN product_info p ON ti.product_id = p.id
         LEFT JOIN users u ON ti.created_by = u.id
+        LEFT JOIN request_reasons rr ON ti.request_reason_id = rr.id
         WHERE ti.id = ?
         ''',
         parameters: [itemId],
@@ -226,17 +222,10 @@ Future<Response> _handlePost(RequestContext context, String id) async {
         return null;
       }
 
-      final detail = itemResult['request_reason_detail'];
-      String? requestReasonDetailString;
-      if (detail != null) {
-        if (detail is Blob) {
-          requestReasonDetailString = utf8.decode(detail.toBytes());
-        } else {
-          requestReasonDetailString = detail.toString();
-        }
-      } else {
-        requestReasonDetailString = null;
-      }
+      final requestReasonDetailString =
+          _decodeSqlText(itemResult['request_reason_detail']);
+      final requestReasonNameString =
+          _decodeSqlText(itemResult['request_reason_name']);
 
       return {
         'id': itemResult['id'],
@@ -252,6 +241,7 @@ Future<Response> _handlePost(RequestContext context, String id) async {
         'purchaseDate': itemResult['purchase_date']?.toString(),
         'purchaseLocation': itemResult['purchase_location'],
         'requestReasonId': itemResult['request_reason_id'],
+        'requestReasonName': requestReasonNameString,
         'requestReasonDetail': requestReasonDetailString,
       };
     });
@@ -338,4 +328,14 @@ Future<bool> _checkTicketExists(int ticketId) async {
   } catch (e) {
     return false;
   }
+}
+
+String? _decodeSqlText(dynamic value) {
+  if (value == null) {
+    return null;
+  }
+  if (value is Blob) {
+    return utf8.decode(value.toBytes());
+  }
+  return value.toString();
 }

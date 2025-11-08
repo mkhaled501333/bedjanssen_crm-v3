@@ -589,7 +589,7 @@ Future<List<Map<String, dynamic>>> _getTicketItems(int ticketId) async {
       'purchaseDate': item['purchase_date']?.toString(),
       'purchaseLocation': _blobToString(item['purchase_location']),
       'requestReasonId': item['request_reason_id'],
-      'requestReason': _blobToString(item['request_reason_name']),
+      'requestReasonName': _blobToString(item['request_reason_name']),
       'requestReasonDetail': _blobToString(item['request_reason_detail']),
       'inspected': item['inspected'] == 1,
       'inspectionDate': item['inspection_date']?.toString(),
