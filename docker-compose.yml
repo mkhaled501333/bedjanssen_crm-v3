@@ -61,6 +61,19 @@ services:
       - "8081:8080"
 
 
+  nginx:
+    image: nginx:alpine
+    container_name: janssencrm-nginx
+    restart: always
+    ports:
+      - "8081:443"  # HTTPS port for backend API
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+    command: ["nginx", "-g", "daemon off;"]
+
   frontend:
     build:
       context: ./frontend

@@ -20,7 +20,7 @@ const LoginPage = () => {
     setError('');
     try {
       const apiUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
-        ? `http://${window.location.hostname}:8081/api/auth/login`
+        ? `${window.location.protocol === 'https:' ? 'https' : 'http'}://${window.location.hostname}:8081/api/auth/login`
         : 'http://localhost:8081/api/auth/login';
       const res = await fetch(apiUrl, {
         method: 'POST',

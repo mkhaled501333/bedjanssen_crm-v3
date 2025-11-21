@@ -103,7 +103,9 @@ export function handleError(error: unknown): string {
 // Get dynamic API base URL
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return `http://${window.location.hostname}:8081`;
+    // Use HTTPS if the current page is served over HTTPS
+    const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
+    return `${protocol}://${window.location.hostname}:8081`;
   }
   return 'http://localhost:8081';
 }
