@@ -10,7 +10,7 @@ services:
       MYSQL_DATABASE: janssencrm
       TZ: Africa/Cairo   # <- هنا ضيفنا المنطقة الزمنية
     ports:
-      - "3307:3306"  # خارجي: داخلي
+      - "3306:3306"  # خارجي: داخلي
     volumes:
       - mysql_data:/var/lib/mysql
 
@@ -70,7 +70,7 @@ services:
     environment:
       NODE_ENV: production
     ports:
-      - "80:3000"
+      - "3000:3000"
 
 volumes:
   mysql_data:
