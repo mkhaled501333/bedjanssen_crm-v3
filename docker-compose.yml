@@ -68,8 +68,10 @@ services:
       - backend
     environment:
       NODE_ENV: production
+      # Optional: Set API URL for SSR if needed
+      # NEXT_PUBLIC_API_URL: https://janssencrm.cloud
     ports:
-      - "80:3000"
+      - "3000:3000"  # Changed from 80:3000 to avoid conflict with Caddy (which needs ports 80/443)
 
 volumes:
   mysql_data:
