@@ -101,12 +101,15 @@ export function handleError(error: unknown): string {
 }
 
 // Get dynamic API base URL
+// Returns the same origin as the website to work with Caddy reverse proxy
 export function getApiBaseUrl(): string {
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    // Always use HTTP for backend API
-    return `http://${window.location.hostname}:8081`;
+  if (typeof window !== 'undefined') {
+    // Use the same origin (HTTPS through Caddy proxy)
+    return window.location.origin;
   }
-  return 'http://localhost:8081';
+  // Server-side rendering fallback (Next.js)
+  // This will be handled by Next.js API routes or environment variable
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
 }
 
 // Authenticated fetch utility

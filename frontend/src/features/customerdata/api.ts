@@ -325,7 +325,7 @@ export async function updateTicketPrintingNotes(ticketId: string, printingNotes:
 
 export const getManufacturers = async () => {
   // FIXME: Update with the correct endpoint
-  const response = await authFetch('/api/masterdata/manufacturers');
+  const response = await authFetch(`${getApiBaseURL()}/api/masterdata/manufacturers`);
   if (!response.ok) {
     throw new Error('Failed to fetch manufacturers');
   }
@@ -334,7 +334,7 @@ export const getManufacturers = async () => {
 
 export const getProductsByManufacturer = async (manufacturerId: string) => {
   // FIXME: Update with the correct endpoint
-  const response = await authFetch(`/api/masterdata/products?manufacturerId=${manufacturerId}`);
+  const response = await authFetch(`${getApiBaseURL()}/api/masterdata/products?manufacturerId=${manufacturerId}`);
   if (!response.ok) {
     throw new Error('Failed to fetch products');
   }
@@ -342,8 +342,7 @@ export const getProductsByManufacturer = async (manufacturerId: string) => {
 };
 
 export const getRequestReasons = async () => {
-  // FIXME: Update with the correct endpoint
-  const response = await authFetch('/api/masterdata/request-reasons');
+  const response = await authFetch(`${getApiBaseURL()}/api/masterdata/request-reasons`);
   if (!response.ok) {
     throw new Error('Failed to fetch request reasons');
   }

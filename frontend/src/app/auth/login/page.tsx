@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { startTokenMonitoring } from '../../../shared/utils';
+import { startTokenMonitoring, getApiBaseUrl } from '../../../shared/utils';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -19,9 +19,7 @@ const LoginPage = () => {
     setLoading(true);
     setError('');
     try {
-      const apiUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
-        ? `http://${window.location.hostname}:8081/api/auth/login`
-        : 'http://localhost:8081/api/auth/login';
+      const apiUrl = `${getApiBaseUrl()}/api/auth/login`;
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
