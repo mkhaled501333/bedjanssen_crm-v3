@@ -13,6 +13,8 @@ services:
       - "3306:3306"  # خارجي: داخلي
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - shared_network
 
   adminer:
     image: adminer:latest
@@ -24,6 +26,8 @@ services:
       - mysql
     environment:
       ADMINER_DEFAULT_SERVER: mysql
+    networks:
+      - shared_network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
@@ -36,9 +40,12 @@ services:
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
+      PMA_ARBITRARY: 1  # Allow connections to any MySQL server
       UPLOAD_LIMIT: 512M
     volumes:
       - phpmyadmin_data:/var/lib/phpmyadmin
+    networks:
+      - shared_network
 
   portainer:
     image: portainer/portainer-ce:latest
@@ -77,3 +84,8 @@ volumes:
   mysql_data:
   phpmyadmin_data:
   portainer_data:
+
+networks:
+  shared_network:
+    name: shared_network
+    driver: bridge
